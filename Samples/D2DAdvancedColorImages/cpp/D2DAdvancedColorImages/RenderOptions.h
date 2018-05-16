@@ -22,9 +22,10 @@ namespace D2DAdvancedColorImages
     /// </summary>
     public enum class RenderEffectKind
     {
+        None,
+        WindowsTonemap,
         ReinhardTonemap,
         FilmicTonemap,
-        None,
         SdrOverlay,
         LuminanceHeatmap,
         SphereMap
@@ -68,9 +69,10 @@ namespace D2DAdvancedColorImages
             // The first index is chosen by default. Ensure this is in sync with DirectXPage.
             renderEffects = ref new Platform::Collections::VectorView<EffectOption^>
             {
+                ref new EffectOption(L"No effect", RenderEffectKind::None),
+                ref new EffectOption(L"Windows Tonemap", RenderEffectKind::WindowsTonemap),
                 ref new EffectOption(L"ACES Filmic Tonemap", RenderEffectKind::FilmicTonemap),
                 ref new EffectOption(L"Reinhard Tonemap", RenderEffectKind::ReinhardTonemap),
-                ref new EffectOption(L"No effect", RenderEffectKind::None),
                 ref new EffectOption(L"Draw SDR as grayscale", RenderEffectKind::SdrOverlay),
                 ref new EffectOption(L"Draw luminance as heatmap", RenderEffectKind::LuminanceHeatmap),
                 // TODO: Temporarily disable sphere map in UI for the upcoming app release.

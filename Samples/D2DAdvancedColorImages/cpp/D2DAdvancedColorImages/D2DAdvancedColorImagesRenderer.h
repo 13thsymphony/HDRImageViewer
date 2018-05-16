@@ -99,6 +99,7 @@ namespace D2DAdvancedColorImages
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_whiteScaleEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_reinhardEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_filmicEffect;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_winTonemapEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrOverlayEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_heatmapEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sphereMapEffect;

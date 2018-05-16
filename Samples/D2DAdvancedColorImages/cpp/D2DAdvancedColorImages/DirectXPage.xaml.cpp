@@ -305,7 +305,7 @@ void DirectXPage::UpdateDefaultRenderOptions()
     case AdvancedColorKind::WideColorGamut:
     default:
         // SDR and WCG images don't need to be tonemapped.
-        RenderEffectCombo->SelectedIndex = 2; // See RenderOptions.h for which value this indicates.
+        RenderEffectCombo->SelectedIndex = 0; // See RenderOptions.h for which value this indicates.
 
         // Manual brightness adjustment is only useful for HDR content.
         // SDR and WCG content is adjusted by the OS-provided AdvancedColorInfo::SdrWhiteLevel parameter.
@@ -314,23 +314,9 @@ void DirectXPage::UpdateDefaultRenderOptions()
         break;
 
     case AdvancedColorKind::HighDynamicRange:
-        auto acKind = m_dispInfo ? m_dispInfo->CurrentAdvancedColorKind : AdvancedColorKind::StandardDynamicRange;
-
-        switch (acKind)
-        {
-        case AdvancedColorKind::StandardDynamicRange:
-        case AdvancedColorKind::WideColorGamut:
-        default:
-            // HDR content + non-HDR display: HDR tonemapping is needed for correct rendering.
-            RenderEffectCombo->SelectedIndex = 0; // See RenderOptions.h for which value this indicates.
-            break;
-
-        case AdvancedColorKind::HighDynamicRange:
-            // HDR content + HDR display: HDR tonemapping is needed for best results, but this sample's
-            // tonemappers are very simple and not suitable, so just disable it.
-            RenderEffectCombo->SelectedIndex = 2; // See RenderOptions.h for which value this indicates.
-            break;
-        }
+        // HDR images need to be tonemapped.
+        RenderEffectCombo->SelectedIndex = 1; // See RenderOptions.h for which value this indicates.
+        break;
 
         // Manual brightness adjustment is useful for any HDR content.
         BrightnessAdjustPanel->Visibility = Windows::UI::Xaml::Visibility::Visible;

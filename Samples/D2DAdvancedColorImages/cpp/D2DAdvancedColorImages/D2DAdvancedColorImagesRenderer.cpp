@@ -31,10 +31,12 @@ using namespace Windows::Storage::Streams;
 using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
 
+static const float sc_DefaultDispMaxNits = 1499.0f;
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats.
 static const float sc_MinZoomSphereMap = 0.25f;
 static const float sc_nominalRefWhite = 80.0f; // Nominal white nits for sRGB and scRGB.
+static const float sc_DefaultImageMaxCLL = 4000.0f;
 
 // 400 bins with gamma of 10 lets us measure luminance to within 10% error for any
 // luminance above ~1.5 nits, up to 1 million nits.
@@ -133,7 +135,7 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     // after the effect as their numerical output is affected by any luminance boost.
     switch (m_renderEffectKind)
     {
-    // Effect graph: ImageSource > ColorManagement > WhiteScale > Reinhard
+    // Effect graph: ImageSource > ColorManagement > WhiteScale > ReinhardTonemap
     case RenderEffectKind::ReinhardTonemap:
         m_finalOutput = m_reinhardEffect.Get();
         m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
@@ -142,6 +144,12 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     // Effect graph: ImageSource > ColorManagement > WhiteScale > FilmicTonemap
     case RenderEffectKind::FilmicTonemap:
         m_finalOutput = m_filmicEffect.Get();
+        m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+        break;
+
+    // Effect graph: ImageSource > ColorManagement > WhiteScale > WindowsTonemap
+    case RenderEffectKind::WindowsTonemap:
+        m_finalOutput = m_winTonemapEffect.Get();
         m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
         break;
 
@@ -173,6 +181,23 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
         throw ref new NotImplementedException();
         break;
     }
+
+    // Update HDR tonemappers with display information.
+    if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+    {
+        DX::ThrowIfFailed(
+            m_winTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_HDR));
+    }
+    else
+    {
+        DX::ThrowIfFailed(
+            m_winTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
+    }
+
+    // A luminance value of 0 means it is unknown, so we pick a default value. Many HDR TVs do not report HDR metadata.
+    float maxNits = m_dispInfo->MaxLuminanceInNits == 0 ? sc_DefaultDispMaxNits : m_dispInfo->MaxLuminanceInNits;
+
+    DX::ThrowIfFailed(m_winTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, maxNits));
 
     Draw();
 }
@@ -361,6 +386,10 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
         );
 
     DX::ThrowIfFailed(
+        context->CreateEffect(CLSID_D2D1HdrToneMap, &m_winTonemapEffect)
+        );
+
+    DX::ThrowIfFailed(
         context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect)
         );
 
@@ -532,6 +561,7 @@ void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
     m_whiteScaleEffect.Reset();
     m_reinhardEffect.Reset();
     m_filmicEffect.Reset();
+    m_winTonemapEffect.Reset();
     m_sdrOverlayEffect.Reset();
     m_heatmapEffect.Reset();
     m_histogramPrescale.Reset();
@@ -977,6 +1007,16 @@ void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
     if (m_imageInfo.isXboxHdrScreenshot && m_maxCLL <= 80.0f)
     {
         m_maxCLL = -1.0f;
+    }
+
+    // Update HDR tonemappers with the computed MaxCLL.
+    if (m_maxCLL != -1)
+    {
+        m_winTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, m_maxCLL);
+    }
+    else
+    {
+        m_winTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, sc_DefaultImageMaxCLL);
     }
 }
 
