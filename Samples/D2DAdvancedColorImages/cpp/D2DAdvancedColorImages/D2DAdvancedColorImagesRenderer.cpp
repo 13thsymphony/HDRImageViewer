@@ -146,7 +146,7 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
         m_finalOutput = m_filmicEffect.Get();
         m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
         break;
-
+        // TODO: WhiteScale after tonemap.
     // Effect graph: ImageSource > ColorManagement > WhiteScale > WindowsTonemap
     case RenderEffectKind::WindowsTonemap:
         m_finalOutput = m_winTonemapEffect.Get();
