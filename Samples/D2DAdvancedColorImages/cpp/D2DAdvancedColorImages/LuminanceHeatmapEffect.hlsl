@@ -22,9 +22,9 @@
 //    10.0  Cyan
 //    31.6  Green
 //   100.0  Yellow
-//   316.0  Orange
-//  1000.0  Red
-//  3160.0  Magenta
+//   316.0  Red
+//  1000.0  Magenta
+//  3160.0  Gray
 // 10000.0  White
 // This approximates a logarithmic plot where two colors represent one order of magnitude in nits.
 
@@ -44,11 +44,11 @@
 #define STOP2_COLOR float4(0.0f, 1.0f, 1.0f, 1.0f) // Cyan
 #define STOP3_COLOR float4(0.0f, 1.0f, 0.0f, 1.0f) // Green
 #define STOP4_COLOR float4(1.0f, 1.0f, 0.0f, 1.0f) // Yellow
-#define STOP5_COLOR float4(1.0f, 0.2f, 0.0f, 1.0f) // Orange
-// Orange isn't a simple combination of primary colors but allows us to have 8 gradient segments,
-// which gives us cleaner definitions for the nits --> color mappings.
-#define STOP6_COLOR float4(1.0f, 0.0f, 0.0f, 1.0f) // Red
-#define STOP7_COLOR float4(1.0f, 0.0f, 1.0f, 1.0f) // Magenta
+#define STOP5_COLOR float4(1.0f, 0.0f, 0.0f, 1.0f) // Red
+#define STOP6_COLOR float4(1.0f, 0.0f, 1.0f, 1.0f) // Magenta
+#define STOP7_COLOR float4(0.25f, 0.25f, 0.25f, 1.0f) // Gray
+// Gray is not a vertex on the RGB color cube, but adding it gives us 9 stops which makes
+// the nits values of each stop cleaner.
 #define STOP8_COLOR float4(1.0f, 1.0f, 1.0f, 1.0f) // White
 
 cbuffer constants : register(b0)

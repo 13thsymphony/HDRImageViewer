@@ -1,0 +1,1 @@
+MainPackage=C:\Source\collections.universal\Samples\D2DAdvancedColorImages\cpp\x64\Release\D2DAdvancedColorImages\D2DAdvancedColorImages_1.0.0.0_x64.appx
