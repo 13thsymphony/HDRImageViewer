@@ -32,6 +32,7 @@ using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
 
 static const float sc_DefaultDispMaxNits = 1499.0f;
+static const float sc_DefaultContentMaxNits = 4000.0f;
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats.
 static const float sc_MinZoomSphereMap = 0.25f;
