@@ -68,7 +68,6 @@
             <Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Fill="{StaticResource SystemControlAcrylicElementBrush}" />
             <StackPanel x:Name="ControlsPanel" Grid.Row="1" Grid.Column="0">
                 <Button Click="LoadImageButtonClick">Open image</Button>
-                <Button Click="ResetButtonClick">Reset</Button>
                 <StackPanel x:Name="RenderEffectPanel">
                     <TextBlock>Render Effect:</TextBlock>
                     <ComboBox x:Name="RenderEffectCombo" ItemsSource="{x:Bind ViewModel.RenderEffects}" SelectionChanged="ComboChanged">

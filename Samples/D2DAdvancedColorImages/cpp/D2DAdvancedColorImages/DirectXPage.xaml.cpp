@@ -279,11 +279,6 @@ void DirectXPage::LoadImageButtonClick(_In_ Object^ sender, _In_ RoutedEventArgs
     });
 }
 
-void DirectXPage::ResetButtonClick(_In_ Object^ sender, _In_ RoutedEventArgs^ e)
-{
-    LoadDefaultImage();
-}
-
 // Saves the current state of the app for suspend and terminate events.
 void DirectXPage::SaveInternalState(_In_ IPropertySet^ state)
 {
