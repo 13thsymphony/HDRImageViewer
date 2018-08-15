@@ -3,7 +3,7 @@
   <Identity Name="24700lepusmagnum.HDRandWCGImageViewer" Publisher="CN=DC282004-FA5B-46E0-8880-6E68BFA41465" Version="1.0.0.0" />
   <mp:PhoneIdentity PhoneProductId="a87b377f-cb50-442c-a4e8-871dca2f8432" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>HDR and WCG Image Viewer</DisplayName>
+    <DisplayName>HDR + WCG Image Viewer</DisplayName>
     <PublisherDisplayName>Simon Tao</PublisherDisplayName>
     <Logo>Assets\StoreLogo-sdk.png</Logo>
   </Properties>
