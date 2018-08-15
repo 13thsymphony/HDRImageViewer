@@ -89,19 +89,109 @@
     <Page Include="DirectXPage.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\SharedContent\media\smalltile-sdk.png">
+    <Image Include="Assets\SmallTile.scale-100.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="..\..\..\..\SharedContent\media\splash-sdk.png">
+    <Image Include="Assets\SmallTile.scale-125.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="..\..\..\..\SharedContent\media\squaretile-sdk.png">
+    <Image Include="Assets\SmallTile.scale-150.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="..\..\..\..\SharedContent\media\storelogo-sdk.png">
+    <Image Include="Assets\SmallTile.scale-200.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="..\..\..\..\SharedContent\media\tile-sdk.png">
+    <Image Include="Assets\SmallTile.scale-400.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\squaretile-sdk.scale-100.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\squaretile-sdk.scale-125.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\squaretile-sdk.scale-150.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\squaretile-sdk.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\squaretile-sdk.scale-400.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.scale-100.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.scale-125.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.scale-150.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.scale-400.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.targetsize-16.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.targetsize-24.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.targetsize-32.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.targetsize-48.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.targetsize-256.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-16.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-24.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-32.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-48.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-256.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\splash-sdk.scale-100.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\splash-sdk.scale-125.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\splash-sdk.scale-150.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\splash-sdk.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\splash-sdk.scale-400.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo-sdk.scale-100.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo-sdk.scale-125.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo-sdk.scale-150.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo-sdk.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo-sdk.scale-400.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -124,5 +214,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Package.StoreAssociation.xml" />
+    <None Include="D2DAdvancedColorImages_StoreKey.pfx" />
   </ItemGroup>
 </Project>

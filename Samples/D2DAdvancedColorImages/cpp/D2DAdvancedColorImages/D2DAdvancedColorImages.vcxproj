@@ -38,6 +38,8 @@
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.17134.0</WindowsTargetPlatformMinVersion>
     <ProjectName>D2DAdvancedColorImages</ProjectName>
+    <PackageCertificateThumbprint>78009E8D6FA6B7A714605247C1C6E95F0CDF94CC</PackageCertificateThumbprint>
+    <PackageCertificateKeyFile>D2DAdvancedColorImages_StoreKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -377,21 +379,41 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\SharedContent\media\smalltile-sdk.png">
-      <Link>Assets\smalltile-sdk.png</Link>
-    </Image>
-    <Image Include="..\..\..\..\SharedContent\media\splash-sdk.png">
-      <Link>Assets\splash-sdk.png</Link>
-    </Image>
-    <Image Include="..\..\..\..\SharedContent\media\squaretile-sdk.png">
-      <Link>Assets\squaretile-sdk.png</Link>
-    </Image>
-    <Image Include="..\..\..\..\SharedContent\media\storelogo-sdk.png">
-      <Link>Assets\storelogo-sdk.png</Link>
-    </Image>
-    <Image Include="..\..\..\..\SharedContent\media\tile-sdk.png">
-      <Link>Assets\tile-sdk.png</Link>
-    </Image>
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-16.png" />
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-24.png" />
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-256.png" />
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-32.png" />
+    <Image Include="Assets\smalltile-sdk.altform-unplated_targetsize-48.png" />
+    <Image Include="Assets\smalltile-sdk.scale-100.png" />
+    <Image Include="Assets\smalltile-sdk.scale-125.png" />
+    <Image Include="Assets\smalltile-sdk.scale-150.png" />
+    <Image Include="Assets\smalltile-sdk.scale-200.png" />
+    <Image Include="Assets\smalltile-sdk.scale-400.png" />
+    <Image Include="Assets\smalltile-sdk.targetsize-16.png" />
+    <Image Include="Assets\smalltile-sdk.targetsize-24.png" />
+    <Image Include="Assets\smalltile-sdk.targetsize-256.png" />
+    <Image Include="Assets\smalltile-sdk.targetsize-32.png" />
+    <Image Include="Assets\smalltile-sdk.targetsize-48.png" />
+    <Image Include="Assets\SmallTile.scale-100.png" />
+    <Image Include="Assets\SmallTile.scale-125.png" />
+    <Image Include="Assets\SmallTile.scale-150.png" />
+    <Image Include="Assets\SmallTile.scale-200.png" />
+    <Image Include="Assets\SmallTile.scale-400.png" />
+    <Image Include="Assets\splash-sdk.scale-100.png" />
+    <Image Include="Assets\splash-sdk.scale-125.png" />
+    <Image Include="Assets\splash-sdk.scale-150.png" />
+    <Image Include="Assets\splash-sdk.scale-200.png" />
+    <Image Include="Assets\splash-sdk.scale-400.png" />
+    <Image Include="Assets\squaretile-sdk.scale-100.png" />
+    <Image Include="Assets\squaretile-sdk.scale-125.png" />
+    <Image Include="Assets\squaretile-sdk.scale-150.png" />
+    <Image Include="Assets\squaretile-sdk.scale-200.png" />
+    <Image Include="Assets\squaretile-sdk.scale-400.png" />
+    <Image Include="Assets\StoreLogo-sdk.scale-100.png" />
+    <Image Include="Assets\StoreLogo-sdk.scale-125.png" />
+    <Image Include="Assets\StoreLogo-sdk.scale-150.png" />
+    <Image Include="Assets\StoreLogo-sdk.scale-200.png" />
+    <Image Include="Assets\StoreLogo-sdk.scale-400.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h">
@@ -472,12 +494,16 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <None Include="D2DAdvancedColorImages_StoreKey.pfx" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="SphereMapEffect.hlsl">
       <FileType>Document</FileType>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
