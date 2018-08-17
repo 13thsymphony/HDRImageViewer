@@ -61,7 +61,7 @@ namespace D2DAdvancedColorImages
             );
 
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
-        ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, bool isOpenExr);
+        ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
 
         void PopulateImageInfoACKind(_Inout_ ImageInfo* info);
 

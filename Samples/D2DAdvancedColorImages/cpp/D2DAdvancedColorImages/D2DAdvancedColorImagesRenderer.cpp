@@ -202,38 +202,41 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromWic(_In_ IStream* imageSt
 }
 
 // Relies on the file path being accessible from the sandbox, e.g. from the app's temp folder.
-// Supports either OpenEXR (isOpenExr == true) or Radiance RGBE (isOpenExr == false).
-ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filename, bool isOpenExr)
+// Supports OpenEXR, Radiance RGBE, and certain DDS files.
+// Also relies on the correct file extension, as DirectXTex doesn't auto-detect codec type.
+ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filename, String^ extension)
 {
     ComPtr<IWICBitmapSource> decodedSource;
 
+    TexMetadata dxtMeta = {};
     auto dxtScratch = std::make_unique<ScratchImage>();
     auto filestr = filename->Data();
+    GUID wicFmt = {};
 
-    if (isOpenExr)
+    if (extension == L".EXR" || extension == L".exr")
     {
         DX::ThrowIfFailed(LoadFromEXRFile(filestr, nullptr, *dxtScratch));
-    }
-    else
-    {
-        DX::ThrowIfFailed(LoadFromHDRFile(filestr, nullptr, *dxtScratch));
-    }
 
-    auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.
-
-    GUID wicFmt = {};
-    if (isOpenExr)
-    {
         // OpenEXR always decodes to FP16.
         wicFmt = GUID_WICPixelFormat64bppRGBAHalf;
-
     }
-    else
+    else if (extension == L".HDR" || extension == L".hdr")
     {
+        DX::ThrowIfFailed(LoadFromHDRFile(filestr, nullptr, *dxtScratch));
+
         // DirectXTex always decodes Radiance RGBE to FP32
         // even though it natively is GUID_WICPixelFormat32bppRGBE.
         wicFmt = GUID_WICPixelFormat128bppRGBAFloat;
     }
+    else
+    {
+        // TODO: probably want to use TexMetadata all the time to get the DXGI_FORMAT,
+        // instead of hard coding.
+        DX::ThrowIfFailed(LoadFromDDSFile(filestr, 0, &dxtMeta, *dxtScratch));
+        throw ref new NotImplementedException();
+    }
+
+    auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.
 
     ComPtr<IWICBitmap> dxtWicBitmap;
     auto fact = m_deviceResources->GetWicImagingFactory();
@@ -251,7 +254,8 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
 
     LoadImageCommon(dxtWicBitmap.Get());
 
-    if (!isOpenExr)
+    // TODO: Common code to check file type?
+    if (extension == L".HDR" || extension == L".hdr")
     {
         // Manually fix up Radiance RGBE image file bit depth as DirectXTex expands it to 128bpp.
         m_imageInfo.bitsPerPixel = 32;

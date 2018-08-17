@@ -138,12 +138,18 @@ void DirectXPage::LoadDefaultImage()
 void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 {
     task<StorageFile^> createFileTask;
-    bool isOpenExr = false;
     m_isImageValid = false;
+    bool useDirectXTex = false;
 
     auto type = imageFile->FileType;
     if (type == L".HDR" || type == L".hdr" ||
-        type == L".EXR" || type == L".exr")
+        type == L".EXR" || type == L".exr" ||
+        type == L".DDS" || type == L".dds")
+    {
+        useDirectXTex = true;
+    }
+
+    if (useDirectXTex)
     {
         // For formats that are loaded by DirectXTex, we must use a file path
         // from the temporary folder.
@@ -152,11 +158,6 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
                 ApplicationData::Current->TemporaryFolder,
                 imageFile->Name,
                 NameCollisionOption::ReplaceExisting));
-
-        if (type == L".EXR" || type == L".exr")
-        {
-            isOpenExr = true;
-        }
     }
     else
     {
@@ -165,11 +166,9 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
     }
 
     createFileTask.then([=](StorageFile^ imageFile) {
-        auto type = imageFile->FileType;
-        if (type == L".HDR" || type == L".hdr" ||
-            type == L".EXR" || type == L".exr")
+        if (useDirectXTex)
         {
-            return create_task([=] { return m_renderer->LoadImageFromDirectXTex(imageFile->Path, isOpenExr); });
+            return create_task([=] { return m_renderer->LoadImageFromDirectXTex(imageFile->Path, type); });
         }
         else
         {
