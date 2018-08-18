@@ -548,13 +548,18 @@ GUID D2DAdvancedColorImagesRenderer::TranslateDxgiFormatToWic(DXGI_FORMAT fmt)
 {
     switch (fmt)
     {
+    case DXGI_FORMAT_R8G8B8A8_SINT:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_UINT:
+        return GUID_WICPixelFormat32bppRGBA;
+        break;
+
     case DXGI_FORMAT_R16G16B16A16_FLOAT:
         // Used by OpenEXR.
         return GUID_WICPixelFormat64bppRGBAHalf;
-        break;
-
-    case DXGI_FORMAT_R8G8B8A8_UNORM:
-        return GUID_WICPixelFormat32bppRGBA;
         break;
 
     case DXGI_FORMAT_R32G32B32A32_FLOAT:
