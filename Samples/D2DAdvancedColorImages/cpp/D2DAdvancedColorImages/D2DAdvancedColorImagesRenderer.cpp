@@ -198,7 +198,9 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromWic(_In_ IStream* imageSt
         decoder->GetFrame(0, &frame)
         );
 
-    return LoadImageCommon(frame.Get());
+    LoadImageCommon(frame.Get());
+
+    return m_imageInfo;
 }
 
 // Relies on the file path being accessible from the sandbox, e.g. from the app's temp folder.
@@ -208,7 +210,6 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
 {
     ComPtr<IWICBitmapSource> decodedSource;
 
-    TexMetadata dxtMeta = {};
     auto dxtScratch = std::make_unique<ScratchImage>();
     auto filestr = filename->Data();
     GUID wicFmt = {};
@@ -230,13 +231,12 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
     }
     else
     {
-        // TODO: probably want to use TexMetadata all the time to get the DXGI_FORMAT,
-        // instead of hard coding.
-        DX::ThrowIfFailed(LoadFromDDSFile(filestr, 0, &dxtMeta, *dxtScratch));
+        DX::ThrowIfFailed(LoadFromDDSFile(filestr, 0, nullptr, *dxtScratch));
         throw ref new NotImplementedException();
     }
 
     auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.
+    
 
     ComPtr<IWICBitmap> dxtWicBitmap;
     auto fact = m_deviceResources->GetWicImagingFactory();
@@ -639,7 +639,7 @@ float D2DAdvancedColorImagesRenderer::FitImageToWindow()
 
 // After initial decode, obtain image information and do common setup.
 // Populates all members of ImageInfo.
-ImageInfo D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource* source)
+void D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource* source)
 {
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
     m_imageInfo = {};
@@ -766,7 +766,7 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource*
         m_imageInfo.isXboxHdrScreenshot = true;
     }
 
-    return m_imageInfo;
+    m_imageInfo.isValid = true;
 }
 
 // Derive the source color context from the image (embedded ICC profile or metadata).

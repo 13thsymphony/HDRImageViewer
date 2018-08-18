@@ -30,6 +30,7 @@ namespace D2DAdvancedColorImages
         unsigned int                                    numProfiles;
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
         bool                                            isXboxHdrScreenshot;
+        bool                                            isValid;
     };
 
     class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
@@ -77,7 +78,7 @@ namespace D2DAdvancedColorImages
             return (v < low) ? low : (v > high) ? high : v;
         }
 
-        ImageInfo LoadImageCommon(_In_ IWICBitmapSource* source);
+        void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateHistogramResources();
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
 

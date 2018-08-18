@@ -184,6 +184,19 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
     }).then([=](ImageInfo info) {
         m_imageInfo = info;
 
+        if (m_imageInfo.isValid == false)
+        {
+            auto dialog = ref new ContentDialog();
+
+            dialog->Title = imageFile->Name;
+            dialog->Content = L"We were unable to load this image.";
+            dialog->CloseButtonText = L"OK";
+
+            dialog->ShowAsync();
+
+            return;
+        }
+
         m_renderer->CreateImageDependentResources();
         m_imageMaxCLL = m_renderer->FitImageToWindow();
 
