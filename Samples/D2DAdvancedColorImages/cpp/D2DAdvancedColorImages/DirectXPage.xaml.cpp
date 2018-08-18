@@ -182,20 +182,13 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
             });
         }
     }).then([=](ImageInfo info) {
-        m_imageInfo = info;
-
-        if (m_imageInfo.isValid == false)
+        if (info.isValid == false)
         {
-            auto dialog = ref new ContentDialog();
-
-            dialog->Title = imageFile->Name;
-            dialog->Content = L"We were unable to load this image.";
-            dialog->CloseButtonText = L"OK";
-
-            dialog->ShowAsync();
-
-            return;
+            // Exit before any of the current image state is modified.
+            throw ref new FailureException();
         }
+
+        m_imageInfo = info;
 
         m_renderer->CreateImageDependentResources();
         m_imageMaxCLL = m_renderer->FitImageToWindow();
@@ -231,7 +224,14 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
         }
         catch (...)
         {
-            // Errors resulting from failure to load/decode image are ignored.
+            auto dialog = ref new ContentDialog();
+
+            dialog->Title = imageFile->Name;
+            dialog->Content = L"We were unable to load this image.";
+            dialog->CloseButtonText = L"OK";
+
+            dialog->ShowAsync();
+
             return;
         }
     });
@@ -282,6 +282,7 @@ void DirectXPage::LoadImageButtonClick(_In_ Object^ sender, _In_ RoutedEventArgs
     picker->FileTypeFilter->Append(L".tif");
     picker->FileTypeFilter->Append(L".hdr");
     picker->FileTypeFilter->Append(L".exr");
+    picker->FileTypeFilter->Append(L".dds");
 
     create_task(picker->PickSingleFileAsync()).then([=](StorageFile^ pickedFile) {
         if (pickedFile != nullptr)

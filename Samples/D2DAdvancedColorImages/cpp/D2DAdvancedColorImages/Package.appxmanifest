@@ -72,6 +72,14 @@
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
         </uap:Extension>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name=".dds">
+            <uap:DisplayName>DirectDraw Surface</uap:DisplayName>
+            <uap:SupportedFileTypes>
+              <uap:FileType ContentType="image/dds">.dds</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

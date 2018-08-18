@@ -81,6 +81,7 @@ namespace D2DAdvancedColorImages
         void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateHistogramResources();
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
+        GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
 
         void UpdateImageColorContext();
         void UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel);
