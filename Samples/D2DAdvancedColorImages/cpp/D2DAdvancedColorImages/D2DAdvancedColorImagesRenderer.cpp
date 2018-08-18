@@ -198,41 +198,56 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromWic(_In_ IStream* imageSt
         decoder->GetFrame(0, &frame)
         );
 
-    return LoadImageCommon(frame.Get());
+    LoadImageCommon(frame.Get());
+
+    return m_imageInfo;
 }
 
 // Relies on the file path being accessible from the sandbox, e.g. from the app's temp folder.
-// Supports either OpenEXR (isOpenExr == true) or Radiance RGBE (isOpenExr == false).
-ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filename, bool isOpenExr)
+// Supports OpenEXR, Radiance RGBE, and certain DDS files - because the renderer uses Direct2D
+// we use WIC as an intermediary for image loading, which restricts the set of supported DDS
+// DXGI_FORMAT values.
+// Also relies on the correct file extension, as DirectXTex doesn't auto-detect codec type.
+ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filename, String^ extension)
 {
     ComPtr<IWICBitmapSource> decodedSource;
 
-    auto dxtScratch = std::make_unique<ScratchImage>();
+    auto dxtScratch = new ScratchImage();
     auto filestr = filename->Data();
 
-    if (isOpenExr)
+    if (extension == L".EXR" || extension == L".exr")
     {
         DX::ThrowIfFailed(LoadFromEXRFile(filestr, nullptr, *dxtScratch));
     }
-    else
+    else if (extension == L".HDR" || extension == L".hdr")
     {
         DX::ThrowIfFailed(LoadFromHDRFile(filestr, nullptr, *dxtScratch));
     }
-
-    auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.
-
-    GUID wicFmt = {};
-    if (isOpenExr)
-    {
-        // OpenEXR always decodes to FP16.
-        wicFmt = GUID_WICPixelFormat64bppRGBAHalf;
-
-    }
     else
     {
-        // DirectXTex always decodes Radiance RGBE to FP32
-        // even though it natively is GUID_WICPixelFormat32bppRGBE.
-        wicFmt = GUID_WICPixelFormat128bppRGBAFloat;
+        DX::ThrowIfFailed(LoadFromDDSFile(filestr, 0, nullptr, *dxtScratch));
+    }
+    
+    auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.
+
+    // Decompress if the image uses block compression. This does not use WIC and Direct2D's
+    // native support for BC1, BC2, and BC3 formats.
+    auto decompScratch = new ScratchImage();
+    if (DirectX::IsCompressed(image->format))
+    {
+        DX::ThrowIfFailed(
+            DirectX::Decompress(*image, DXGI_FORMAT_UNKNOWN, *decompScratch)
+            );
+
+        // Memory for each Image is managed by ScratchImage.
+        image = decompScratch->GetImage(0, 0, 0);
+    }
+
+    GUID wicFmt = TranslateDxgiFormatToWic(image->format);
+    if (wicFmt == GUID_WICPixelFormatUndefined)
+    {
+        // We don't know how to load in WIC, so just fail.
+        return m_imageInfo;
     }
 
     ComPtr<IWICBitmap> dxtWicBitmap;
@@ -251,10 +266,13 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
 
     LoadImageCommon(dxtWicBitmap.Get());
 
-    if (!isOpenExr)
+    // TODO: Common code to check file type?
+    if (extension == L".HDR" || extension == L".hdr")
     {
         // Manually fix up Radiance RGBE image file bit depth as DirectXTex expands it to 128bpp.
+        // 16 bpc is not strictly accurate but best preserves the intent of RGBE.
         m_imageInfo.bitsPerPixel = 32;
+        m_imageInfo.bitsPerChannel = 16;
     }
 
     return m_imageInfo;
@@ -524,6 +542,38 @@ bool D2DAdvancedColorImagesRenderer::IsImageXboxHdrScreenshot(IWICBitmapSource* 
     return true;
 }
 
+// Returns GUID_WICPixelFormatUndefined if we don't know the right WIC pixel format.
+// This list is highly incomplete and only covers the most important DXGI_FORMATs for HDR.
+GUID D2DAdvancedColorImagesRenderer::TranslateDxgiFormatToWic(DXGI_FORMAT fmt)
+{
+    switch (fmt)
+    {
+    case DXGI_FORMAT_R8G8B8A8_SINT:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_UINT:
+        return GUID_WICPixelFormat32bppRGBA;
+        break;
+
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        // Used by OpenEXR.
+        return GUID_WICPixelFormat64bppRGBAHalf;
+        break;
+
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+        // Used by Radiance RGBE; specifically DirectXTex expands out to FP32
+        // even though WIC offers a native GUID_WICPixelFormat32bppRGBE.
+        return GUID_WICPixelFormat128bppRGBAFloat;
+        break;
+
+    default:
+        return GUID_WICPixelFormatUndefined;
+        break;
+    }
+}
+
 void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
 {
     m_imageSource.Reset();
@@ -635,7 +685,7 @@ float D2DAdvancedColorImagesRenderer::FitImageToWindow()
 
 // After initial decode, obtain image information and do common setup.
 // Populates all members of ImageInfo.
-ImageInfo D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource* source)
+void D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource* source)
 {
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
     m_imageInfo = {};
@@ -762,7 +812,7 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource*
         m_imageInfo.isXboxHdrScreenshot = true;
     }
 
-    return m_imageInfo;
+    m_imageInfo.isValid = true;
 }
 
 // Derive the source color context from the image (embedded ICC profile or metadata).

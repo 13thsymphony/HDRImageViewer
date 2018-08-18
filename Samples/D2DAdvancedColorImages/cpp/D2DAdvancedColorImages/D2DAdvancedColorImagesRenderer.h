@@ -30,6 +30,7 @@ namespace D2DAdvancedColorImages
         unsigned int                                    numProfiles;
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
         bool                                            isXboxHdrScreenshot;
+        bool                                            isValid;
     };
 
     class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
@@ -61,7 +62,7 @@ namespace D2DAdvancedColorImages
             );
 
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
-        ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, bool isOpenExr);
+        ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
 
         void PopulateImageInfoACKind(_Inout_ ImageInfo* info);
 
@@ -77,9 +78,10 @@ namespace D2DAdvancedColorImages
             return (v < low) ? low : (v > high) ? high : v;
         }
 
-        ImageInfo LoadImageCommon(_In_ IWICBitmapSource* source);
+        void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateHistogramResources();
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
+        GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
 
         void UpdateImageColorContext();
         void UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel);
