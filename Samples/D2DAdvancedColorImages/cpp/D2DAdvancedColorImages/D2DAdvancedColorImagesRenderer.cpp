@@ -270,7 +270,9 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
     if (extension == L".HDR" || extension == L".hdr")
     {
         // Manually fix up Radiance RGBE image file bit depth as DirectXTex expands it to 128bpp.
+        // 16 bpc is not strictly accurate but best preserves the intent of RGBE.
         m_imageInfo.bitsPerPixel = 32;
+        m_imageInfo.bitsPerChannel = 16;
     }
 
     return m_imageInfo;
