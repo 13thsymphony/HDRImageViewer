@@ -465,7 +465,7 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
     // TODO: When updating SDK to target 1809, disable this workaround on known good OSes.
     if (m_imageInfo.isXboxHdrScreenshot)
     {
-        scale *= 125.0f;
+        scale /= 125.0f;
     }
 
     D2D1_MATRIX_5X4_F rgbtoYnorm = D2D1::Matrix5x4F(
