@@ -139,6 +139,9 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 {
     task<StorageFile^> createFileTask;
     m_isImageValid = false;
+    BrightnessAdjustSlider->IsEnabled = false;
+    RenderEffectCombo->IsEnabled = false;
+
     bool useDirectXTex = false;
 
     auto type = imageFile->FileType;
@@ -214,6 +217,8 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
         // Image loading is done at this point.
         m_isImageValid = true;
+        BrightnessAdjustSlider->IsEnabled = true;
+        RenderEffectCombo->IsEnabled = true;
         UpdateDefaultRenderOptions();
 
         // Ensure the preceding continuation runs on the UI thread.

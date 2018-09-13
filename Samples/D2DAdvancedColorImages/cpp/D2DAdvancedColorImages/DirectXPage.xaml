@@ -72,7 +72,7 @@
             <Button Click="LoadImageButtonClick">Open image</Button>
             <StackPanel x:Name="RenderEffectPanel">
                 <TextBlock>Render Effect:</TextBlock>
-                <ComboBox x:Name="RenderEffectCombo" ItemsSource="{x:Bind ViewModel.RenderEffects}" SelectionChanged="ComboChanged">
+                <ComboBox x:Name="RenderEffectCombo" ItemsSource="{x:Bind ViewModel.RenderEffects}" SelectionChanged="ComboChanged" IsEnabled="False">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="local:EffectOption">
                             <TextBlock Text="{x:Bind Description}"/>
@@ -82,7 +82,7 @@
             </StackPanel>
             <StackPanel x:Name="BrightnessAdjustPanel">
                 <TextBlock>Adjust brightness:</TextBlock>
-                <Slider x:Name="BrightnessAdjustSlider" Minimum="0.125" Maximum="3" StepFrequency="0.125" Value="1.0" ValueChanged="SliderChanged" Margin="8,0,8,0"/>
+                <Slider x:Name="BrightnessAdjustSlider" Minimum="0.125" Maximum="3" StepFrequency="0.125" Value="1.0" ValueChanged="SliderChanged" Margin="8,0,8,0" IsEnabled="False"/>
             </StackPanel>
             <MenuFlyoutSeparator />
             <TextBlock Style="{StaticResource SectionTitle}">Image information</TextBlock>
