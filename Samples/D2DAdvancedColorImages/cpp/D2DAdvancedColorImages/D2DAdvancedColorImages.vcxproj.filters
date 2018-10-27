@@ -29,12 +29,6 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="D2DAdvancedColorImagesRenderer.cpp" />
-    <ClCompile Include="ReinhardEffect.cpp">
-      <Filter>RenderEffects</Filter>
-    </ClCompile>
-    <ClCompile Include="FilmicEffect.cpp">
-      <Filter>RenderEffects</Filter>
-    </ClCompile>
     <ClCompile Include="SdrOverlayEffect.cpp">
       <Filter>RenderEffects</Filter>
     </ClCompile>
@@ -63,12 +57,6 @@
     </ClInclude>
     <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
     <ClInclude Include="RenderOptions.h" />
-    <ClInclude Include="ReinhardEffect.h">
-      <Filter>RenderEffects</Filter>
-    </ClInclude>
-    <ClInclude Include="FilmicEffect.h">
-      <Filter>RenderEffects</Filter>
-    </ClInclude>
     <ClInclude Include="SdrOverlayEffect.h">
       <Filter>RenderEffects</Filter>
     </ClInclude>
@@ -196,12 +184,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReinhardEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
-    <Text Include="FilmicEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
     <Text Include="SdrOverlayEffect.hlsl">
       <Filter>RenderEffects</Filter>
     </Text>

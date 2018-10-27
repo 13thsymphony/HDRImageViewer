@@ -35,8 +35,8 @@
     <ApplicationType>Windows Store</ApplicationType>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.17134.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.17763.0</WindowsTargetPlatformMinVersion>
     <ProjectName>D2DAdvancedColorImages</ProjectName>
     <PackageCertificateThumbprint>78009E8D6FA6B7A714605247C1C6E95F0CDF94CC</PackageCertificateThumbprint>
     <PackageCertificateKeyFile>D2DAdvancedColorImages_StoreKey.pfx</PackageCertificateKeyFile>
@@ -432,12 +432,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="DirectXTex\DirectXTexEXR.h" />
-    <ClInclude Include="FilmicEffect.h" />
     <ClInclude Include="LuminanceHeatmapEffect.h" />
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
-    <ClInclude Include="ReinhardEffect.h" />
     <ClInclude Include="SphereMapEffect.h" />
     <ClInclude Include="SdrOverlayEffect.h" />
   </ItemGroup>
@@ -451,7 +449,6 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="DirectXTex\DirectXTexEXR.cpp" />
-    <ClCompile Include="FilmicEffect.cpp" />
     <ClCompile Include="LuminanceHeatmapEffect.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -462,7 +459,6 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="D2DAdvancedColorImagesRenderer.cpp" />
-    <ClCompile Include="ReinhardEffect.cpp" />
     <ClCompile Include="SphereMapEffect.cpp" />
     <ClCompile Include="SdrOverlayEffect.cpp" />
   </ItemGroup>
@@ -478,16 +474,6 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
     <Page Include="DirectXPage.xaml">
       <SubType>Designer</SubType>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReinhardEffect.hlsl">
-      <FileType>Document</FileType>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="FilmicEffect.hlsl">
-      <FileType>Document</FileType>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <Text Include="SdrOverlayEffect.hlsl">
