@@ -460,10 +460,8 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
     // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
     // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
     // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in future versions of Windows.
-
-    // TODO: When updating SDK to target 1809, disable this workaround on known good OSes.
-    if (m_imageInfo.isXboxHdrScreenshot)
+    // This is fixed in Windows 10 version 1809 (UniversalApiContract version 7).
+    if (m_imageInfo.isXboxHdrScreenshot && !Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
     {
         scale /= 125.0f;
     }
@@ -907,10 +905,8 @@ void D2DAdvancedColorImagesRenderer::UpdateWhiteLevelScale(float brightnessAdjus
     // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
     // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
     // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in 1809.
-
-    // TODO: When updating SDK to target 1809, disable this workaround on known good OSes.
-    if (m_imageInfo.isXboxHdrScreenshot)
+    // This is fixed in Windows 10 version 1809 (UniversalApiContract version 7).
+    if (m_imageInfo.isXboxHdrScreenshot && !Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
     {
         scale *= 125.0f;
     }
