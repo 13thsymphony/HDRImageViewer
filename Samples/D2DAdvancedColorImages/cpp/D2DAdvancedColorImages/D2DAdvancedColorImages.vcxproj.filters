@@ -41,6 +41,9 @@
     <ClCompile Include="SphereMapEffect.cpp">
       <Filter>RenderEffects</Filter>
     </ClCompile>
+    <ClCompile Include="ReinhardEffect.cpp">
+      <Filter>RenderEffects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h" />
@@ -67,6 +70,9 @@
       <Filter>DirectXTex</Filter>
     </ClInclude>
     <ClInclude Include="SphereMapEffect.h">
+      <Filter>RenderEffects</Filter>
+    </ClInclude>
+    <ClInclude Include="ReinhardEffect.h">
       <Filter>RenderEffects</Filter>
     </ClInclude>
   </ItemGroup>
@@ -191,6 +197,9 @@
       <Filter>RenderEffects</Filter>
     </Text>
     <Text Include="SphereMapEffect.hlsl">
+      <Filter>RenderEffects</Filter>
+    </Text>
+    <Text Include="ReinhardEffect.hlsl">
       <Filter>RenderEffects</Filter>
     </Text>
   </ItemGroup>
