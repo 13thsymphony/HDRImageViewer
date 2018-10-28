@@ -116,5 +116,6 @@ namespace D2DAdvancedColorImages
         Windows::Graphics::Display::AdvancedColorInfo^          m_dispInfo;
         ImageInfo                                               m_imageInfo;
         bool                                                    m_isComputeSupported;
+        bool                                                    m_use1809Features;
     };
 }

@@ -14,6 +14,7 @@
 #include "DirectXPage.xaml.h"
 #include "DirectXHelper.h"
 #include "DirectXTex.h"
+#include "ReinhardEffect.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
 using namespace D2DAdvancedColorImages;
@@ -58,6 +59,14 @@ D2DAdvancedColorImagesRenderer::D2DAdvancedColorImagesRenderer(
     m_imageInfo{},
     m_isComputeSupported(false)
 {
+    // We generally shouldn't check OS version (API contract) and instead should
+    // detect if specific OS features are available or not. However, Direct2D doesn't
+    // have this mechanism, and it is useful for debugging to emulate a particular OS.
+    m_use1809Features = 
+        Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent(
+            "Windows.Foundation.UniversalApiContract", 7
+            );
+
     // Register to be notified if the GPU device is lost or recreated.
     m_deviceResources->RegisterDeviceNotify(this);
 
@@ -75,6 +84,10 @@ D2DAdvancedColorImagesRenderer::~D2DAdvancedColorImagesRenderer()
 void D2DAdvancedColorImagesRenderer::CreateDeviceIndependentResources()
 {
     // Register the custom render effects.
+    DX::ThrowIfFailed(
+        ReinhardEffect::Register(m_deviceResources->GetD2DFactory())
+        );
+
     DX::ThrowIfFailed(
         SdrOverlayEffect::Register(m_deviceResources->GetD2DFactory())
         );
@@ -162,23 +175,26 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
         break;
     }
 
-    // Update HDR tonemappers with display information.
-    if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+    // Update HDR tonemappers with display information. Only the 1809 Direct2D tonemapper uses this info.
+    if (m_use1809Features)
     {
-        DX::ThrowIfFailed(
-            m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_HDR));
-    }
-    else
-    {
-        // Both WCG and SDR display modes have the same luminance behavior and should be treated as SDR.
-        DX::ThrowIfFailed(
-            m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
-    }
+        if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+        {
+            DX::ThrowIfFailed(
+                m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_HDR));
+        }
+        else
+        {
+            // Both WCG and SDR display modes have the same luminance behavior and should be treated as SDR.
+            DX::ThrowIfFailed(
+                m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
+        }
 
-    // A luminance value of 0 means it is unknown, so we pick a default value. Many HDR TVs do not report HDR metadata.
-    float maxNits = m_dispInfo->MaxLuminanceInNits == 0 ? sc_DefaultDispMaxNits : m_dispInfo->MaxLuminanceInNits;
+        // A luminance value of 0 means it is unknown, so we pick a default value. Many HDR TVs do not report HDR metadata.
+        float maxNits = m_dispInfo->MaxLuminanceInNits == 0 ? sc_DefaultDispMaxNits : m_dispInfo->MaxLuminanceInNits;
 
-    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, maxNits));
+        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, maxNits));
+    }
 
     Draw();
 }
@@ -376,8 +392,20 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     // Instantiate and cache all of the tonemapping/render effects.
     // Some effects are implemented as Direct2D custom effects; see the RenderEffects filter in the
     // Solution Explorer.
+
+    GUID tonemapper = {};
+    if (m_use1809Features)
+    {
+        // Direct2D's HDR tonemap effect is only available in 1809 and above.
+        tonemapper = CLSID_D2D1HdrToneMap;
+    }
+    else
+    {
+        tonemapper = CLSID_CustomReinhardEffect;
+    }
+
     DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_D2D1HdrToneMap, &m_hdrTonemapEffect)
+        context->CreateEffect(tonemapper, &m_hdrTonemapEffect)
         );
 
     DX::ThrowIfFailed(
@@ -461,8 +489,8 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
     // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
     // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
     // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809 (UniversalApiContract version 7).
-    if (m_imageInfo.isXboxHdrScreenshot && !Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+    // This is fixed in Windows 10 version 1809.
+    if (m_imageInfo.isXboxHdrScreenshot && !m_use1809Features)
     {
         scale /= 125.0f;
     }
@@ -905,8 +933,8 @@ void D2DAdvancedColorImagesRenderer::UpdateWhiteLevelScale(float brightnessAdjus
     // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
     // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
     // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809 (UniversalApiContract version 7).
-    if (m_imageInfo.isXboxHdrScreenshot && !Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+    // This is fixed in Windows 10 version 1809.
+    if (m_imageInfo.isXboxHdrScreenshot && !m_use1809Features)
     {
         scale *= 125.0f;
     }
@@ -1017,14 +1045,17 @@ void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
     // Some drivers have a bug where histogram will always return 0. Treat this as unknown.
     m_maxCLL = (m_maxCLL == 0.0f) ? -1.0f : m_maxCLL;
 
-    // Update HDR tonemappers with the computed MaxCLL.
-    if (m_maxCLL != -1)
+    // Update HDR tonemappers with the computed MaxCLL.Only the Direct2D tonemapper uses this info.
+    if (m_use1809Features)
     {
-        m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, m_maxCLL);
-    }
-    else
-    {
-        m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, sc_DefaultImageMaxCLL);
+        if (m_maxCLL != -1)
+        {
+            DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, m_maxCLL));
+        }
+        else
+        {
+            DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, sc_DefaultImageMaxCLL));
+        }
     }
 }
 
