@@ -97,6 +97,7 @@ namespace D2DAdvancedColorImages
         Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_scaledImage;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_colorManagementEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_whiteScaleEffect;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrWhiteScaleEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_hdrTonemapEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrOverlayEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_heatmapEffect;
