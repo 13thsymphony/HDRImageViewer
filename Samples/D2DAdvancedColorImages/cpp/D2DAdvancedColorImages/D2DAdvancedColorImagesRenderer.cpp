@@ -32,8 +32,9 @@ using namespace Windows::Storage::Streams;
 using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
 
-static const float sc_DefaultDispMaxNits = 1499.0f;
-static const float sc_DefaultImageMaxCLL = 4000.0f;
+static const float sc_DefaultHdrDispMaxNits = 1499.0f; // Experimentally chosen for compatibility with 2018 TVs.
+static const float sc_DefaultSdrDispMaxNits = 270.0f; // Experimentally chosen based on typical SDR displays.
+static const float sc_DefaultImageMaxCLL = 4000.0f; // Experimentally chosen based on typical UHD-BD movies.
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats.
 static const float sc_MinZoomSphereMap = 0.25f;
@@ -178,22 +179,28 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     // Update HDR tonemappers with display information. Only the 1809 Direct2D tonemapper uses this info.
     if (m_use1809Features)
     {
+        float targetMaxNits = m_dispInfo->MaxLuminanceInNits;
+
         if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
         {
             DX::ThrowIfFailed(
                 m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_HDR));
+
+            // A luminance value of 0 means it is unknown, so we pick a default value. Many HDR TVs do not report HDR metadata.
+            targetMaxNits = (targetMaxNits == 0.0f) ? sc_DefaultHdrDispMaxNits : targetMaxNits;
         }
         else
         {
             // Both WCG and SDR display modes have the same luminance behavior and should be treated as SDR.
             DX::ThrowIfFailed(
                 m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
+
+            // Almost no SDR displays report HDR metadata. WCG displays generally should report HDR metadata.
+            // We assume both SDR and WCG displays have similar peak luminances and use the same constants.
+            targetMaxNits = (targetMaxNits == 0.0f) ? sc_DefaultSdrDispMaxNits : targetMaxNits;
         }
 
-        // A luminance value of 0 means it is unknown, so we pick a default value. Many HDR TVs do not report HDR metadata.
-        float maxNits = m_dispInfo->MaxLuminanceInNits == 0 ? sc_DefaultDispMaxNits : m_dispInfo->MaxLuminanceInNits;
-
-        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, maxNits));
+        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
     }
 
     Draw();
