@@ -141,9 +141,20 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     // after the effect as their numerical output is affected by any luminance boost.
     switch (m_renderEffectKind)
     {
-    // Effect graph: ImageSource > ColorManagement > WhiteScale > HDRTonemap
+    // Effect graph: ImageSource > ColorManagement > WhiteScale > HDRTonemap > WhiteScale2*
     case RenderEffectKind::HdrTonemap:
-        m_finalOutput = m_hdrTonemapEffect.Get();
+        if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+        {
+            m_finalOutput = m_hdrTonemapEffect.Get();
+        }
+        else if (m_use1809Features) // Windows 1809 or greater, and WCG/SDR display only.
+        {
+            // *Second white scale is needed as an integral part of using the Direct2D HDR
+            // tonemapper to stay within [0, 1] numeric range.
+            m_finalOutput = m_sdrWhiteScaleEffect.Get();
+        }
+        
+        m_sdrWhiteScaleEffect->SetInputEffect(0, m_hdrTonemapEffect.Get());
         m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
         break;
 
@@ -198,6 +209,15 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
             // Almost no SDR displays report HDR metadata. WCG displays generally should report HDR metadata.
             // We assume both SDR and WCG displays have similar peak luminances and use the same constants.
             targetMaxNits = (targetMaxNits == 0.0f) ? sc_DefaultSdrDispMaxNits : targetMaxNits;
+
+            // HDR tonemapper outputs values in scRGB using scene-referred luminance - for a typical SDR display, this will
+            // be around numeric range [0.0, 3.0] corresponding to [0, 240 nits]. To encode correctly for an SDR/WCG display
+            // output, we must reinterpret the scene-referred input content (80 nits) as display-referred (targetMaxNits).
+            DX::ThrowIfFailed(
+                m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
+
+            DX::ThrowIfFailed(
+                m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, targetMaxNits));
         }
 
         DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
@@ -400,19 +420,28 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     // Some effects are implemented as Direct2D custom effects; see the RenderEffects filter in the
     // Solution Explorer.
 
+    GUID sdrWhiteScale = {};
     GUID tonemapper = {};
     if (m_use1809Features)
     {
-        // Direct2D's HDR tonemap effect is only available in 1809 and above.
+        // HDR tonemapper and white level adjust are only available in 1809 and above.
         tonemapper = CLSID_D2D1HdrToneMap;
+        sdrWhiteScale = CLSID_D2D1WhiteLevelAdjustment;
     }
     else
     {
         tonemapper = CLSID_CustomReinhardEffect;
+
+        // For 1803, this effect should never actually be rendered. Invert is a good "sentinel".
+        sdrWhiteScale = CLSID_D2D1Invert;
     }
 
     DX::ThrowIfFailed(
         context->CreateEffect(tonemapper, &m_hdrTonemapEffect)
+        );
+
+    DX::ThrowIfFailed(
+        context->CreateEffect(sdrWhiteScale, &m_sdrWhiteScaleEffect)
         );
 
     DX::ThrowIfFailed(
@@ -627,6 +656,7 @@ void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
     m_scaledImage.Reset();
     m_colorManagementEffect.Reset();
     m_whiteScaleEffect.Reset();
+    m_sdrWhiteScaleEffect.Reset();
     m_hdrTonemapEffect.Reset();
     m_sdrOverlayEffect.Reset();
     m_heatmapEffect.Reset();
