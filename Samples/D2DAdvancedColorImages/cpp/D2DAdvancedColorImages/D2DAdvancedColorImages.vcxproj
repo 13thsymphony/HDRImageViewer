@@ -158,10 +158,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)FilmicEffect.cso;$(OutDir)FilmicEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,FilmicEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -199,10 +199,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)FilmicEffect.cso;$(OutDir)FilmicEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,FilmicEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -240,10 +240,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)FilmicEffect.cso;$(OutDir)FilmicEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,FilmicEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -281,10 +281,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)FilmicEffect.cso;$(OutDir)FilmicEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,FilmicEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -322,10 +322,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)FilmicEffect.cso;$(OutDir)FilmicEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,FilmicEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -363,10 +363,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)FilmicEffect.cso;$(OutDir)FilmicEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,FilmicEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
