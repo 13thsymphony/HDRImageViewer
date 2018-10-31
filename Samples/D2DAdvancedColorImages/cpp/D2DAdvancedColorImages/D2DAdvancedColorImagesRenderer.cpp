@@ -143,17 +143,18 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     {
     // Effect graph: ImageSource > ColorManagement > WhiteScale > HDRTonemap > WhiteScale2*
     case RenderEffectKind::HdrTonemap:
-        if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+        if (m_use1809Features && // Windows 1809 or greater, and WCG/SDR display only.
+            m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
+        {
+            // *Second white scale is needed as an integral part of using the Direct2D HDR
+            // tonemapper on SDR/WCG displays to stay within [0, 1] numeric range.
+            m_finalOutput = m_sdrWhiteScaleEffect.Get();
+        }
+        else
         {
             m_finalOutput = m_hdrTonemapEffect.Get();
         }
-        else if (m_use1809Features) // Windows 1809 or greater, and WCG/SDR display only.
-        {
-            // *Second white scale is needed as an integral part of using the Direct2D HDR
-            // tonemapper to stay within [0, 1] numeric range.
-            m_finalOutput = m_sdrWhiteScaleEffect.Get();
-        }
-        
+
         m_sdrWhiteScaleEffect->SetInputEffect(0, m_hdrTonemapEffect.Get());
         m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
         break;
