@@ -31,6 +31,12 @@ namespace D2DAdvancedColorImages
         bool                                            isValid;
     };
 
+    struct ImageCLL
+    {
+        float   maxNits;
+        float   avgNits;
+    };
+
     class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
     {
     public:
@@ -49,10 +55,11 @@ namespace D2DAdvancedColorImages
 
         void UpdateManipulationState(_In_ Windows::UI::Input::ManipulationUpdatedEventArgs^ args);
 
-        // Returns the computed MaxCLL of the image in nits. While HDR metadata is a
-        // property of the image (and independent of rendering), our implementation
+        // Returns the computed MaxCLL and AvgCLL of the image in nits. While HDR metadata is a
+        // property of the image (and is independent of rendering), our implementation
         // can't compute it until this point.
-        float FitImageToWindow();
+        ImageCLL FitImageToWindow();
+
         void SetRenderOptions(
             RenderEffectKind effect,
             float brightnessAdjustment,
@@ -112,11 +119,10 @@ namespace D2DAdvancedColorImages
         float                                                   m_minZoom;
         D2D1_POINT_2F                                           m_imageOffset;
         D2D1_POINT_2F                                           m_pointerPos;
-        float                                                   m_maxCLL; // In nits.
+        ImageCLL                                                m_imageCLL;
         float                                                   m_brightnessAdjust;
         Windows::Graphics::Display::AdvancedColorInfo^          m_dispInfo;
         ImageInfo                                               m_imageInfo;
         bool                                                    m_isComputeSupported;
-        bool                                                    m_use1809Features;
     };
 }

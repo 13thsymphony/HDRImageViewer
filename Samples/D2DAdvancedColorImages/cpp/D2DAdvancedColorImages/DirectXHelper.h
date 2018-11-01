@@ -24,6 +24,37 @@ namespace DX
         }
     }
 
+    typedef enum OSVer
+    {
+        Win1803,
+        Win1809
+    };
+
+    // Check for OS version. Common helper function makes it easier to do testing/mockups.
+    // DirectX doesn't allow us to check for a specific feature's presence, so instead
+    // we check the OS version (API contract).
+    inline bool CheckPlatformSupport(OSVer version)
+    {
+        int apiLevel = 0;
+        switch (version)
+        {
+        case Win1803:
+            apiLevel = 6;
+            break;
+
+        case Win1809:
+            apiLevel = 7;
+            break;
+
+        default:
+            throw ref new Platform::InvalidArgumentException();
+            break;
+        }
+
+        return Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent(
+            "Windows.Foundation.UniversalApiContract", apiLevel);
+    }
+
     // Function that reads from a binary file asynchronously.
     inline Concurrency::task<std::vector<byte>> ReadDataAsync(const std::wstring& filename)
     {

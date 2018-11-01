@@ -332,7 +332,7 @@ void DirectXPage::UpdateDefaultRenderOptions()
         break;
 
     case AdvancedColorKind::HighDynamicRange:
-        // HDR images need to be tonemapped.
+        // HDR images need to be tonemapped regardless of display kind.
         RenderEffectCombo->SelectedIndex = 1; // See RenderOptions.h for which value this indicates.
 
         // Manual brightness adjustment is useful for any HDR content.
