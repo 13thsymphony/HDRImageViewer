@@ -36,6 +36,40 @@ HRESULT __stdcall ReinhardEffect::CreateReinhardImpl(_Outptr_ IUnknown** ppEffec
     }
 }
 
+HRESULT ReinhardEffect::SetSourceAverageLuminanceInNits(float nits)
+{
+    if (nits < 0.0f)
+    {
+        return E_INVALIDARG;
+    }
+
+    m_constants.sourceAvgLum = nits / 80.0f; // scRGB 1.0 == 80 nits.
+
+    return S_OK;
+}
+
+float ReinhardEffect::GetSourceAverageLuminanceInNits() const
+{
+    return m_constants.sourceAvgLum * 80.0f;
+}
+
+HRESULT ReinhardEffect::SetTargetMaxLuminanceInNits(float nits)
+{
+    if (nits < 0.0f || nits > 10000.0f)
+    {
+        return E_INVALIDARG;
+    }
+
+    m_constants.targetMaxLum = nits / 80.0f; // scRGB 1.0 == 80 nits.
+
+    return S_OK;
+}
+
+float ReinhardEffect::GetTargetMaxLuminanceInNits() const
+{
+    return m_constants.targetMaxLum * 80.0f;
+}
+
 HRESULT ReinhardEffect::Register(_In_ ID2D1Factory1* pFactory)
 {
     // The inspectable metadata of an effect is defined in XML. This can be passed in from an external source
@@ -53,16 +87,32 @@ HRESULT ReinhardEffect::Register(_In_ ID2D1Factory1* pFactory)
                     <Input name='Source' />
                 </Inputs>
                 <!-- Custom Properties go here -->
+                <Property name='SourceAverageLuminanceInNits' type='float'>
+                    <Property name='DisplayName' type='string' value='Source average luminance (nits)'/>
+                    <Property name='Default' type='float' value='4000.0' />
+                </Property>
+                <Property name='TargetMaxLuminanceInNits' type='float'>
+                    <Property name='DisplayName' type='string' value='Target max luminance (nits)'/>
+                    <Property name='Default' type='float' value='270.0' />
+                </Property>
             </Effect>
             );
+
+    // This defines the bindings from specific properties to the callback functions
+    // on the class that ID2D1Effect::SetValue() & GetValue() will call.
+    const D2D1_PROPERTY_BINDING bindings[] =
+    {
+        D2D1_VALUE_TYPE_BINDING(L"SourceAverageLuminanceInNits", &SetSourceAverageLuminanceInNits, &GetSourceAverageLuminanceInNits),
+        D2D1_VALUE_TYPE_BINDING(L"TargetMaxLuminanceInNits", &SetTargetMaxLuminanceInNits, &GetTargetMaxLuminanceInNits),
+    };
 
     // This registers the effect with the factory, which will make the effect
     // instantiatable.
     return pFactory->RegisterEffectFromString(
         CLSID_CustomReinhardEffect,
         pszXml,
-        nullptr,
-        0,
+        bindings,
+        ARRAYSIZE(bindings),
         CreateReinhardImpl
         );
 }
@@ -108,8 +158,7 @@ IFACEMETHODIMP ReinhardEffect::Initialize(
 HRESULT ReinhardEffect::UpdateConstants()
 {
     // Update the DPI if it has changed. This allows the effect to scale across different DPIs automatically.
-    m_effectContext->GetDpi(&m_dpi, &m_dpi);
-    m_constants.dpi = m_dpi;
+    m_effectContext->GetDpi(&m_dpi, &m_dpi); // DPI is never used right now.
 
     return m_drawInfo->SetPixelShaderConstantBuffer(reinterpret_cast<BYTE*>(&m_constants), sizeof(m_constants));
 }

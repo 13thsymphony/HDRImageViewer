@@ -22,6 +22,13 @@ public:
 
     static HRESULT __stdcall CreateReinhardImpl(_Outptr_ IUnknown** ppEffectImpl);
 
+    // Declare property getter/setters
+    HRESULT SetSourceAverageLuminanceInNits(float nits);
+    float GetSourceAverageLuminanceInNits() const;
+
+    HRESULT SetTargetMaxLuminanceInNits(float nits);
+    float GetTargetMaxLuminanceInNits() const;
+
     // Declare ID2D1EffectImpl implementation methods.
     IFACEMETHODIMP Initialize(
         _In_ ID2D1EffectContext* pContextInternal,
@@ -94,7 +101,8 @@ private:
     // This struct defines the constant buffer of our pixel shader.
     struct
     {
-        float dpi;
+        float sourceAvgLum; // In scRGB values.
+        float targetMaxLum; // In scRGB values.
     } m_constants;
 
     Microsoft::WRL::ComPtr<ID2D1DrawInfo>      m_drawInfo;

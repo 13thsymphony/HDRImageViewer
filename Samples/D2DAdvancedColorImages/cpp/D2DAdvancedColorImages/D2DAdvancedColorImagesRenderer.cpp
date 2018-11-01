@@ -63,10 +63,10 @@ D2DAdvancedColorImagesRenderer::D2DAdvancedColorImagesRenderer(
     // We generally shouldn't check OS version (API contract) and instead should
     // detect if specific OS features are available or not. However, Direct2D doesn't
     // have this mechanism, and it is useful for debugging to emulate a particular OS.
-    m_use1809Features = 
-        Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent(
+    m_use1809Features = false; // DEBUG
+        /*Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent(
             "Windows.Foundation.UniversalApiContract", 7
-            );
+            );*/
 
     // Register to be notified if the GPU device is lost or recreated.
     m_deviceResources->RegisterDeviceNotify(this);
