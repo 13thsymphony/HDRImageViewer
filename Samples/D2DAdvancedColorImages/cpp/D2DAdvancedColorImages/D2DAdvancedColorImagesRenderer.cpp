@@ -35,6 +35,7 @@ using namespace Windows::UI::Xaml;
 static const float sc_DefaultHdrDispMaxNits = 1499.0f; // Experimentally chosen for compatibility with 2018 TVs.
 static const float sc_DefaultSdrDispMaxNits = 270.0f; // Experimentally chosen based on typical SDR displays.
 static const float sc_DefaultImageMaxCLL = 4000.0f; // Experimentally chosen based on typical UHD-BD movies.
+static const float sc_DefaultImageAvgCLL = 200.0f; // Experimentally chosen based on typical UHD-BD movies.
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats.
 static const float sc_MinZoomSphereMap = 0.25f;
@@ -1094,25 +1095,16 @@ void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
     // Update HDR tonemappers with the computed MaxCLL. The Direct2D tonemapper uses MaxCLL while Reinhard uses AvgCLL.
     if (DX::CheckPlatformSupport(DX::Win1809))
     {
-        if (m_imageCLL.maxNits != -1.0f)
-        {
-            DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, m_imageCLL));
-        }
-        else
-        {
-            DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, sc_DefaultImageMaxCLL));
-        }
+        float max = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
+        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, max));
     }
     else
     {
-        if (m_imageCLL.maxNits != -1.0f)
-        {
-            DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, m_imageCLL));
-        }
-        else
-        {
-            DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, sc_DefaultImageMaxCLL));
-        }
+        // Note the conditional checks m_imageCLL.maxNits but uses the value from m_imageCLL.avgNits.
+        float avg = m_imageCLL.maxNits != -1.0f ? m_imageCLL.avgNits : sc_DefaultImageAvgCLL;
+        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValueByName(L"SourceAverageLuminanceInNits", avg));
+
+        float target = m_dispInfo->MaxLuminanceInNits != 0.0f ? m_dispInfo->MaxLuminanceInNits : sc_DefaultHdrDispMaxNits;
     }
 }
 
@@ -1144,7 +1136,7 @@ void D2DAdvancedColorImagesRenderer::EmitHdrMetadata()
         // Currently only the "None" render effect results in pixel values that exceed
         // the OS-specified SDR white level, as it just passes through HDR color values.
         case RenderEffectKind::None:
-            effectiveMaxCLL = max(m_imageCLL, 0.0f) * m_brightnessAdjust;
+            effectiveMaxCLL = max(m_imageCLL.maxNits, 0.0f) * m_brightnessAdjust;
             break;
 
         default:
