@@ -34,7 +34,7 @@ namespace D2DAdvancedColorImages
     struct ImageCLL
     {
         float   maxNits;
-        float   avgNits;
+        float   medNits;
     };
 
     class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
@@ -58,7 +58,7 @@ namespace D2DAdvancedColorImages
         // Returns the computed MaxCLL and AvgCLL of the image in nits. While HDR metadata is a
         // property of the image (and is independent of rendering), our implementation
         // can't compute it until this point.
-        ImageCLL FitImageToWindow();
+        ImageCLL FitImageToWindow(bool computeMetadata);
 
         void SetRenderOptions(
             RenderEffectKind effect,
@@ -93,6 +93,8 @@ namespace D2DAdvancedColorImages
         void UpdateImageTransformState();
         void ComputeHdrMetadata();
         void EmitHdrMetadata();
+
+        float GetBestDispMaxLuminance();
 
         // Cached pointer to device resources.
         std::shared_ptr<DX::DeviceResources>                    m_deviceResources;

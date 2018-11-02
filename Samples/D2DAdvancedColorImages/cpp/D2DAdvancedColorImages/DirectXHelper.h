@@ -24,7 +24,7 @@ namespace DX
         }
     }
 
-    typedef enum OSVer
+    enum OSVer
     {
         Win1803,
         Win1809

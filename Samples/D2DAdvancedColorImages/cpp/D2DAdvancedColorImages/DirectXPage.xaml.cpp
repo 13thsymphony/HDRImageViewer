@@ -41,7 +41,7 @@ DirectXPage::DirectXPage() :
     m_isWindowVisible(true),
     m_imageInfo{},
     m_isImageValid(false),
-    m_imageMaxCLL(-1.0f)
+    m_imageCLL{ -1.0f, -1.0f }
 {
     InitializeComponent();
 
@@ -194,7 +194,7 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
         m_imageInfo = info;
 
         m_renderer->CreateImageDependentResources();
-        m_imageMaxCLL = m_renderer->FitImageToWindow();
+        m_imageCLL = m_renderer->FitImageToWindow(true); // On first load of image, need to generate HDR metadata.
 
         ApplicationView::GetForCurrentView()->Title = imageFile->Name;
         ImageACKind->Text = L"Kind: " + ConvertACKindToString(m_imageInfo.imageKind);
@@ -204,16 +204,29 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
         std::wstringstream cllStr;
         cllStr << L"Estimated MaxCLL: ";
-        if (m_imageMaxCLL < 0.0f)
+        if (m_imageCLL.maxNits < 0.0f)
         {
             cllStr << L"N/A";
         }
         else
         {
-            cllStr << std::to_wstring(static_cast<int>(m_imageMaxCLL)) << L" nits";
+            cllStr << std::to_wstring(static_cast<int>(m_imageCLL.maxNits)) << L" nits";
         }
 
         ImageMaxCLL->Text = ref new String(cllStr.str().c_str());
+
+        std::wstringstream avgStr;
+        avgStr << L"Estimated MedCLL: ";
+        if (m_imageCLL.medNits < 0.0f)
+        {
+            avgStr << L"N/A";
+        }
+        else
+        {
+            avgStr << std::to_wstring(static_cast<int>(m_imageCLL.medNits)) << L" nits";
+        }
+
+        ImageAvgCLL->Text = ref new String(avgStr.str().c_str());
 
         // Image loading is done at this point.
         m_isImageValid = true;

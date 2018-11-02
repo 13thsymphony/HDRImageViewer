@@ -88,7 +88,7 @@ namespace D2DAdvancedColorImages
 
         // Cached information for UI.
         D2DAdvancedColorImages::ImageInfo               m_imageInfo;
-        float                                           m_imageMaxCLL;
+        D2DAdvancedColorImages::ImageCLL                m_imageCLL;
         bool                                            m_isImageValid;
         Windows::Graphics::Display::AdvancedColorInfo^  m_dispInfo;
         RenderOptionsViewModel^                         m_renderOptionsViewModel;
