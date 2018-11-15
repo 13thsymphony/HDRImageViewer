@@ -197,6 +197,11 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
 
         float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
         maxCLL *= m_brightnessAdjust;
+
+        // Very low input max luminance can produce unexpected rendering behavior. Restrict to
+        // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
+        maxCLL = max(maxCLL, 0.5f * targetMaxNits);
+
         DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
     }
     else
