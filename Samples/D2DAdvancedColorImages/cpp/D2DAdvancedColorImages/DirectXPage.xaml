@@ -54,6 +54,7 @@
             <Style TargetType="ComboBox">
                 <Setter Property="Margin" Value="8, 0, 8, 8" />
             </Style>
+            <local:SdrBrightnessFormatter x:Key="SdrBrightnessFormatter"/>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" MinWidth="200"/> 
@@ -82,7 +83,18 @@
             </StackPanel>
             <StackPanel x:Name="BrightnessAdjustPanel">
                 <TextBlock>Adjust brightness:</TextBlock>
-                <Slider x:Name="BrightnessAdjustSlider" Minimum="0.125" Maximum="3" StepFrequency="0.125" Value="1.0" ValueChanged="SliderChanged" Margin="8,0,8,0" IsEnabled="False"/>
+                <Slider
+                    x:Name="BrightnessAdjustSlider"
+                    ThumbToolTipValueConverter="{StaticResource SdrBrightnessFormatter}"
+                    Minimum="-4"
+                    Maximum="4"
+                    StepFrequency="0.1"
+                    TickPlacement="BottomRight"
+                    TickFrequency="1"
+                    SnapsTo="StepValues"
+                    Value="0.0"
+                    ValueChanged="SliderChanged"
+                    IsEnabled="False"/>
             </StackPanel>
             <MenuFlyoutSeparator />
             <TextBlock Style="{StaticResource SectionTitle}">Image information</TextBlock>

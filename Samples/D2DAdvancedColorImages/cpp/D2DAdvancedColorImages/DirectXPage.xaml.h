@@ -16,6 +16,7 @@
 #include "DeviceResources.h"
 #include "D2DAdvancedColorImagesRenderer.h"
 #include "RenderOptions.h"
+#include "SdrBrightnessFormatter.h"
 
 namespace D2DAdvancedColorImages
 {

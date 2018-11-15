@@ -425,6 +425,7 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
+    <ClInclude Include="SdrBrightnessFormatter.h" />
     <ClInclude Include="SphereMapEffect.h" />
     <ClInclude Include="SdrOverlayEffect.h" />
   </ItemGroup>

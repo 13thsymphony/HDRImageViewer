@@ -75,6 +75,7 @@
     <ClInclude Include="ReinhardEffect.h">
       <Filter>RenderEffects</Filter>
     </ClInclude>
+    <ClInclude Include="SdrBrightnessFormatter.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

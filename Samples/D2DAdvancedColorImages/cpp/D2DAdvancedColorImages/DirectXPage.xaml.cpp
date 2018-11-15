@@ -340,7 +340,7 @@ void DirectXPage::UpdateDefaultRenderOptions()
 
         // Manual brightness adjustment is only useful for HDR content.
         // SDR and WCG content is adjusted by the OS-provided AdvancedColorInfo::SdrWhiteLevel parameter.
-        BrightnessAdjustSlider->Value = 1.0f;
+        BrightnessAdjustSlider->Value = SdrBrightnessFormatter::BrightnessToSlider(1.0f);
         BrightnessAdjustPanel->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
         break;
 
@@ -365,7 +365,7 @@ void DirectXPage::UpdateRenderOptions()
 
         m_renderer->SetRenderOptions(
             tm->Kind,
-            static_cast<float>(BrightnessAdjustSlider->Value),
+            SdrBrightnessFormatter::SliderToBrightness(BrightnessAdjustSlider->Value),
             m_dispInfo
             );
     }
