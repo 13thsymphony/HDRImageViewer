@@ -103,7 +103,7 @@
             <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageBitDepth">Bit depth:</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageIsFloat">Floating point:</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageMaxCLL">Estimated MaxCLL:</TextBlock>
-            <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageAvgCLL">Estimated MedCLL:</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageAvgCLL" Visibility="Collapsed">Estimated MedCLL:</TextBlock>
             <MenuFlyoutSeparator />
             <TextBlock Style="{StaticResource SectionTitle}">Display information</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="DisplayACState">Kind:</TextBlock>
