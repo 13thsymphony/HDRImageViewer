@@ -39,6 +39,7 @@
                 <Setter Property="Margin" Value="16, 0, 8, 0" />
             </Style>
             <Style TargetType="Button">
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="Margin" Value="8, 0, 0, 8" />
             </Style>
             <Style TargetType="CheckBox">
