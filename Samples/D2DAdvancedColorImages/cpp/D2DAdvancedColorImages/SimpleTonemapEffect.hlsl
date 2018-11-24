@@ -14,16 +14,68 @@
 #define D2D_INPUT_COUNT 1           // The pixel shader takes 1 input texture.
 #define D2D_INPUT0_SIMPLE
 
-#define DESIRED_SCENE_MIDPOINT_LUM 0.2f // In scRGB values; 80 nits.
+#define MIDTONE_MAX 0.9   // Fraction of outputMax reserved for passthrough linear section.
+#define DELTA 0.00001
 
 // Note that the custom build step must provide the correct path to find d2d1effecthelpers.hlsli when calling fxc.exe.
 #include "d2d1effecthelpers.hlsli"
 
 cbuffer constants : register(b0)
 {
-    float sourceAvgLum; // In scRGB values.
-    float targetMaxLum; // In scRGB values.
+    float inputMax;  // In scRGB values.
+    float outputMax; // In scRGB values.
 };
+
+// Rational, second-order, weighted bezier. t is defined over [0, 1].
+float rb2(float t, float p0, float p1, float p2, float w0, float w1, float w2)
+{
+    float tN1 = 1 - t;
+    float tN1_2 = tN1 * tN1;
+    float t_2 = t * t;
+
+    // w0 * (1 - t)^2 * p0 +
+    // w1 * 2t(1 - t) * p1 +
+    // w2 * t^2       * p2
+    float num = w0 * tN1_2 * p0 + w1 * 2 * t * tN1 * p1 + w2 * t_2 * p2;
+
+    // w0 * (1 - t)^2 +
+    // w1 * 2t(1 - t) +
+    // w2 * t^2
+    float den = w0 * tN1_2 + w1 * 2 * t * tN1 + w2 * t_2;
+
+    return num / den;
+}
+
+// This tonemapper operates directly on each R, G and B channel. A more sophisticated tonemapper
+// would first convert to a colorspace like ICtCp that isolates luminance.
+float channelTonemap(float input)
+{
+    // Tonemapper consists of 3 segments:
+    // 1: Midtones and shadows are passed through/preserved.
+    // 2: Highlights that exceed display max luminance are compressed using bezier.
+    // 3: Highlights that exceed content max (i.e. bad metadata) are clipped.
+    if (input < MIDTONE_MAX)
+    {
+        return input;
+    }
+    else if (input < inputMax)
+    {
+        float midLimit = MIDTONE_MAX * outputMax;
+        float w0 = outputMax / midLimit;
+        float w1 = inputMax / outputMax;
+        float t = (input - midLimit) / (inputMax - midLimit + DELTA);
+
+        // Choose weights for smooth transition with linear segments.
+        return rb2(
+            t,
+            midLimit, outputMax, outputMax, // p0, p1, p2
+            w0      , w1       , w1);
+    }
+    else
+    {
+        return inputMax;
+    }
+}
 
 // Implements a rudimentary HDR tonemapper. In linear RGB (scRGB) space, preserve colors which
 // the display can reproduce, and use a rational bezier to provide a "soft knee" to compress
@@ -34,8 +86,11 @@ cbuffer constants : register(b0)
 // white level adjustment to bring the numeric range of the output to [0, 1].
 D2D_PS_ENTRY(main)
 {
-    // Placeholder
     float4 color = D2DGetInput(0);
+
+    color.r = channelTonemap(color.r);
+    color.g = channelTonemap(color.g);
+    color.b = channelTonemap(color.b);
 
     return color;
 }

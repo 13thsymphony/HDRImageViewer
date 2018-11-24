@@ -184,30 +184,26 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     float targetMaxNits = GetBestDispMaxLuminance();
 
     // Update HDR tonemappers with display information.
+    // The 1803 custom tonemapper uses mostly the same property definitions as the 1809 Direct2D tonemapper, for simplicity.
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
+
+    float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
+    maxCLL *= m_brightnessAdjust;
+
+    // Very low input max luminance can produce unexpected rendering behavior. Restrict to
+    // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
+    maxCLL = max(maxCLL, 0.5f * targetMaxNits);
+
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
+
+    // The 1809 Direct2D tonemapper also optimizes for HDR or SDR displays; the 1803 custom tonemapper does not.
     if (DX::CheckPlatformSupport(DX::Win1809))
     {
-        // On Windows 1809 and above, using the Direct2D inbox tonemapper.
-        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
-
         D2D1_HDRTONEMAP_DISPLAY_MODE mode =
             m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
             D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
 
         DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
-
-        float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
-        maxCLL *= m_brightnessAdjust;
-
-        // Very low input max luminance can produce unexpected rendering behavior. Restrict to
-        // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
-        maxCLL = max(maxCLL, 0.5f * targetMaxNits);
-
-        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
-    }
-    else
-    {
-        // On Windows 1803, use a custom simple HDR tonemapper.
-        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValueByName(L"TargetMaxLuminanceInNits", targetMaxNits));
     }
 
     // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
