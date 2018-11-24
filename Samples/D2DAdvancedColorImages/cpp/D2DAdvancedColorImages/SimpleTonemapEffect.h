@@ -8,19 +8,22 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT. 
 // 
 //*********************************************************
+// {4587A15E-425A-4311-A591-0B2E89D02E75}
+DEFINE_GUID(GUID_SimpleTonemapEffectPixelShader, 
+0x4587a15e, 0x425a, 0x4311, 0xa5, 0x91, 0xb, 0x2e, 0x89, 0xd0, 0x2e, 0x75);
 
-DEFINE_GUID(GUID_ReinhardEffectPixelShader, 0x6716FB29, 0x06A0, 0x460F, 0xAA, 0x9C, 0x8B, 0x8F, 0xF0, 0x33, 0x5E, 0xA6);
-DEFINE_GUID(CLSID_CustomReinhardEffect, 0xB7B36C92, 0x3498, 0x4A94, 0x9E, 0x95, 0x9F, 0x24, 0x6F, 0x92, 0x45, 0xBF);
+// {0273FF16-6CA6-4AC4-BD14-77704DAD5391}
+DEFINE_GUID(CLSID_CustomSimpleTonemapEffect, 0x273ff16, 0x6ca6, 0x4ac4, 0xbd, 0x14, 0x77, 0x70, 0x4d, 0xad, 0x53, 0x91);
 
 // Our effect contains one transform, which is simply a wrapper around a pixel shader. As such,
 // we can simply make the effect itself act as the transform.
-class ReinhardEffect : public ID2D1EffectImpl, public ID2D1DrawTransform
+class SimpleTonemapEffect : public ID2D1EffectImpl, public ID2D1DrawTransform
 {
 public:
     // Declare effect registration methods.
     static HRESULT Register(_In_ ID2D1Factory1* pFactory);
 
-    static HRESULT __stdcall CreateReinhardImpl(_Outptr_ IUnknown** ppEffectImpl);
+    static HRESULT __stdcall CreateSimpleTonemapImpl(_Outptr_ IUnknown** ppEffectImpl);
 
     // Declare property getter/setters
     HRESULT SetSourceAverageLuminanceInNits(float nits);
@@ -72,7 +75,7 @@ public:
     IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppOutput);
 
 private:
-    ReinhardEffect();
+    SimpleTonemapEffect();
     HRESULT UpdateConstants();
 
     inline static float Clamp(float v, float low, float high)

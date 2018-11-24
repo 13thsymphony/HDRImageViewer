@@ -11,20 +11,20 @@
 
 #include "pch.h"
 #include <initguid.h>
-#include "ReinhardEffect.h"
+#include "SimpleTonemapEffect.h"
 #include "BasicReaderWriter.h"
 
 #define XML(X) TEXT(#X)
 
-ReinhardEffect::ReinhardEffect() :
+SimpleTonemapEffect::SimpleTonemapEffect() :
     m_refCount(1)
 {
 }
 
-HRESULT __stdcall ReinhardEffect::CreateReinhardImpl(_Outptr_ IUnknown** ppEffectImpl)
+HRESULT __stdcall SimpleTonemapEffect::CreateSimpleTonemapImpl(_Outptr_ IUnknown** ppEffectImpl)
 {
     // Since the object's refcount is initialized to 1, we don't need to AddRef here.
-    *ppEffectImpl = static_cast<ID2D1EffectImpl*>(new (std::nothrow) ReinhardEffect());
+    *ppEffectImpl = static_cast<ID2D1EffectImpl*>(new (std::nothrow) SimpleTonemapEffect());
 
     if (*ppEffectImpl == nullptr)
     {
@@ -36,7 +36,7 @@ HRESULT __stdcall ReinhardEffect::CreateReinhardImpl(_Outptr_ IUnknown** ppEffec
     }
 }
 
-HRESULT ReinhardEffect::SetSourceAverageLuminanceInNits(float nits)
+HRESULT SimpleTonemapEffect::SetSourceAverageLuminanceInNits(float nits)
 {
     if (nits < 0.0f)
     {
@@ -48,12 +48,12 @@ HRESULT ReinhardEffect::SetSourceAverageLuminanceInNits(float nits)
     return S_OK;
 }
 
-float ReinhardEffect::GetSourceAverageLuminanceInNits() const
+float SimpleTonemapEffect::GetSourceAverageLuminanceInNits() const
 {
     return m_constants.sourceAvgLum * 80.0f;
 }
 
-HRESULT ReinhardEffect::SetTargetMaxLuminanceInNits(float nits)
+HRESULT SimpleTonemapEffect::SetTargetMaxLuminanceInNits(float nits)
 {
     if (nits < 0.0f || nits > 10000.0f)
     {
@@ -65,12 +65,12 @@ HRESULT ReinhardEffect::SetTargetMaxLuminanceInNits(float nits)
     return S_OK;
 }
 
-float ReinhardEffect::GetTargetMaxLuminanceInNits() const
+float SimpleTonemapEffect::GetTargetMaxLuminanceInNits() const
 {
     return m_constants.targetMaxLum * 80.0f;
 }
 
-HRESULT ReinhardEffect::Register(_In_ ID2D1Factory1* pFactory)
+HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
 {
     // The inspectable metadata of an effect is defined in XML. This can be passed in from an external source
     // as well, however for simplicity we just inline the XML.
@@ -79,10 +79,10 @@ HRESULT ReinhardEffect::Register(_In_ ID2D1Factory1* pFactory)
             <?xml version='1.0'?>
             <Effect>
                 <!-- System Properties -->
-                <Property name='DisplayName' type='string' value='Reinhard Tonemapper' />
+                <Property name='DisplayName' type='string' value='Simple HDR Tonemapper' />
                 <Property name='Author' type='string' value='Microsoft Corporation' />
                 <Property name='Category' type='string' value='Stylize' />
-                <Property name='Description' type='string' value='Simplified (RGB) version of the Reinhard HDR tonemapper' />
+                <Property name='Description' type='string' value='Rudimentary HDR tonemapper using rational beziers' />
                 <Inputs>
                     <Input name='Source' />
                 </Inputs>
@@ -109,15 +109,15 @@ HRESULT ReinhardEffect::Register(_In_ ID2D1Factory1* pFactory)
     // This registers the effect with the factory, which will make the effect
     // instantiatable.
     return pFactory->RegisterEffectFromString(
-        CLSID_CustomReinhardEffect,
+        CLSID_CustomSimpleTonemapEffect,
         pszXml,
         bindings,
         ARRAYSIZE(bindings),
-        CreateReinhardImpl
+        CreateSimpleTonemapImpl
         );
 }
 
-IFACEMETHODIMP ReinhardEffect::Initialize(
+IFACEMETHODIMP SimpleTonemapEffect::Initialize(
     _In_ ID2D1EffectContext* pEffectContext,
     _In_ ID2D1TransformGraph* pTransformGraph
     )
@@ -130,7 +130,7 @@ IFACEMETHODIMP ReinhardEffect::Initialize(
 
     try
     {
-        data = reader->ReadData("ReinhardEffect.cso");
+        data = reader->ReadData("SimpleTonemapEffect.cso");
     }
     catch (Platform::Exception^ e)
     {
@@ -138,7 +138,7 @@ IFACEMETHODIMP ReinhardEffect::Initialize(
         return e->HResult;
     }
 
-    HRESULT hr = pEffectContext->LoadPixelShader(GUID_ReinhardEffectPixelShader, data->Data, data->Length);
+    HRESULT hr = pEffectContext->LoadPixelShader(GUID_SimpleTonemapEffectPixelShader, data->Data, data->Length);
 
     // This loads the shader into the Direct2D image effects system and associates it with the GUID passed in.
     // If this method is called more than once (say by other instances of the effect) with the same GUID,
@@ -155,7 +155,7 @@ IFACEMETHODIMP ReinhardEffect::Initialize(
     return hr;
 }
 
-HRESULT ReinhardEffect::UpdateConstants()
+HRESULT SimpleTonemapEffect::UpdateConstants()
 {
     // Update the DPI if it has changed. This allows the effect to scale across different DPIs automatically.
     m_effectContext->GetDpi(&m_dpi, &m_dpi); // DPI is never used right now.
@@ -163,29 +163,29 @@ HRESULT ReinhardEffect::UpdateConstants()
     return m_drawInfo->SetPixelShaderConstantBuffer(reinterpret_cast<BYTE*>(&m_constants), sizeof(m_constants));
 }
 
-IFACEMETHODIMP ReinhardEffect::PrepareForRender(D2D1_CHANGE_TYPE changeType)
+IFACEMETHODIMP SimpleTonemapEffect::PrepareForRender(D2D1_CHANGE_TYPE changeType)
 {
     return UpdateConstants();
 }
 
 // SetGraph is only called when the number of inputs changes. This never happens as we publish this effect
 // as a single input effect.
-IFACEMETHODIMP ReinhardEffect::SetGraph(_In_ ID2D1TransformGraph* pGraph)
+IFACEMETHODIMP SimpleTonemapEffect::SetGraph(_In_ ID2D1TransformGraph* pGraph)
 {
     return E_NOTIMPL;
 }
 
 // Called to assign a new render info class, which is used to inform D2D on
 // how to set the state of the GPU.
-IFACEMETHODIMP ReinhardEffect::SetDrawInfo(_In_ ID2D1DrawInfo* pDrawInfo)
+IFACEMETHODIMP SimpleTonemapEffect::SetDrawInfo(_In_ ID2D1DrawInfo* pDrawInfo)
 {
     m_drawInfo = pDrawInfo;
 
-    return m_drawInfo->SetPixelShader(GUID_ReinhardEffectPixelShader);
+    return m_drawInfo->SetPixelShader(GUID_SimpleTonemapEffectPixelShader);
 }
 
 // Calculates the mapping between the output and input rects.
-IFACEMETHODIMP ReinhardEffect::MapOutputRectToInputRects(
+IFACEMETHODIMP SimpleTonemapEffect::MapOutputRectToInputRects(
     _In_ const D2D1_RECT_L* pOutputRect,
     _Out_writes_(inputRectCount) D2D1_RECT_L* pInputRects,
     UINT32 inputRectCount
@@ -206,7 +206,7 @@ IFACEMETHODIMP ReinhardEffect::MapOutputRectToInputRects(
     return S_OK;
 }
 
-IFACEMETHODIMP ReinhardEffect::MapInputRectsToOutputRect(
+IFACEMETHODIMP SimpleTonemapEffect::MapInputRectsToOutputRect(
     _In_reads_(inputRectCount) CONST D2D1_RECT_L* pInputRects,
     _In_reads_(inputRectCount) CONST D2D1_RECT_L* pInputOpaqueSubRects,
     UINT32 inputRectCount,
@@ -230,7 +230,7 @@ IFACEMETHODIMP ReinhardEffect::MapInputRectsToOutputRect(
     return S_OK;
 }
 
-IFACEMETHODIMP ReinhardEffect::MapInvalidRect(
+IFACEMETHODIMP SimpleTonemapEffect::MapInvalidRect(
     UINT32 inputIndex,
     D2D1_RECT_L invalidInputRect,
     _Out_ D2D1_RECT_L* pInvalidOutputRect
@@ -244,7 +244,7 @@ IFACEMETHODIMP ReinhardEffect::MapInvalidRect(
     return hr;
 }
 
-IFACEMETHODIMP_(UINT32) ReinhardEffect::GetInputCount() const
+IFACEMETHODIMP_(UINT32) SimpleTonemapEffect::GetInputCount() const
 {
     return 1;
 }
@@ -252,13 +252,13 @@ IFACEMETHODIMP_(UINT32) ReinhardEffect::GetInputCount() const
 // D2D ensures that that effects are only referenced from one thread at a time.
 // To improve performance, we simply increment/decrement our reference count
 // rather than use atomic InterlockedIncrement()/InterlockedDecrement() functions.
-IFACEMETHODIMP_(ULONG) ReinhardEffect::AddRef()
+IFACEMETHODIMP_(ULONG) SimpleTonemapEffect::AddRef()
 {
     m_refCount++;
     return m_refCount;
 }
 
-IFACEMETHODIMP_(ULONG) ReinhardEffect::Release()
+IFACEMETHODIMP_(ULONG) SimpleTonemapEffect::Release()
 {
     m_refCount--;
 
@@ -274,7 +274,7 @@ IFACEMETHODIMP_(ULONG) ReinhardEffect::Release()
 }
 
 // This enables the stack of parent interfaces to be queried.
-IFACEMETHODIMP ReinhardEffect::QueryInterface(
+IFACEMETHODIMP SimpleTonemapEffect::QueryInterface(
     _In_ REFIID riid,
     _Outptr_ void** ppOutput
     )

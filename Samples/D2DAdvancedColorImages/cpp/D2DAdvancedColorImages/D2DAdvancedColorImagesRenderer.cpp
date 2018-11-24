@@ -14,7 +14,7 @@
 #include "DirectXPage.xaml.h"
 #include "DirectXHelper.h"
 #include "DirectXTex.h"
-#include "ReinhardEffect.h"
+#include "SimpleTonemapEffect.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
 using namespace D2DAdvancedColorImages;
@@ -79,7 +79,7 @@ void D2DAdvancedColorImagesRenderer::CreateDeviceIndependentResources()
 {
     // Register the custom render effects.
     DX::ThrowIfFailed(
-        ReinhardEffect::Register(m_deviceResources->GetD2DFactory())
+        SimpleTonemapEffect::Register(m_deviceResources->GetD2DFactory())
         );
 
     DX::ThrowIfFailed(
@@ -206,15 +206,8 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     }
     else
     {
-        // On Windows 1803, use the custom Reinhard tonemapper.
+        // On Windows 1803, use a custom simple HDR tonemapper.
         DX::ThrowIfFailed(m_hdrTonemapEffect->SetValueByName(L"TargetMaxLuminanceInNits", targetMaxNits));
-
-        // Note the conditional checks m_imageCLL.maxNits but uses the value from m_imageCLL.medNits.
-        float medCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.medNits : sc_DefaultImageMedCLL;
-
-        // Because the custom Reinhard tonemapper performs image level scaling, do not compensate the
-        // image medCLL passed into the effect (unlike maxCLL for the D2D tonemapper).
-        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValueByName(L"SourceAverageLuminanceInNits", medCLL));
     }
 
     // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
@@ -436,7 +429,7 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     }
     else
     {
-        tonemapper = CLSID_CustomReinhardEffect;
+        tonemapper = CLSID_CustomSimpleTonemapEffect;
 
         // For 1803, this effect should never actually be rendered. Invert is a good "sentinel".
         sdrWhiteScale = CLSID_D2D1Invert;

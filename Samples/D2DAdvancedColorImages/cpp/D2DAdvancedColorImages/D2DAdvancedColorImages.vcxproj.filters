@@ -41,7 +41,7 @@
     <ClCompile Include="SphereMapEffect.cpp">
       <Filter>RenderEffects</Filter>
     </ClCompile>
-    <ClCompile Include="ReinhardEffect.cpp">
+    <ClCompile Include="SimpleTonemapEffect.cpp">
       <Filter>RenderEffects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -72,10 +72,10 @@
     <ClInclude Include="SphereMapEffect.h">
       <Filter>RenderEffects</Filter>
     </ClInclude>
-    <ClInclude Include="ReinhardEffect.h">
+    <ClInclude Include="SdrBrightnessFormatter.h" />
+    <ClInclude Include="SimpleTonemapEffect.h">
       <Filter>RenderEffects</Filter>
     </ClInclude>
-    <ClInclude Include="SdrBrightnessFormatter.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -200,13 +200,15 @@
     <Text Include="SphereMapEffect.hlsl">
       <Filter>RenderEffects</Filter>
     </Text>
-    <Text Include="ReinhardEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Package.StoreAssociation.xml" />
     <None Include="D2DAdvancedColorImages_StoreKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="SimpleTonemapEffect.hlsl">
+      <Filter>RenderEffects</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

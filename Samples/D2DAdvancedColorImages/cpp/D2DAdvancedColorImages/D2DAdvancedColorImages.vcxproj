@@ -144,8 +144,8 @@
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 ReinhardEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)ReinhardEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 ReinhardEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)ReinhardEffect.fxlib" /Fo "$(OutDir)ReinhardEffect.cso" /Fh "$(OutDir)ReinhardEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
@@ -158,10 +158,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -185,8 +185,8 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 ReinhardEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)ReinhardEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 ReinhardEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)ReinhardEffect.fxlib" /Fo "$(OutDir)ReinhardEffect.cso" /Fh "$(OutDir)ReinhardEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
@@ -199,10 +199,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -226,8 +226,8 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 ReinhardEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)ReinhardEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 ReinhardEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)ReinhardEffect.fxlib" /Fo "$(OutDir)ReinhardEffect.cso" /Fh "$(OutDir)ReinhardEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
@@ -240,10 +240,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -267,8 +267,8 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 ReinhardEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)ReinhardEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 ReinhardEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)ReinhardEffect.fxlib" /Fo "$(OutDir)ReinhardEffect.cso" /Fh "$(OutDir)ReinhardEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
@@ -281,10 +281,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -308,8 +308,8 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 ReinhardEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)ReinhardEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 ReinhardEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)ReinhardEffect.fxlib" /Fo "$(OutDir)ReinhardEffect.cso" /Fh "$(OutDir)ReinhardEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
@@ -322,10 +322,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -349,8 +349,8 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 ReinhardEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)ReinhardEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 ReinhardEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)ReinhardEffect.fxlib" /Fo "$(OutDir)ReinhardEffect.cso" /Fh "$(OutDir)ReinhardEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
@@ -363,10 +363,10 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)ReinhardEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)ReinhardEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>ReinhardEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -421,11 +421,11 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
     </ClInclude>
     <ClInclude Include="DirectXTex\DirectXTexEXR.h" />
     <ClInclude Include="LuminanceHeatmapEffect.h" />
-    <ClInclude Include="ReinhardEffect.h" />
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
     <ClInclude Include="SdrBrightnessFormatter.h" />
+    <ClInclude Include="SimpleTonemapEffect.h" />
     <ClInclude Include="SphereMapEffect.h" />
     <ClInclude Include="SdrOverlayEffect.h" />
   </ItemGroup>
@@ -449,7 +449,7 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="D2DAdvancedColorImagesRenderer.cpp" />
-    <ClCompile Include="ReinhardEffect.cpp" />
+    <ClCompile Include="SimpleTonemapEffect.cpp" />
     <ClCompile Include="SphereMapEffect.cpp" />
     <ClCompile Include="SdrOverlayEffect.cpp" />
   </ItemGroup>
@@ -489,7 +489,7 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
     <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReinhardEffect.hlsl">
+    <Text Include="SimpleTonemapEffect.hlsl">
       <FileType>Document</FileType>
     </Text>
   </ItemGroup>

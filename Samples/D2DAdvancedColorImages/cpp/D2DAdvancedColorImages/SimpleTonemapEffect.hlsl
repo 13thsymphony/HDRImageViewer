@@ -25,19 +25,17 @@ cbuffer constants : register(b0)
     float targetMaxLum; // In scRGB values.
 };
 
-// Implements a modified version of the classic Reinhard HDR tonemapper algorithm.
+// Implements a rudimentary HDR tonemapper. In linear RGB (scRGB) space, preserve colors which
+// the display can reproduce, and use a rational bezier to provide a "soft knee" to compress
+// colors above the display (target) max luminance.
+
 // Like the 1809 Direct2D HDR tonemapper, this effect outputs values in scRGB scene-referred
 // luminance space. Therefore, when outputting to an SDR or WCG display, the app must perform
 // white level adjustment to bring the numeric range of the output to [0, 1].
 D2D_PS_ENTRY(main)
 {
-    // 1. Operate on each pixel's RGB channel values directly.
+    // Placeholder
     float4 color = D2DGetInput(0);
 
-    // 2. Scale color values so that the scene average luminance maps to a comfortable value
-    // to fit typical PC viewing environments.
-    //color *= DESIRED_SCENE_MIDPOINT_LUM / sourceAvgLum;
-
-    // 3. Compress color values using a version of Reinhard's operator, then scale to [0, targetMaxLum].
-    return (color + color / pow(targetMaxLum, 2)) / (color + 1.0f) * targetMaxLum;
+    return color;
 }
