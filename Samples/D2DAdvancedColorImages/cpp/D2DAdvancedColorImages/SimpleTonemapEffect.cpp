@@ -36,38 +36,38 @@ HRESULT __stdcall SimpleTonemapEffect::CreateSimpleTonemapImpl(_Outptr_ IUnknown
     }
 }
 
-HRESULT SimpleTonemapEffect::SetSourceAverageLuminanceInNits(float nits)
+HRESULT SimpleTonemapEffect::SetInputMaxLuminance(float nits)
 {
     if (nits < 0.0f)
     {
         return E_INVALIDARG;
     }
 
-    m_constants.sourceAvgLum = nits / 80.0f; // scRGB 1.0 == 80 nits.
+    m_constants.inputMaxLum = nits / 80.0f; // scRGB 1.0 == 80 nits.
 
     return S_OK;
 }
 
-float SimpleTonemapEffect::GetSourceAverageLuminanceInNits() const
+float SimpleTonemapEffect::GetInputMaxLuminance() const
 {
-    return m_constants.sourceAvgLum * 80.0f;
+    return m_constants.inputMaxLum * 80.0f;
 }
 
-HRESULT SimpleTonemapEffect::SetTargetMaxLuminanceInNits(float nits)
+HRESULT SimpleTonemapEffect::SetOutputMaxLuminance(float nits)
 {
     if (nits < 0.0f || nits > 10000.0f)
     {
         return E_INVALIDARG;
     }
 
-    m_constants.targetMaxLum = nits / 80.0f; // scRGB 1.0 == 80 nits.
+    m_constants.outputMaxLum = nits / 80.0f; // scRGB 1.0 == 80 nits.
 
     return S_OK;
 }
 
-float SimpleTonemapEffect::GetTargetMaxLuminanceInNits() const
+float SimpleTonemapEffect::GetOutputMaxLuminance() const
 {
-    return m_constants.targetMaxLum * 80.0f;
+    return m_constants.outputMaxLum * 80.0f;
 }
 
 HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
@@ -87,12 +87,13 @@ HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
                     <Input name='Source' />
                 </Inputs>
                 <!-- Custom Properties go here -->
-                <Property name='SourceAverageLuminanceInNits' type='float'>
-                    <Property name='DisplayName' type='string' value='Source average luminance (nits)'/>
+                <!-- For convenience use the same definitions as the RS5 Direct2D HDR Tonemap effect - See d2d1effects_2.h -->
+                <Property name='InputMaxLuminance' type='float'>
+                    <Property name='DisplayName' type='string' value='Input average luminance (nits)'/>
                     <Property name='Default' type='float' value='4000.0' />
                 </Property>
-                <Property name='TargetMaxLuminanceInNits' type='float'>
-                    <Property name='DisplayName' type='string' value='Target max luminance (nits)'/>
+                <Property name='OutputMaxLuminance' type='float'>
+                    <Property name='DisplayName' type='string' value='Output max luminance (nits)'/>
                     <Property name='Default' type='float' value='270.0' />
                 </Property>
             </Effect>
@@ -102,8 +103,13 @@ HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
     // on the class that ID2D1Effect::SetValue() & GetValue() will call.
     const D2D1_PROPERTY_BINDING bindings[] =
     {
-        D2D1_VALUE_TYPE_BINDING(L"SourceAverageLuminanceInNits", &SetSourceAverageLuminanceInNits, &GetSourceAverageLuminanceInNits),
-        D2D1_VALUE_TYPE_BINDING(L"TargetMaxLuminanceInNits", &SetTargetMaxLuminanceInNits, &GetTargetMaxLuminanceInNits),
+        // When accessing by index, use D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE = 0.
+        D2D1_VALUE_TYPE_BINDING(L"InputMaxLuminance", &SetInputMaxLuminance, &GetInputMaxLuminance),
+
+        // When accessing by index, use D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE = 1.
+        D2D1_VALUE_TYPE_BINDING(L"OutputMaxLuminance", &SetOutputMaxLuminance, &GetOutputMaxLuminance),
+
+        // Note that D2D1_HDRTONEMAP_DISPLAY_MODE = 2 is NOT IMPLEMENTED by this effect.
     };
 
     // This registers the effect with the factory, which will make the effect

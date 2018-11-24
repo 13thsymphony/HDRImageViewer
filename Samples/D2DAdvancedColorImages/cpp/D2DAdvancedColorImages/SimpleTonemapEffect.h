@@ -26,11 +26,11 @@ public:
     static HRESULT __stdcall CreateSimpleTonemapImpl(_Outptr_ IUnknown** ppEffectImpl);
 
     // Declare property getter/setters
-    HRESULT SetSourceAverageLuminanceInNits(float nits);
-    float GetSourceAverageLuminanceInNits() const;
+    HRESULT SetInputMaxLuminance(float nits);
+    float GetInputMaxLuminance() const;
 
-    HRESULT SetTargetMaxLuminanceInNits(float nits);
-    float GetTargetMaxLuminanceInNits() const;
+    HRESULT SetOutputMaxLuminance(float nits);
+    float GetOutputMaxLuminance() const;
 
     // Declare ID2D1EffectImpl implementation methods.
     IFACEMETHODIMP Initialize(
@@ -104,8 +104,8 @@ private:
     // This struct defines the constant buffer of our pixel shader.
     struct
     {
-        float sourceAvgLum; // In scRGB values.
-        float targetMaxLum; // In scRGB values.
+        float inputMaxLum;  // In scRGB values.
+        float outputMaxLum; // In scRGB values.
     } m_constants;
 
     Microsoft::WRL::ComPtr<ID2D1DrawInfo>      m_drawInfo;
