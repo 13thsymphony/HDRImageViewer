@@ -70,7 +70,7 @@
         <SwapChainPanel x:Name="swapChainPanel" Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"/>
         <!-- UI -->
         <!-- <Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Fill="{StaticResource SystemControlAcrylicElementBrush}" /> -->
-        <StackPanel x:Name="ControlsPanel" Grid.Row="1" Grid.Column="0">
+        <StackPanel x:Name="ControlsPanel" Grid.Row="1" Grid.Column="0" MinWidth="200"> <!-- Avoid changing layout from render effect change -->
             <Button Click="LoadImageButtonClick">Open image</Button>
             <StackPanel x:Name="RenderEffectPanel">
                 <TextBlock>Render Effect:</TextBlock>
