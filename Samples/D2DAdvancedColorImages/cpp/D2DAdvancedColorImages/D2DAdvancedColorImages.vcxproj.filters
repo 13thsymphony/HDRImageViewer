@@ -200,15 +200,13 @@
     <Text Include="SphereMapEffect.hlsl">
       <Filter>RenderEffects</Filter>
     </Text>
+    <Text Include="SimpleTonemapEffect.hlsl">
+      <Filter>RenderEffects</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Package.StoreAssociation.xml" />
     <None Include="D2DAdvancedColorImages_StoreKey.pfx" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="SimpleTonemapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

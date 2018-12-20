@@ -144,12 +144,12 @@
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
 </Command>
@@ -191,8 +191,8 @@ fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(Pr
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
@@ -226,12 +226,12 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
 </Command>
@@ -273,8 +273,8 @@ fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(Pr
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
@@ -308,12 +308,12 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
 :: Parse the Visual Studio macro into a form usable by fxc.exe.
 set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
 set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
 </Command>
@@ -355,8 +355,8 @@ fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(Pr
 fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
 fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
 fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
+fxc /T lib_4_0 SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
+fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
