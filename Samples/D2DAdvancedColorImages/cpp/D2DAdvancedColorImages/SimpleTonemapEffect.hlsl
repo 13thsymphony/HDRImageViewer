@@ -14,7 +14,7 @@
 #define D2D_INPUT_COUNT 1           // The pixel shader takes 1 input texture.
 #define D2D_INPUT0_SIMPLE
 
-#define MIDTONE_MAX 0.9   // Fraction of outputMax reserved for passthrough linear section.
+#define MIDTONE_MAX 0.8   // Fraction of outputMax reserved for passthrough linear section.
 #define DELTA 0.00001
 
 // Note that the custom build step must provide the correct path to find d2d1effecthelpers.hlsli when calling fxc.exe.
@@ -54,11 +54,11 @@ float channelTonemap(float input)
     // 1: Midtones and shadows are passed through/preserved.
     // 2: Highlights that exceed display max luminance are compressed using bezier.
     // 3: Highlights that exceed content max (i.e. bad metadata) are clipped.
-    if (input < MIDTONE_MAX)
+    if (input < MIDTONE_MAX * outputMax)
     {
         return input;
     }
-    else if (input < inputMax)
+    else if (input < outputMax)
     {
         float midLimit = MIDTONE_MAX * outputMax;
         float w0 = outputMax / midLimit;
@@ -73,7 +73,7 @@ float channelTonemap(float input)
     }
     else
     {
-        return inputMax;
+        return outputMax;
     }
 }
 
