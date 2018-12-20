@@ -58,7 +58,7 @@ float channelTonemap(float input)
     {
         return input;
     }
-    else if (input < outputMax)
+    else if (input < inputMax)
     {
         float midLimit = MIDTONE_MAX * outputMax;
         float w0 = outputMax / midLimit;
