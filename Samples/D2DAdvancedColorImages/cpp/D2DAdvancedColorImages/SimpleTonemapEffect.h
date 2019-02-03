@@ -8,19 +8,29 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT. 
 // 
 //*********************************************************
+// {4587A15E-425A-4311-A591-0B2E89D02E75}
+DEFINE_GUID(GUID_SimpleTonemapEffectPixelShader, 
+0x4587a15e, 0x425a, 0x4311, 0xa5, 0x91, 0xb, 0x2e, 0x89, 0xd0, 0x2e, 0x75);
 
-DEFINE_GUID(GUID_FilmicEffectPixelShader, 0x4214db42, 0x3bc5, 0x4f17, 0xb8, 0x59, 0x9d, 0x29, 0x15, 0x27, 0x4a, 0x6c);
-DEFINE_GUID(CLSID_CustomFilmicEffect, 0x40e0e874, 0x562c, 0x480f, 0x9b, 0x3e, 0x69, 0xf8, 0x42, 0x25, 0x59, 0xc9);
+// {0273FF16-6CA6-4AC4-BD14-77704DAD5391}
+DEFINE_GUID(CLSID_CustomSimpleTonemapEffect, 0x273ff16, 0x6ca6, 0x4ac4, 0xbd, 0x14, 0x77, 0x70, 0x4d, 0xad, 0x53, 0x91);
 
 // Our effect contains one transform, which is simply a wrapper around a pixel shader. As such,
 // we can simply make the effect itself act as the transform.
-class FilmicEffect : public ID2D1EffectImpl, public ID2D1DrawTransform
+class SimpleTonemapEffect : public ID2D1EffectImpl, public ID2D1DrawTransform
 {
 public:
     // Declare effect registration methods.
     static HRESULT Register(_In_ ID2D1Factory1* pFactory);
 
-    static HRESULT __stdcall CreateFilmicImpl(_Outptr_ IUnknown** ppEffectImpl);
+    static HRESULT __stdcall CreateSimpleTonemapImpl(_Outptr_ IUnknown** ppEffectImpl);
+
+    // Declare property getter/setters
+    HRESULT SetInputMaxLuminance(float nits);
+    float GetInputMaxLuminance() const;
+
+    HRESULT SetOutputMaxLuminance(float nits);
+    float GetOutputMaxLuminance() const;
 
     // Declare ID2D1EffectImpl implementation methods.
     IFACEMETHODIMP Initialize(
@@ -65,7 +75,7 @@ public:
     IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _Outptr_ void** ppOutput);
 
 private:
-    FilmicEffect();
+    SimpleTonemapEffect();
     HRESULT UpdateConstants();
 
     inline static float Clamp(float v, float low, float high)
@@ -94,7 +104,8 @@ private:
     // This struct defines the constant buffer of our pixel shader.
     struct
     {
-        float dpi;
+        float inputMaxLum;  // In scRGB values.
+        float outputMaxLum; // In scRGB values.
     } m_constants;
 
     Microsoft::WRL::ComPtr<ID2D1DrawInfo>      m_drawInfo;

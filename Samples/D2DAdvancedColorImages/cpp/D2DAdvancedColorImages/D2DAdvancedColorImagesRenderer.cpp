@@ -14,6 +14,7 @@
 #include "DirectXPage.xaml.h"
 #include "DirectXHelper.h"
 #include "DirectXTex.h"
+#include "SimpleTonemapEffect.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
 using namespace D2DAdvancedColorImages;
@@ -31,6 +32,10 @@ using namespace Windows::Storage::Streams;
 using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
 
+static const float sc_DefaultHdrDispMaxNits = 1499.0f; // Experimentally chosen for compatibility with 2018 TVs.
+static const float sc_DefaultSdrDispMaxNits = 270.0f; // Experimentally chosen based on typical SDR displays.
+static const float sc_DefaultImageMaxCLL = 1000.0f; // Needs more tuning based on real world content.
+static const float sc_DefaultImageMedCLL = 200.0f; // Needs more tuning based on real world content.
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats.
 static const float sc_MinZoomSphereMap = 0.25f;
@@ -51,7 +56,7 @@ D2DAdvancedColorImagesRenderer::D2DAdvancedColorImagesRenderer(
     m_minZoom(1.0f), // Dynamically calculated on window size.
     m_imageOffset(),
     m_pointerPos(),
-    m_maxCLL(-1.0f),
+    m_imageCLL{ -1.0f, -1.0f },
     m_brightnessAdjust(1.0f),
     m_imageInfo{},
     m_isComputeSupported(false)
@@ -74,11 +79,7 @@ void D2DAdvancedColorImagesRenderer::CreateDeviceIndependentResources()
 {
     // Register the custom render effects.
     DX::ThrowIfFailed(
-        ReinhardEffect::Register(m_deviceResources->GetD2DFactory())
-        );
-
-    DX::ThrowIfFailed(
-        FilmicEffect::Register(m_deviceResources->GetD2DFactory())
+        SimpleTonemapEffect::Register(m_deviceResources->GetD2DFactory())
         );
 
     DX::ThrowIfFailed(
@@ -109,7 +110,8 @@ void D2DAdvancedColorImagesRenderer::ReleaseDeviceDependentResources()
 // to update the app's sizing and advanced color state.
 void D2DAdvancedColorImagesRenderer::CreateWindowSizeDependentResources()
 {
-    FitImageToWindow();
+    // Window size changes don't require recomputing image HDR metadata.
+    FitImageToWindow(false);
 }
 
 // White level scale is used to multiply the color values in the image; allows the user to
@@ -133,15 +135,20 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     // after the effect as their numerical output is affected by any luminance boost.
     switch (m_renderEffectKind)
     {
-    // Effect graph: ImageSource > ColorManagement > WhiteScale > Reinhard
-    case RenderEffectKind::ReinhardTonemap:
-        m_finalOutput = m_reinhardEffect.Get();
-        m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
-        break;
+    // Effect graph: ImageSource > ColorManagement > WhiteScale > HDRTonemap > WhiteScale2*
+    case RenderEffectKind::HdrTonemap:
+        if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
+        {
+            // *Second white scale is needed as an integral part of using the Direct2D HDR
+            // tonemapper on SDR/WCG displays to stay within [0, 1] numeric range.
+            m_finalOutput = m_sdrWhiteScaleEffect.Get();
+        }
+        else
+        {
+            m_finalOutput = m_hdrTonemapEffect.Get();
+        }
 
-    // Effect graph: ImageSource > ColorManagement > WhiteScale > FilmicTonemap
-    case RenderEffectKind::FilmicTonemap:
-        m_finalOutput = m_filmicEffect.Get();
+        m_sdrWhiteScaleEffect->SetInputEffect(0, m_hdrTonemapEffect.Get());
         m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
         break;
 
@@ -174,11 +181,48 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
         break;
     }
 
+    float targetMaxNits = GetBestDispMaxLuminance();
+
+    // Update HDR tonemappers with display information.
+    // The 1803 custom tonemapper uses mostly the same property definitions as the 1809 Direct2D tonemapper, for simplicity.
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
+
+    float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
+    maxCLL *= m_brightnessAdjust;
+
+    // Very low input max luminance can produce unexpected rendering behavior. Restrict to
+    // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
+    maxCLL = max(maxCLL, 0.5f * targetMaxNits);
+
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
+
+    // The 1809 Direct2D tonemapper also optimizes for HDR or SDR displays; the 1803 custom tonemapper does not.
+    if (DX::CheckPlatformSupport(DX::Win1809))
+    {
+        D2D1_HDRTONEMAP_DISPLAY_MODE mode =
+            m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
+            D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
+
+        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
+    }
+
+    // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
+    if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
+    {
+        // Both the D2D and custom HDR tonemappers output values in scRGB using scene-referred luminance - a typical SDR display will
+        // be around numeric range [0.0, 3.0] corresponding to [0, 240 nits]. To encode correctly for an SDR/WCG display
+        // output, we must reinterpret the scene-referred input content (80 nits) as display-referred (targetMaxNits).
+        DX::ThrowIfFailed(
+            m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
+
+        DX::ThrowIfFailed(
+            m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, targetMaxNits));
+    }
+
     Draw();
 }
 
-// Reads the provided data stream and decodes an image from it using WIC. These resources are device-
-// independent.
+// Reads the provided data stream and decodes an image from it using WIC. These resources are device-independent.
 ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromWic(_In_ IStream* imageStream)
 {
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
@@ -368,14 +412,31 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     // Set the actual matrix in SetRenderOptions.
 
     // Instantiate and cache all of the tonemapping/render effects.
-    // Each effect is implemented as a Direct2D custom effect; see the RenderEffects filter in the
+    // Some effects are implemented as Direct2D custom effects; see the RenderEffects filter in the
     // Solution Explorer.
+
+    GUID sdrWhiteScale = {};
+    GUID tonemapper = {};
+    if (DX::CheckPlatformSupport(DX::Win1809))
+    {
+        // HDR tonemapper and white level adjust are only available in 1809 and above.
+        tonemapper = CLSID_D2D1HdrToneMap;
+        sdrWhiteScale = CLSID_D2D1WhiteLevelAdjustment;
+    }
+    else
+    {
+        tonemapper = CLSID_CustomSimpleTonemapEffect;
+
+        // For 1803, this effect should never actually be rendered. Invert is a good "sentinel".
+        sdrWhiteScale = CLSID_D2D1Invert;
+    }
+
     DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_CustomReinhardEffect, &m_reinhardEffect)
+        context->CreateEffect(tonemapper, &m_hdrTonemapEffect)
         );
 
     DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_CustomFilmicEffect, &m_filmicEffect)
+        context->CreateEffect(sdrWhiteScale, &m_sdrWhiteScaleEffect)
         );
 
     DX::ThrowIfFailed(
@@ -401,8 +462,7 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     border->SetValue(D2D1_BORDER_PROP_EDGE_MODE_Y, D2D1_BORDER_EDGE_MODE_WRAP);
     border->SetInputEffect(0, m_whiteScaleEffect.Get());
 
-    m_reinhardEffect->SetInputEffect(0, m_whiteScaleEffect.Get());
-    m_filmicEffect->SetInputEffect(0, m_whiteScaleEffect.Get());
+    m_hdrTonemapEffect->SetInputEffect(0, m_whiteScaleEffect.Get());
     m_sphereMapEffect->SetInputEffect(0, border.Get());
 
     // SphereMap needs to know the pixel size of the image.
@@ -460,8 +520,8 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
     // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
     // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
     // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809 (UniversalApiContract version 7).
-    if (m_imageInfo.isXboxHdrScreenshot && !Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+    // This is fixed in Windows 10 version 1809.
+    if (m_imageInfo.isXboxHdrScreenshot && !DX::CheckPlatformSupport(DX::Win1809))
     {
         scale /= 125.0f;
     }
@@ -591,8 +651,8 @@ void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
     m_scaledImage.Reset();
     m_colorManagementEffect.Reset();
     m_whiteScaleEffect.Reset();
-    m_reinhardEffect.Reset();
-    m_filmicEffect.Reset();
+    m_sdrWhiteScaleEffect.Reset();
+    m_hdrTonemapEffect.Reset();
     m_sdrOverlayEffect.Reset();
     m_heatmapEffect.Reset();
     m_histogramPrescale.Reset();
@@ -658,8 +718,9 @@ void D2DAdvancedColorImagesRenderer::UpdateManipulationState(_In_ ManipulationUp
 }
 
 // Overrides any pan/zoom state set by the user to fit image to the window size.
-// Returns the computed MaxCLL of the image in nits.
-float D2DAdvancedColorImagesRenderer::FitImageToWindow()
+// Returns the computed content light level (CLL) of the image in nits.
+// Recomputing the HDR metadata is only needed when loading a new image.
+ImageCLL D2DAdvancedColorImagesRenderer::FitImageToWindow(bool computeMetadata)
 {
     if (m_imageSource)
     {
@@ -691,7 +752,7 @@ float D2DAdvancedColorImagesRenderer::FitImageToWindow()
         ComputeHdrMetadata(); 
     }
 
-    return m_maxCLL;
+    return m_imageCLL;
 }
 
 // After initial decode, obtain image information and do common setup.
@@ -905,8 +966,8 @@ void D2DAdvancedColorImagesRenderer::UpdateWhiteLevelScale(float brightnessAdjus
     // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
     // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
     // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809 (UniversalApiContract version 7).
-    if (m_imageInfo.isXboxHdrScreenshot && !Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+    // This is fixed in Windows 10 version 1809.
+    if (m_imageInfo.isXboxHdrScreenshot && !DX::CheckPlatformSupport(DX::Win1809))
     {
         scale *= 125.0f;
     }
@@ -957,14 +1018,15 @@ void D2DAdvancedColorImagesRenderer::UpdateImageTransformState()
     }
 }
 
-// Uses a histogram to compute a modified version of MaxCLL (ST.2086 max content light level).
+// Uses a histogram to compute a modified version of maximum content light level/ST.2086 MaxCLL
+// and average content light level.
 // Performs Begin/EndDraw on the D2D context.
 void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
 {
     // Initialize with a sentinel value.
-    m_maxCLL = -1.0f;
+    m_imageCLL = { -1.0f, -1.0f };
 
-    // MaxCLL is not meaningful for SDR or WCG images.
+    // HDR metadata is not meaningful for SDR or WCG images.
     if ((!m_isComputeSupported) ||
         (m_imageInfo.imageKind != AdvancedColorKind::HighDynamicRange))
     {
@@ -999,23 +1061,41 @@ void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
         );
 
     unsigned int maxCLLbin = 0;
+    unsigned int avgCLLbin = 0; // Average is defined as 50th percentile.
     float runningSum = 0.0f; // Cumulative sum of values in histogram is 1.0.
     for (int i = sc_histNumBins - 1; i >= 0; i--)
     {
         runningSum += histogramData[i];
-        maxCLLbin = i;
 
-        if (runningSum >= 1.0f - maxCLLPercent)
+        // Note the inequality (<) is the opposite of the next if block.
+        if (runningSum < 1.0f - maxCLLPercent)
         {
+            maxCLLbin = i;
+        }
+
+        if (runningSum > 0.5f)
+        {
+            // Note if the entire histogram is 0, avgCLLbin remains at -1.
+            avgCLLbin = i;
             break;
         }
     }
 
-    float binNorm = static_cast<float>(maxCLLbin) / static_cast<float>(sc_histNumBins);
-    m_maxCLL = powf(binNorm, 1 / sc_histGamma) * sc_histMaxNits;
+    float binNormMax = static_cast<float>(maxCLLbin) / static_cast<float>(sc_histNumBins);
+    m_imageCLL.maxNits = powf(binNormMax, 1 / sc_histGamma) * sc_histMaxNits;
 
-    // Some drivers have a bug where histogram will always return 0. Treat this as unknown.
-    m_maxCLL = (m_maxCLL == 0.0f) ? -1.0f : m_maxCLL;
+    float binNormAvg = static_cast<float>(avgCLLbin) / static_cast<float>(sc_histNumBins);
+    m_imageCLL.medNits = powf(binNormAvg, 1 / sc_histGamma) * sc_histMaxNits;
+
+    // Some drivers have a bug where histogram will always return 0. Or some images are pure black.
+    // Treat these cases as unknown.
+    if (m_imageCLL.maxNits == 0.0f)
+    {
+        m_imageCLL = { -1.0f, -1.0f };
+    }
+
+    // HDR metadata computation is completed before the app rendering options are known, so don't
+    // attempt to draw yet.
 }
 
 // Set HDR10 metadata to allow HDR displays to optimize behavior based on our content.
@@ -1046,7 +1126,7 @@ void D2DAdvancedColorImagesRenderer::EmitHdrMetadata()
         // Currently only the "None" render effect results in pixel values that exceed
         // the OS-specified SDR white level, as it just passes through HDR color values.
         case RenderEffectKind::None:
-            effectiveMaxCLL = max(m_maxCLL, 0.0f) * m_brightnessAdjust;
+            effectiveMaxCLL = max(m_imageCLL.maxNits, 0.0f) * m_brightnessAdjust;
             break;
 
         default:
@@ -1067,6 +1147,29 @@ void D2DAdvancedColorImagesRenderer::EmitHdrMetadata()
         DX::ThrowIfFailed(sc->QueryInterface(IID_PPV_ARGS(&sc4)));
         DX::ThrowIfFailed(sc4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(metadata), &metadata));
     }
+}
+
+// If AdvancedColorInfo does not have valid data, picks an appropriate default value.
+float D2DAdvancedColorImagesRenderer::GetBestDispMaxLuminance()
+{
+    float val = m_dispInfo->MaxLuminanceInNits;
+
+    if (val == 0.0f)
+    {
+        if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+        {
+            // HDR TVs generally don't report metadata, but monitors do.
+            val = sc_DefaultHdrDispMaxNits;
+        }
+        else
+        {
+            // Almost no SDR displays report HDR metadata. WCG displays generally should report HDR metadata.
+            // We assume both SDR and WCG displays have similar peak luminances and use the same constants.
+            val = sc_DefaultSdrDispMaxNits;
+        }
+    }
+
+    return val;
 }
 
 // Renders the loaded image with user-specified options.

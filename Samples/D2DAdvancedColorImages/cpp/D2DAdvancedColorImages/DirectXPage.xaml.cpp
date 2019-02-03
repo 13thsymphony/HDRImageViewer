@@ -41,7 +41,7 @@ DirectXPage::DirectXPage() :
     m_isWindowVisible(true),
     m_imageInfo{},
     m_isImageValid(false),
-    m_imageMaxCLL(-1.0f)
+    m_imageCLL{ -1.0f, -1.0f }
 {
     InitializeComponent();
 
@@ -194,7 +194,7 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
         m_imageInfo = info;
 
         m_renderer->CreateImageDependentResources();
-        m_imageMaxCLL = m_renderer->FitImageToWindow();
+        m_imageCLL = m_renderer->FitImageToWindow(true); // On first load of image, need to generate HDR metadata.
 
         ApplicationView::GetForCurrentView()->Title = imageFile->Name;
         ImageACKind->Text = L"Kind: " + ConvertACKindToString(m_imageInfo.imageKind);
@@ -204,16 +204,29 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
         std::wstringstream cllStr;
         cllStr << L"Estimated MaxCLL: ";
-        if (m_imageMaxCLL < 0.0f)
+        if (m_imageCLL.maxNits < 0.0f)
         {
             cllStr << L"N/A";
         }
         else
         {
-            cllStr << std::to_wstring(static_cast<int>(m_imageMaxCLL)) << L" nits";
+            cllStr << std::to_wstring(static_cast<int>(m_imageCLL.maxNits)) << L" nits";
         }
 
         ImageMaxCLL->Text = ref new String(cllStr.str().c_str());
+
+        std::wstringstream avgStr;
+        avgStr << L"Estimated MedCLL: ";
+        if (m_imageCLL.medNits < 0.0f)
+        {
+            avgStr << L"N/A";
+        }
+        else
+        {
+            avgStr << std::to_wstring(static_cast<int>(m_imageCLL.medNits)) << L" nits";
+        }
+
+        ImageAvgCLL->Text = ref new String(avgStr.str().c_str());
 
         // Image loading is done at this point.
         m_isImageValid = true;
@@ -323,32 +336,17 @@ void DirectXPage::UpdateDefaultRenderOptions()
     case AdvancedColorKind::WideColorGamut:
     default:
         // SDR and WCG images don't need to be tonemapped.
-        RenderEffectCombo->SelectedIndex = 2; // See RenderOptions.h for which value this indicates.
+        RenderEffectCombo->SelectedIndex = 0; // See RenderOptions.h for which value this indicates.
 
         // Manual brightness adjustment is only useful for HDR content.
         // SDR and WCG content is adjusted by the OS-provided AdvancedColorInfo::SdrWhiteLevel parameter.
-        BrightnessAdjustSlider->Value = 1.0f;
+        BrightnessAdjustSlider->Value = SdrBrightnessFormatter::BrightnessToSlider(1.0f);
         BrightnessAdjustPanel->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
         break;
 
     case AdvancedColorKind::HighDynamicRange:
-        auto acKind = m_dispInfo ? m_dispInfo->CurrentAdvancedColorKind : AdvancedColorKind::StandardDynamicRange;
-
-        switch (acKind)
-        {
-        case AdvancedColorKind::StandardDynamicRange:
-        case AdvancedColorKind::WideColorGamut:
-        default:
-            // HDR content + non-HDR display: HDR tonemapping is needed for correct rendering.
-            RenderEffectCombo->SelectedIndex = 0; // See RenderOptions.h for which value this indicates.
-            break;
-
-        case AdvancedColorKind::HighDynamicRange:
-            // HDR content + HDR display: HDR tonemapping is needed for best results, but this sample's
-            // tonemappers are very simple and not suitable, so just disable it.
-            RenderEffectCombo->SelectedIndex = 2; // See RenderOptions.h for which value this indicates.
-            break;
-        }
+        // HDR images need to be tonemapped regardless of display kind.
+        RenderEffectCombo->SelectedIndex = 1; // See RenderOptions.h for which value this indicates.
 
         // Manual brightness adjustment is useful for any HDR content.
         BrightnessAdjustPanel->Visibility = Windows::UI::Xaml::Visibility::Visible;
@@ -367,7 +365,7 @@ void DirectXPage::UpdateRenderOptions()
 
         m_renderer->SetRenderOptions(
             tm->Kind,
-            static_cast<float>(BrightnessAdjustSlider->Value),
+            SdrBrightnessFormatter::SliderToBrightness(BrightnessAdjustSlider->Value),
             m_dispInfo
             );
     }

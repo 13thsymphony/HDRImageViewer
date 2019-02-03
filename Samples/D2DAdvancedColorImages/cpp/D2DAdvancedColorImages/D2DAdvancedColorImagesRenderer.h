@@ -12,8 +12,6 @@
 #pragma once
 
 #include "DeviceResources.h"
-#include "ReinhardEffect.h"
-#include "FilmicEffect.h"
 #include "SdrOverlayEffect.h"
 #include "LuminanceHeatmapEffect.h"
 #include "SphereMapEffect.h"
@@ -31,6 +29,12 @@ namespace D2DAdvancedColorImages
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
         bool                                            isXboxHdrScreenshot;
         bool                                            isValid;
+    };
+
+    struct ImageCLL
+    {
+        float   maxNits;
+        float   medNits;
     };
 
     class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
@@ -51,10 +55,11 @@ namespace D2DAdvancedColorImages
 
         void UpdateManipulationState(_In_ Windows::UI::Input::ManipulationUpdatedEventArgs^ args);
 
-        // Returns the computed MaxCLL of the image in nits. While HDR metadata is a
-        // property of the image (and independent of rendering), our implementation
+        // Returns the computed MaxCLL and AvgCLL of the image in nits. While HDR metadata is a
+        // property of the image (and is independent of rendering), our implementation
         // can't compute it until this point.
-        float FitImageToWindow();
+        ImageCLL FitImageToWindow(bool computeMetadata);
+
         void SetRenderOptions(
             RenderEffectKind effect,
             float brightnessAdjustment,
@@ -89,6 +94,8 @@ namespace D2DAdvancedColorImages
         void ComputeHdrMetadata();
         void EmitHdrMetadata();
 
+        float GetBestDispMaxLuminance();
+
         // Cached pointer to device resources.
         std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
 
@@ -99,8 +106,8 @@ namespace D2DAdvancedColorImages
         Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_scaledImage;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_colorManagementEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_whiteScaleEffect;
-        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_reinhardEffect;
-        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_filmicEffect;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrWhiteScaleEffect;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_hdrTonemapEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrOverlayEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_heatmapEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sphereMapEffect;
@@ -114,7 +121,7 @@ namespace D2DAdvancedColorImages
         float                                                   m_minZoom;
         D2D1_POINT_2F                                           m_imageOffset;
         D2D1_POINT_2F                                           m_pointerPos;
-        float                                                   m_maxCLL; // In nits.
+        ImageCLL                                                m_imageCLL;
         float                                                   m_brightnessAdjust;
         Windows::Graphics::Display::AdvancedColorInfo^          m_dispInfo;
         ImageInfo                                               m_imageInfo;

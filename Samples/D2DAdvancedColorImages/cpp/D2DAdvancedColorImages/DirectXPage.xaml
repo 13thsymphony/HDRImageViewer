@@ -39,6 +39,7 @@
                 <Setter Property="Margin" Value="16, 0, 8, 0" />
             </Style>
             <Style TargetType="Button">
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="Margin" Value="8, 0, 0, 8" />
             </Style>
             <Style TargetType="CheckBox">
@@ -54,9 +55,10 @@
             <Style TargetType="ComboBox">
                 <Setter Property="Margin" Value="8, 0, 8, 8" />
             </Style>
+            <local:SdrBrightnessFormatter x:Key="SdrBrightnessFormatter"/>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto" MinWidth="200"/> 
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -68,7 +70,7 @@
         <SwapChainPanel x:Name="swapChainPanel" Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"/>
         <!-- UI -->
         <!-- <Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Fill="{StaticResource SystemControlAcrylicElementBrush}" /> -->
-        <StackPanel x:Name="ControlsPanel" Grid.Row="1" Grid.Column="0">
+        <StackPanel x:Name="ControlsPanel" Grid.Row="1" Grid.Column="0" MinWidth="200"> <!-- Avoid changing layout from render effect change -->
             <Button Click="LoadImageButtonClick">Open image</Button>
             <StackPanel x:Name="RenderEffectPanel">
                 <TextBlock>Render Effect:</TextBlock>
@@ -82,7 +84,18 @@
             </StackPanel>
             <StackPanel x:Name="BrightnessAdjustPanel">
                 <TextBlock>Adjust brightness:</TextBlock>
-                <Slider x:Name="BrightnessAdjustSlider" Minimum="0.125" Maximum="3" StepFrequency="0.125" Value="1.0" ValueChanged="SliderChanged" Margin="8,0,8,0" IsEnabled="False"/>
+                <Slider
+                    x:Name="BrightnessAdjustSlider"
+                    ThumbToolTipValueConverter="{StaticResource SdrBrightnessFormatter}"
+                    Minimum="-4"
+                    Maximum="4"
+                    StepFrequency="0.1"
+                    TickPlacement="BottomRight"
+                    TickFrequency="1"
+                    SnapsTo="StepValues"
+                    Value="0.0"
+                    ValueChanged="SliderChanged"
+                    IsEnabled="False"/>
             </StackPanel>
             <MenuFlyoutSeparator />
             <TextBlock Style="{StaticResource SectionTitle}">Image information</TextBlock>
@@ -91,6 +104,7 @@
             <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageBitDepth">Bit depth:</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageIsFloat">Floating point:</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageMaxCLL">Estimated MaxCLL:</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}" x:Name="ImageAvgCLL" Visibility="Collapsed">Estimated MedCLL:</TextBlock>
             <MenuFlyoutSeparator />
             <TextBlock Style="{StaticResource SectionTitle}">Display information</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="DisplayACState">Kind:</TextBlock>
