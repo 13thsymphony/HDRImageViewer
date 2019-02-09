@@ -68,8 +68,7 @@ namespace D2DAdvancedColorImages
 
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
-
-        void PopulateImageInfoACKind(_Inout_ ImageInfo* info, IWICBitmapSource* source);
+        void      ExportImageToSdr(_In_ IStream* outputStream, GUID wicFormat);
 
         // IDeviceNotify methods handle device lost and restored.
         virtual void OnDeviceLost();
@@ -85,6 +84,7 @@ namespace D2DAdvancedColorImages
 
         void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateHistogramResources();
+        void PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source);
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
         GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
 

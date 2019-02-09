@@ -70,6 +70,18 @@ float SimpleTonemapEffect::GetOutputMaxLuminance() const
     return m_constants.outputMaxLum * 80.0f;
 }
 
+HRESULT SimpleTonemapEffect::SetDisplayMode(D2D1_HDRTONEMAP_DISPLAY_MODE mode)
+{
+    m_ignored = mode;
+
+    return S_OK;
+}
+
+D2D1_HDRTONEMAP_DISPLAY_MODE SimpleTonemapEffect::GetDisplayMode() const
+{
+    return m_ignored;
+}
+
 HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
 {
     // The inspectable metadata of an effect is defined in XML. This can be passed in from an external source
@@ -96,6 +108,14 @@ HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
                     <Property name='DisplayName' type='string' value='Output max luminance (nits)'/>
                     <Property name='Default' type='float' value='270.0' />
                 </Property>
+                <Property name='DisplayMode' type='enum'>
+                    <Property name='DisplayName' type='string' value='Not used'/>
+                    <Property name="Default" type="enum" value="0" />
+                    <Fields>
+                        <Field name='SDR' displayname='SDR' index="0" />
+                        <Field name='HDR' displayname='HDR' index="1" />
+                    </Fields>
+                </Property>
             </Effect>
             );
 
@@ -109,7 +129,10 @@ HRESULT SimpleTonemapEffect::Register(_In_ ID2D1Factory1* pFactory)
         // When accessing by index, use D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE = 1.
         D2D1_VALUE_TYPE_BINDING(L"OutputMaxLuminance", &SetOutputMaxLuminance, &GetOutputMaxLuminance),
 
-        // Note that D2D1_HDRTONEMAP_DISPLAY_MODE = 2 is NOT IMPLEMENTED by this effect.
+        // When accessing by index, use D2D1_HDRTONEMAP_DISPLAY_MODE = 2.
+        // Note this property is IGNORED by this effect, the entry point is implemented as a convenience
+        // to drop-in with the 1809 tonemapper.
+        D2D1_VALUE_TYPE_BINDING(L"DisplayMode", &SetDisplayMode, &GetDisplayMode),
     };
 
     // This registers the effect with the factory, which will make the effect

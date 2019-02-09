@@ -32,6 +32,9 @@ public:
     HRESULT SetOutputMaxLuminance(float nits);
     float GetOutputMaxLuminance() const;
 
+    HRESULT SetDisplayMode(D2D1_HDRTONEMAP_DISPLAY_MODE mode);
+    D2D1_HDRTONEMAP_DISPLAY_MODE GetDisplayMode() const;
+
     // Declare ID2D1EffectImpl implementation methods.
     IFACEMETHODIMP Initialize(
         _In_ ID2D1EffectContext* pContextInternal,
@@ -113,4 +116,5 @@ private:
     LONG                                       m_refCount;
     D2D1_RECT_L                                m_inputRect;
     float                                      m_dpi;
+    D2D1_HDRTONEMAP_DISPLAY_MODE               m_ignored;
 };
