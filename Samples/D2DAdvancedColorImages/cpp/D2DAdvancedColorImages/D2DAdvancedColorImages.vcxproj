@@ -161,7 +161,7 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -202,7 +202,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -243,7 +243,7 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -284,7 +284,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -325,7 +325,7 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
@@ -366,7 +366,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl,SdrOverlayEffect.hlsl,LuminanceHeatmapEffect.hlsl,SphereMapEffect.hlsl</Inputs>
+      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
       <TreatOutputAsContent>true</TreatOutputAsContent>
