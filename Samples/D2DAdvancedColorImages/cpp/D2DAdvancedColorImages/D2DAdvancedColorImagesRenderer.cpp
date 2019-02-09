@@ -324,7 +324,7 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
 
 // Simplified heuristic to determine what advanced color kind the image is.
 // Requires that all fields other than imageKind are populated.
-void D2DAdvancedColorImagesRenderer::PopulateImageInfoACKind(_Inout_ ImageInfo* info)
+void D2DAdvancedColorImagesRenderer::PopulateImageInfoACKind(_Inout_ ImageInfo* info, IWICBitmapSource* source)
 {
     if (info->bitsPerPixel == 0 ||
         info->bitsPerChannel == 0 ||
@@ -343,13 +343,18 @@ void D2DAdvancedColorImagesRenderer::PopulateImageInfoACKind(_Inout_ ImageInfo* 
         info->imageKind = AdvancedColorKind::WideColorGamut;
     }
 
-    // This application currently only natively supports HDR images with floating point.
-    // An image encoded using the HDR10 colorspace is also HDR, but this
-    // is not automatically detected by the application.
+    // Currently, all supported floating point images are considered HDR.
     if (info->isFloat == true)
     {
         info->imageKind = AdvancedColorKind::HighDynamicRange;
     }
+
+	// Xbox One HDR screenshots have to be specially detected.
+	if (IsImageXboxHdrScreenshot(source))
+	{
+		m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
+		m_imageInfo.isXboxHdrScreenshot = true;
+	}
 }
 
 // Configures a Direct2D image pipeline, including source, color management, 
@@ -578,7 +583,7 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
 
 // XBox One HDR screenshots are captured using JPEG XR with a 10-bit pixel format and custom XMP metadata.
 // They use the HDR10 colorspace but this is not explicitly stored in the file, so we must manually
-// detect them.
+// detect them. Requires source to be IWICBitmapFrameDecode.
 bool D2DAdvancedColorImagesRenderer::IsImageXboxHdrScreenshot(IWICBitmapSource* source)
 {
     ComPtr<IWICBitmapFrameDecode> frame;
@@ -586,6 +591,8 @@ bool D2DAdvancedColorImagesRenderer::IsImageXboxHdrScreenshot(IWICBitmapSource* 
     {
         return false;
     }
+
+	// Eventually should detect whether the codec actually is JPEG XR.
 
     WICPixelFormatGUID fmt = {};
     DX::ThrowIfFailed(frame->GetPixelFormat(&fmt));
@@ -747,9 +754,12 @@ ImageCLL D2DAdvancedColorImagesRenderer::FitImageToWindow(bool computeMetadata)
 
         UpdateImageTransformState();
 
-        // HDR metadata is supposed to be independent of any rendering options, but
-        // we can't compute it until the full effect graph is hooked up, which is here.
-        ComputeHdrMetadata(); 
+		if (computeMetadata)
+		{
+			// HDR metadata is supposed to be independent of any rendering options, but
+			// we can't compute it until the full effect graph is hooked up, which is here.
+			ComputeHdrMetadata();
+		}
     }
 
     return m_imageCLL;
@@ -875,14 +885,7 @@ void D2DAdvancedColorImagesRenderer::LoadImageCommon(_In_ IWICBitmapSource* sour
 
     m_imageInfo.size = Size(static_cast<float>(width), static_cast<float>(height));
 
-    PopulateImageInfoACKind(&m_imageInfo);
-
-    // Manually fixup for Xbox One HDR screenshots.
-    if (IsImageXboxHdrScreenshot(source))
-    {
-        m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
-        m_imageInfo.isXboxHdrScreenshot = true;
-    }
+    PopulateImageInfoACKind(&m_imageInfo, source);
 
     m_imageInfo.isValid = true;
 }
