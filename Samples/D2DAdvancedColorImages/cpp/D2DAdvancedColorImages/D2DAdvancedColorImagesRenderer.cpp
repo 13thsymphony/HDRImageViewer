@@ -354,9 +354,21 @@ void D2DAdvancedColorImagesRenderer::ExportImageToSdr(_In_ IStream* outputStream
     ComPtr<ID2D1Image> d2dImage;
     m_sdrWhiteScaleEffect->GetOutput(&d2dImage);
 
+    // IWICImageEncoder's internal pixel format conversion from FP16 to UINT8 does not perform gamma correction.
+    // For simplicity, rely on the IWICBitmapFrameEncode's format converter which does perform gamma correction.
+    WICImageParameters params = {
+        D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED),
+        96.0f, // DpiX
+        96.0f, // DpiY
+        0,     // OffsetX
+        0,     // OffsetY
+        m_imageInfo.size.Width, // SizeX
+        m_imageInfo.size.Height // SizeY
+    };
+
     ComPtr<IWICImageEncoder> imageEncoder;
     DX::ThrowIfFailed(wic->CreateImageEncoder(dev, &imageEncoder));
-    DX::ThrowIfFailed(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), nullptr));
+    DX::ThrowIfFailed(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), &params));
     DX::ThrowIfFailed(frame->Commit());
     DX::ThrowIfFailed(encoder->Commit());
     DX::ThrowIfFailed(outputStream->Commit(STGC_DEFAULT));
