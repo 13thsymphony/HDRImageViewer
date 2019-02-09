@@ -69,7 +69,7 @@ namespace D2DAdvancedColorImages
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
 
-        void PopulateImageInfoACKind(_Inout_ ImageInfo* info);
+        void PopulateImageInfoACKind(_Inout_ ImageInfo* info, IWICBitmapSource* source);
 
         // IDeviceNotify methods handle device lost and restored.
         virtual void OnDeviceLost();
