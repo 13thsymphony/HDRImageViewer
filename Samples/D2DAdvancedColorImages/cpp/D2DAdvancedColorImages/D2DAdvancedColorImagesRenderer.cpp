@@ -196,15 +196,12 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
 
     DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
 
-    // The 1809 Direct2D tonemapper also optimizes for HDR or SDR displays; the 1803 custom tonemapper does not.
-    if (DX::CheckPlatformSupport(DX::Win1809))
-    {
-        D2D1_HDRTONEMAP_DISPLAY_MODE mode =
-            m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
-            D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
+    // The 1809 Direct2D tonemapper optimizes for HDR or SDR displays; the 1803 custom tonemapper ignores this hint.
+    D2D1_HDRTONEMAP_DISPLAY_MODE mode =
+        m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
+        D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
 
-        DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
-    }
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
 
     // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
     if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
@@ -322,9 +319,59 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String^ filena
     return m_imageInfo;
 }
 
+void D2DAdvancedColorImagesRenderer::ExportImageToSdr(_In_ IStream* outputStream, GUID wicFormat)
+{
+    // Temporarily repurpose the HDR render effect pipeline for export.
+
+    // Cache original pipeline values.
+    float temp_whiteScaleOutput, temp_tonemapOutput, temp_zoom;
+    D2D1_HDRTONEMAP_DISPLAY_MODE temp_dispMode;
+
+    DX::ThrowIfFailed(m_sdrWhiteScaleEffect->GetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, &temp_whiteScaleOutput));
+    DX::ThrowIfFailed(m_hdrTonemapEffect->GetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, &temp_tonemapOutput));
+    DX::ThrowIfFailed(m_hdrTonemapEffect->GetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, &temp_dispMode));
+    temp_zoom = m_zoom;
+
+    // Configure pipeline for SDR export.
+    DX::ThrowIfFailed(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, sc_DefaultSdrDispMaxNits));
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits));
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
+    m_zoom = 1.0f;
+    UpdateImageTransformState(); // X/Y translation is handled by the IWICImageEncoder.
+
+    // Render out to WIC.
+    auto dev = m_deviceResources->GetD2DDevice();
+    auto wic = m_deviceResources->GetWicImagingFactory();
+
+    ComPtr<IWICBitmapEncoder> encoder;
+    DX::ThrowIfFailed(wic->CreateEncoder(wicFormat, nullptr, &encoder));
+    DX::ThrowIfFailed(encoder->Initialize(outputStream, WICBitmapEncoderNoCache));
+
+    ComPtr<IWICBitmapFrameEncode> frame;
+    DX::ThrowIfFailed(encoder->CreateNewFrame(&frame, nullptr));
+    DX::ThrowIfFailed(frame->Initialize(nullptr));
+
+    ComPtr<ID2D1Image> d2dImage;
+    m_sdrWhiteScaleEffect->GetOutput(&d2dImage);
+
+    ComPtr<IWICImageEncoder> imageEncoder;
+    DX::ThrowIfFailed(wic->CreateImageEncoder(dev, &imageEncoder));
+    DX::ThrowIfFailed(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), nullptr));
+    DX::ThrowIfFailed(frame->Commit());
+    DX::ThrowIfFailed(encoder->Commit());
+    DX::ThrowIfFailed(outputStream->Commit(STGC_DEFAULT));
+
+    // Restore original pipeline state.
+    DX::ThrowIfFailed(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, temp_whiteScaleOutput));
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, temp_tonemapOutput));
+    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, temp_dispMode));
+    m_zoom = temp_zoom;
+    UpdateImageTransformState();
+}
+
 // Simplified heuristic to determine what advanced color kind the image is.
 // Requires that all fields other than imageKind are populated.
-void D2DAdvancedColorImagesRenderer::PopulateImageInfoACKind(_Inout_ ImageInfo* info, IWICBitmapSource* source)
+void D2DAdvancedColorImagesRenderer::PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source)
 {
     if (info->bitsPerPixel == 0 ||
         info->bitsPerChannel == 0 ||
@@ -1126,10 +1173,12 @@ void D2DAdvancedColorImagesRenderer::EmitHdrMetadata()
 
         switch (m_renderEffectKind)
         {
-        // Currently only the "None" render effect results in pixel values that exceed
-        // the OS-specified SDR white level, as it just passes through HDR color values.
         case RenderEffectKind::None:
             effectiveMaxCLL = max(m_imageCLL.maxNits, 0.0f) * m_brightnessAdjust;
+            break;
+
+        case RenderEffectKind::HdrTonemap:
+            effectiveMaxCLL = GetBestDispMaxLuminance() * m_brightnessAdjust;
             break;
 
         default:

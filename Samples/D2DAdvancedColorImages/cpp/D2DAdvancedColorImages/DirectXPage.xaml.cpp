@@ -232,6 +232,16 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
         m_isImageValid = true;
         BrightnessAdjustSlider->IsEnabled = true;
         RenderEffectCombo->IsEnabled = true;
+
+        if (m_imageInfo.imageKind == AdvancedColorKind::HighDynamicRange)
+        {
+            ExportImageButton->IsEnabled = true;
+        }
+        else
+        {
+            ExportImageButton->IsEnabled = false;
+        }
+
         UpdateDefaultRenderOptions();
 
         // Ensure the preceding continuation runs on the UI thread.
@@ -252,6 +262,25 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
             return;
         }
+    });
+}
+
+void DirectXPage::ExportImageToSdr(_In_ Windows::Storage::StorageFile ^ file)
+{
+    GUID wicFormat = {};
+    if (Platform::String::CompareOrdinal(file->FileType, L".jpg") == 0)
+    {
+        wicFormat = GUID_ContainerFormatJpeg;
+    }
+    else
+    {
+        wicFormat = GUID_ContainerFormatPng;
+    }
+
+    create_task(file->OpenAsync(FileAccessMode::ReadWrite)).then([=](IRandomAccessStream^ ras) {
+        ComPtr<IStream> iStream;
+        DX::ThrowIfFailed(CreateStreamOverRandomAccessStream(ras, IID_PPV_ARGS(&iStream)));
+        m_renderer->ExportImageToSdr(iStream.Get(), wicFormat);
     });
 }
 
@@ -309,6 +338,29 @@ void DirectXPage::LoadImageButtonClick(_In_ Object^ sender, _In_ RoutedEventArgs
         }
     });
 }
+
+void DirectXPage::ExportImageButtonClick(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+    FileSavePicker^ picker = ref new FileSavePicker();
+    picker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
+    picker->CommitButtonText = L"Export image to SDR";
+
+    auto jpgExtensions = ref new Platform::Collections::Vector<String^>(1, L".jpg");
+    auto pngExtensions = ref new Platform::Collections::Vector<String^>(1, L".png");
+
+    picker->FileTypeChoices->Insert(L"JPEG image", jpgExtensions);
+    picker->FileTypeChoices->Insert(L"PNG image", pngExtensions);
+
+    std::shared_ptr<GUID> wicFormatPtr = std::make_shared<GUID>();
+
+    create_task(picker->PickSaveFileAsync()).then([=](StorageFile^ pickedFile) {
+        if (pickedFile != nullptr)
+        {
+            ExportImageToSdr(pickedFile);
+        }
+    });
+}
+
 
 // Saves the current state of the app for suspend and terminate events.
 void DirectXPage::SaveInternalState(_In_ IPropertySet^ state)
