@@ -36,7 +36,7 @@ namespace D2DAdvancedColorImages
         NotInitialized,
         LoadingSucceeded,
         LoadingFailed,
-        DeviceNotReady
+        NeedDeviceResources // Device resources must be (re)created but otherwise image data is valid.
     };
 
     struct ImageInfo
@@ -65,30 +65,38 @@ namespace D2DAdvancedColorImages
 
         ImageLoaderState GetState() const { return m_state; };
 
-        // Only valid when ImageLoaderState::NotInitialized.
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
 
-        // Only valid when ImageLoaderState::LoadingSucceeded.
         ID2D1TransformedImageSource* GetLoadedImage(float zoom);
-        void GetImageColorContext();
+        ID2D1ColorContext* GetImageColorContext();
 
         void CreateDeviceDependentResources();
         void ReleaseDeviceDependentResources();
 
     private:
+        inline void EnforceState(ImageLoaderState state)
+        {
+            if (m_state != state) throw ref new Platform::COMException(WINCODEC_ERR_WRONGSTATE);
+        }
+
         void LoadImageCommon(_In_ IWICBitmapSource* source);
+        void CreateDeviceDependentResourcesInternal();
         void PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source);
-        void ComputeHdrMetadata();
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
         GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
 
         std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
+
+        // Device-independent
         Microsoft::WRL::ComPtr<IWICFormatConverter>             m_formatConvert;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
-        Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
+
+        // Device-dependent
+        Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
+        Microsoft::WRL::ComPtr<ID2D1ColorContext>               m_colorContext;
     };
 }

@@ -65,12 +65,7 @@ namespace D2DAdvancedColorImages
             return (v < low) ? low : (v > high) ? high : v;
         }
 
-        void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateHistogramResources();
-        void PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source);
-        bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
-        GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
-
         void UpdateImageColorContext();
         void UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel);
         void UpdateImageTransformState();
@@ -81,11 +76,9 @@ namespace D2DAdvancedColorImages
 
         // Cached pointer to device resources.
         std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
+        std::unique_ptr<ImageLoader>                            m_imageLoader;
 
         // WIC and Direct2D resources.
-        Microsoft::WRL::ComPtr<IWICFormatConverter>             m_formatConvert;
-        Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
-        Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
         Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_loadedImage;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_colorManagementEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_whiteScaleEffect;
