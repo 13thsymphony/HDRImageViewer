@@ -714,7 +714,7 @@ GUID D2DAdvancedColorImagesRenderer::TranslateDxgiFormatToWic(DXGI_FORMAT fmt)
 void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
 {
     m_imageSource.Reset();
-    m_scaledImage.Reset();
+    m_loadedImage.Reset();
     m_colorManagementEffect.Reset();
     m_whiteScaleEffect.Reset();
     m_sdrWhiteScaleEffect.Reset();
@@ -1071,12 +1071,12 @@ void D2DAdvancedColorImagesRenderer::UpdateImageTransformState()
             m_deviceResources->GetD2DDeviceContext()->CreateTransformedImageSource(
                 m_imageSource.Get(),
                 &props,
-                &m_scaledImage
+                &m_loadedImage
                 )
             );
 
         // Set the new image as the new source to the effect pipeline.
-        m_colorManagementEffect->SetInput(0, m_scaledImage.Get());
+        m_colorManagementEffect->SetInput(0, m_loadedImage.Get());
     }
 }
 
@@ -1247,7 +1247,7 @@ void D2DAdvancedColorImagesRenderer::Draw()
 
     d2dContext->SetTransform(m_deviceResources->GetOrientationTransform2D());
 
-    if (m_scaledImage)
+    if (m_loadedImage)
     {
         d2dContext->DrawImage(m_finalOutput.Get(), m_imageOffset);
 
