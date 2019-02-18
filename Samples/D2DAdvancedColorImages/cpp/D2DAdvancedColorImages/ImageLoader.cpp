@@ -22,6 +22,10 @@ using namespace DirectX;
 using namespace Microsoft::WRL;
 using namespace Platform;
 using namespace std;
+using namespace Windows::Foundation;
+using namespace Windows::Graphics::Display;
+
+static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats.
 
 ImageLoader::ImageLoader(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
     m_deviceResources(deviceResources),
@@ -33,13 +37,11 @@ ImageLoader::~ImageLoader()
 {
 }
 
-// Reads the provided data stream and decodes an image from it using WIC. These resources are device-independent.
+// Reads the provided data stream and decodes an image from it using WIC.
+// Only valid when ImageLoaderState::NotInitialized.
 ImageInfo ImageLoader::LoadImageFromWic(_In_ IStream* imageStream)
 {
-    if (m_state != ImageLoaderState::NotInitialized)
-    {
-        throw ref new COMException(WINCODEC_ERR_WRONGSTATE);
-    }
+    EnforceState(ImageLoaderState::NotInitialized);
 
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
 
@@ -68,8 +70,11 @@ ImageInfo ImageLoader::LoadImageFromWic(_In_ IStream* imageStream)
 // we use WIC as an intermediary for image loading, which restricts the set of supported DDS
 // DXGI_FORMAT values.
 // Also relies on the correct file extension, as DirectXTex doesn't auto-detect codec type.
+// Only valid when ImageLoaderState::NotInitialized.
 ImageInfo ImageLoader::LoadImageFromDirectXTex(String^ filename, String^ extension)
 {
+    EnforceState(ImageLoaderState::NotInitialized);
+
     ComPtr<IWICBitmapSource> decodedSource;
 
     auto dxtScratch = new ScratchImage();
@@ -138,10 +143,275 @@ ImageInfo ImageLoader::LoadImageFromDirectXTex(String^ filename, String^ extensi
     return m_imageInfo;
 }
 
-// Only valid if state is ImageLoaderState::LoadingSucceeded.
-ID2D1TransformedImageSource * D2DAdvancedColorImages::ImageLoader::GetLoadedImage(float zoom)
+// After initial decode, obtain image information and do common setup.
+// Populates all members of ImageInfo.
+void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 {
-    return nullptr;
+    EnforceState(ImageLoaderState::NotInitialized);
+
+    auto wicFactory = m_deviceResources->GetWicImagingFactory();
+    m_imageInfo = {};
+
+    // Attempt to read the embedded color profile from the image; only valid for WIC images.
+    ComPtr<IWICBitmapFrameDecode> frame;
+    if (SUCCEEDED(source->QueryInterface(IID_PPV_ARGS(&frame))))
+    {
+        DX::ThrowIfFailed(
+            wicFactory->CreateColorContext(&m_wicColorContext)
+        );
+
+        DX::ThrowIfFailed(
+            frame->GetColorContexts(
+                1,
+                m_wicColorContext.GetAddressOf(),
+                &m_imageInfo.numProfiles
+            )
+        );
+    }
+
+    // Check whether the image data is natively stored in a floating-point format, and
+    // decode to the appropriate WIC pixel format.
+
+    WICPixelFormatGUID pixelFormat;
+    DX::ThrowIfFailed(
+        source->GetPixelFormat(&pixelFormat)
+    );
+
+    ComPtr<IWICComponentInfo> componentInfo;
+    DX::ThrowIfFailed(
+        wicFactory->CreateComponentInfo(
+            pixelFormat,
+            &componentInfo
+        )
+    );
+
+    ComPtr<IWICPixelFormatInfo2> pixelFormatInfo;
+    DX::ThrowIfFailed(
+        componentInfo.As(&pixelFormatInfo)
+    );
+
+    WICPixelFormatNumericRepresentation formatNumber;
+    DX::ThrowIfFailed(
+        pixelFormatInfo->GetNumericRepresentation(&formatNumber)
+    );
+
+    DX::ThrowIfFailed(pixelFormatInfo->GetBitsPerPixel(&m_imageInfo.bitsPerPixel));
+
+    // Calculate the bits per channel (bit depth) using GetChannelMask.
+    // This accounts for nonstandard color channel packing and padding, e.g. 32bppRGB.
+    unsigned char channelMaskBytes[sc_MaxBytesPerPixel];
+    ZeroMemory(channelMaskBytes, ARRAYSIZE(channelMaskBytes));
+    unsigned int maskSize;
+
+    DX::ThrowIfFailed(
+        pixelFormatInfo->GetChannelMask(
+            0,  // Read the first color channel.
+            ARRAYSIZE(channelMaskBytes),
+            channelMaskBytes,
+            &maskSize)
+    );
+
+    // Count up the number of bits set in the mask for the first color channel.
+    for (unsigned int i = 0; i < maskSize * 8; i++)
+    {
+        unsigned int byte = i / 8;
+        unsigned int bit = i % 8;
+        if ((channelMaskBytes[byte] & (1 << bit)) != 0)
+        {
+            m_imageInfo.bitsPerChannel += 1;
+        }
+    }
+
+    m_imageInfo.isFloat = (WICPixelFormatNumericRepresentationFloat == formatNumber) ? true : false;
+
+    // When decoding, preserve the numeric representation (float vs. non-float)
+    // of the native image data. This avoids WIC performing an implicit gamma conversion
+    // which occurs when converting between a fixed-point/integer pixel format (sRGB gamma)
+    // and a float-point pixel format (linear gamma). Gamma adjustment, if specified by
+    // the ICC profile, will be performed by the Direct2D color management effect.
+
+    WICPixelFormatGUID fmt = {};
+    if (m_imageInfo.isFloat)
+    {
+        fmt = GUID_WICPixelFormat64bppPRGBAHalf; // Equivalent to DXGI_FORMAT_R16G16B16A16_FLOAT.
+    }
+    else
+    {
+        fmt = GUID_WICPixelFormat64bppPRGBA; // Equivalent to DXGI_FORMAT_R16G16B16A16_UNORM.
+                                             // Many SDR images (e.g. JPEG) use <=32bpp, so it
+                                             // is possible to further optimize this for memory usage.
+    }
+
+    DX::ThrowIfFailed(
+        wicFactory->CreateFormatConverter(&m_formatConvert)
+    );
+
+    DX::ThrowIfFailed(
+        m_formatConvert->Initialize(
+            source,
+            fmt,
+            WICBitmapDitherTypeNone,
+            nullptr,
+            0.0f,
+            WICBitmapPaletteTypeCustom
+        )
+    );
+
+    UINT width;
+    UINT height;
+    DX::ThrowIfFailed(
+        m_formatConvert->GetSize(&width, &height)
+    );
+
+    m_imageInfo.size = Size(static_cast<float>(width), static_cast<float>(height));
+
+    PopulateImageInfoACKind(&m_imageInfo, source);
+
+    m_imageInfo.isValid = true;
+    m_state = ImageLoaderState::NeedDeviceResources;
+
+    CreateDeviceDependentResourcesInternal();
+}
+
+// All device dependent resources get (re)initialized here.
+void ImageLoader::CreateDeviceDependentResourcesInternal()
+{
+    // TODO: EnforceState for either NotInitialized or NeedsDeviceResources
+
+    auto d2dFactory = m_deviceResources->GetD2DFactory();
+    auto context = m_deviceResources->GetD2DDeviceContext();
+
+    // Load the image from WIC using ID2D1ImageSource.
+    DX::ThrowIfFailed(
+        m_deviceResources->GetD2DDeviceContext()->CreateImageSourceFromWic(
+            m_formatConvert.Get(),
+            &m_imageSource
+        )
+    );
+
+    if (!m_imageInfo.isXboxHdrScreenshot)
+    {
+        // For most image types, automatically derive the color context from the image.
+        if (m_imageInfo.numProfiles >= 1)
+        {
+            DX::ThrowIfFailed(
+                context->CreateColorContextFromWicColorContext(
+                    m_wicColorContext.Get(),
+                    &m_colorContext
+                )
+            );
+        }
+        else
+        {
+            // Since no embedded color profile/metadata exists, select a default
+            // based on the pixel format: floating point == scRGB, others == sRGB.
+            DX::ThrowIfFailed(
+                context->CreateColorContext(
+                    m_imageInfo.isFloat ? D2D1_COLOR_SPACE_SCRGB : D2D1_COLOR_SPACE_SRGB,
+                    nullptr,
+                    0,
+                    &m_colorContext
+                )
+            );
+        }
+    }
+    else
+    {
+        // Xbox One HDR screenshots use the HDR10 colorspace, and this must be manually specified.
+        ComPtr<ID2D1ColorContext1> colorContext1;
+        DX::ThrowIfFailed(
+            context->CreateColorContextFromDxgiColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020, &colorContext1)
+        );
+
+        DX::ThrowIfFailed(colorContext1.As(&m_colorContext));
+    }
+
+    m_state = ImageLoaderState::LoadingSucceeded;
+}
+
+ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom)
+{
+    EnforceState(ImageLoaderState::LoadingSucceeded);
+
+    // When using ID2D1ImageSource, the recommend method of scaling is to use
+    // ID2D1TransformedImageSource. It is inexpensive to recreate this object.
+    D2D1_TRANSFORMED_IMAGE_SOURCE_PROPERTIES props =
+    {
+        D2D1_ORIENTATION_DEFAULT,
+        zoom,
+        zoom,
+        D2D1_INTERPOLATION_MODE_LINEAR, // This is ignored when using DrawImage.
+        D2D1_TRANSFORMED_IMAGE_SOURCE_OPTIONS_NONE
+    };
+
+    ComPtr<ID2D1TransformedImageSource> source;
+
+    DX::ThrowIfFailed(
+        m_deviceResources->GetD2DDeviceContext()->CreateTransformedImageSource(
+            m_imageSource.Get(),
+            &props,
+            &source
+        )
+    );
+
+    return source.Detach();
+}
+
+ID2D1ColorContext* ImageLoader::GetImageColorContext()
+{
+    EnforceState(ImageLoaderState::LoadingSucceeded);
+
+    // Do NOT call GetImageColorContextInternal - it was already called by LoadImageCommon.
+    return m_colorContext.Get();
+}
+
+void ImageLoader::CreateDeviceDependentResources()
+{
+    EnforceState(ImageLoaderState::NeedDeviceResources);
+
+    CreateDeviceDependentResourcesInternal();
+}
+
+void ImageLoader::ReleaseDeviceDependentResources()
+{
+    m_state = ImageLoaderState::NeedDeviceResources;
+    m_imageSource.Reset();
+    m_colorContext.Reset();
+}
+
+// Simplified heuristic to determine what advanced color kind the image is.
+// Requires that all fields other than imageKind are populated.
+void ImageLoader::PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source)
+{
+    if (info->bitsPerPixel == 0 ||
+        info->bitsPerChannel == 0 ||
+        info->size.Width == 0 ||
+        info->size.Height == 0)
+    {
+        DX::ThrowIfFailed(E_INVALIDARG);
+    }
+
+    info->imageKind = AdvancedColorKind::StandardDynamicRange;
+
+    // Bit depth > 8bpc or color gamut > sRGB signifies a WCG image.
+    // The presence of a color profile is used as an approximation for wide gamut.
+    if (info->bitsPerChannel > 8 || info->numProfiles >= 1)
+    {
+        info->imageKind = AdvancedColorKind::WideColorGamut;
+    }
+
+    // Currently, all supported floating point images are considered HDR.
+    if (info->isFloat == true)
+    {
+        info->imageKind = AdvancedColorKind::HighDynamicRange;
+    }
+
+    // Xbox One HDR screenshots have to be specially detected.
+    if (IsImageXboxHdrScreenshot(source))
+    {
+        m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
+        m_imageInfo.isXboxHdrScreenshot = true;
+    }
 }
 
 // XBox One HDR screenshots are captured using JPEG XR with a 10-bit pixel format and custom XMP metadata.
