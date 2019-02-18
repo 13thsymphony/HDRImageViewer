@@ -358,12 +358,12 @@ void D2DAdvancedColorImagesRenderer::ExportImageToSdr(_In_ IStream* outputStream
     // For simplicity, rely on the IWICBitmapFrameEncode's format converter which does perform gamma correction.
     WICImageParameters params = {
         D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        96.0f, // DpiX
-        96.0f, // DpiY
-        0,     // OffsetX
-        0,     // OffsetY
-        m_imageInfo.size.Width, // SizeX
-        m_imageInfo.size.Height // SizeY
+        96.0f,                                     // DpiX
+        96.0f,                                     // DpiY
+        0,                                         // OffsetX
+        0,                                         // OffsetY
+        static_cast<UINT>(m_imageInfo.size.Width), // SizeX
+        static_cast<UINT>(m_imageInfo.size.Height) // SizeY
     };
 
     ComPtr<IWICImageEncoder> imageEncoder;
