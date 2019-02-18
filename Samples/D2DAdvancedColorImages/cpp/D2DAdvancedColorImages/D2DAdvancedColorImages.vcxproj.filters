@@ -44,6 +44,7 @@
     <ClCompile Include="SimpleTonemapEffect.cpp">
       <Filter>RenderEffects</Filter>
     </ClCompile>
+    <ClCompile Include="ImageLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h" />
@@ -76,6 +77,7 @@
     <ClInclude Include="SimpleTonemapEffect.h">
       <Filter>RenderEffects</Filter>
     </ClInclude>
+    <ClInclude Include="ImageLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

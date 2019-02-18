@@ -16,27 +16,10 @@
 #include "LuminanceHeatmapEffect.h"
 #include "SphereMapEffect.h"
 #include "RenderOptions.h"
+#include "ImageLoader.h"
 
 namespace D2DAdvancedColorImages
 {
-    struct ImageInfo
-    {
-        unsigned int                                    bitsPerPixel;
-        unsigned int                                    bitsPerChannel;
-        bool                                            isFloat;
-        Windows::Foundation::Size                       size;
-        unsigned int                                    numProfiles;
-        Windows::Graphics::Display::AdvancedColorKind   imageKind;
-        bool                                            isXboxHdrScreenshot;
-        bool                                            isValid;
-    };
-
-    struct ImageCLL
-    {
-        float   maxNits;
-        float   medNits;
-    };
-
     class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
     {
     public:
@@ -103,7 +86,7 @@ namespace D2DAdvancedColorImages
         Microsoft::WRL::ComPtr<IWICFormatConverter>             m_formatConvert;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
         Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
-        Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_scaledImage;
+        Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_loadedImage;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_colorManagementEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_whiteScaleEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrWhiteScaleEffect;
