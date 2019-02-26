@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 
-#include "..\D2DAdvancedColorImages\ImageLoader.cpp"
+#include "..\D2DAdvancedColorImages\ImageLoader.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

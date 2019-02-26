@@ -10,7 +10,7 @@
     <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.17763.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.17134.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
-    <UnitTestPlatformVersion  Condition="'$(UnitTestPlatformVersion)' == ''">15.0</UnitTestPlatformVersion>
+    <UnitTestPlatformVersion Condition="'$(UnitTestPlatformVersion)' == ''">15.0</UnitTestPlatformVersion>
     <ProjectSubType>NativeUnitTestProject</ProjectSubType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -23,7 +23,7 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-   <ProjectConfiguration Include="Debug|x64">
+    <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
@@ -76,81 +76,85 @@
     <PlatformToolset>v141</PlatformToolset>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <PropertyGroup Label="UserMacros" />
-
   <PropertyGroup>
-    
     <PackageCertificateKeyFile>UnitTests_TemporaryKey.pfx</PackageCertificateKeyFile>
-    
   </PropertyGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
-
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="UnitTestApp.xaml.h">
@@ -166,11 +170,9 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    
+    <None Include="packages.config" />
     <None Include="UnitTests_TemporaryKey.pfx" />
-    
   </ItemGroup>
-
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png" />
     <Image Include="Assets\SplashScreen.scale-200.png" />
@@ -180,13 +182,11 @@
     <Image Include="Assets\StoreLogo.png" />
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
-
   <ItemGroup>
     <ClCompile Include="UnitTestApp.xaml.cpp">
       <DependentUpon>UnitTestApp.xaml</DependentUpon>
     </ClCompile>
-    <ClCompile Include="UnitTest.cpp"/>
-
+    <ClCompile Include="UnitTest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -204,8 +204,17 @@
     <Xml Include="UnitTestApp.rd.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\directxtex_uwp.2019.2.7.1\build\native\directxtex_uwp.targets" Condition="Exists('..\packages\directxtex_uwp.2019.2.7.1\build\native\directxtex_uwp.targets')" />
+    <Import Project="..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets" Condition="Exists('..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets')" />
+    <Import Project="..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets" Condition="Exists('..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" />
   </ImportGroup>
-
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\directxtex_uwp.2019.2.7.1\build\native\directxtex_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_uwp.2019.2.7.1\build\native\directxtex_uwp.targets'))" />
+    <Error Condition="!Exists('..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets'))" />
+  </Target>
 </Project>
