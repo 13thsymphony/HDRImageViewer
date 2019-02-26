@@ -78,6 +78,7 @@ void D2DAdvancedColorImagesRenderer::CreateDeviceIndependentResources()
 {
     auto fact = m_deviceResources->GetD2DFactory();
 
+    // TODO: This instance never does anything as it gets overwritten upon image load.
     m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
 
     // Register the custom render effects.
