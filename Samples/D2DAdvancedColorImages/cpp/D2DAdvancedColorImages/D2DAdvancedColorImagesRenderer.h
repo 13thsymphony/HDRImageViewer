@@ -66,7 +66,6 @@ namespace D2DAdvancedColorImages
         }
 
         void CreateHistogramResources();
-        void UpdateImageColorContext();
         void UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel);
         void UpdateImageTransformState();
         void ComputeHdrMetadata();

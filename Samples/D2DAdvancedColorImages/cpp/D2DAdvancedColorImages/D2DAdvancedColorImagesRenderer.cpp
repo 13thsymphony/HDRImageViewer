@@ -96,6 +96,7 @@ void D2DAdvancedColorImagesRenderer::CreateDeviceDependentResources()
 
 void D2DAdvancedColorImagesRenderer::ReleaseDeviceDependentResources()
 {
+    m_imageLoader->ReleaseDeviceDependentResources();
 }
 
 // Whenever the app window is resized or changes displays, this method is used
@@ -295,20 +296,19 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     // Next, configure the app's effect pipeline, consisting of a color management effect
     // followed by a tone mapping effect.
 
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_D2D1ColorManagement, &m_colorManagementEffect)
-        );
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_D2D1ColorManagement, &m_colorManagementEffect));
 
     DX::ThrowIfFailed(
         m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_QUALITY,
-            D2D1_COLORMANAGEMENT_QUALITY_BEST   // Required for floating point and DXGI color space support.
-            )
-        );
+            D2D1_COLORMANAGEMENT_QUALITY_BEST));   // Required for floating point and DXGI color space support.
 
     // The color management effect takes a source color space and a destination color space,
     // and performs the appropriate math to convert images between them.
-    UpdateImageColorContext();
+    DX::ThrowIfFailed(
+        m_colorManagementEffect->SetValue(
+            D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
+            m_imageLoader->GetImageColorContext()));
 
     // The destination color space is the render target's (swap chain's) color space. This app uses an
     // FP16 swap chain, which requires the colorspace to be scRGB.
@@ -316,16 +316,12 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
     DX::ThrowIfFailed(
         context->CreateColorContextFromDxgiColorSpace(
             DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, // scRGB
-            &destColorContext
-            )
-        );
+            &destColorContext));
 
     DX::ThrowIfFailed(
         m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT,
-            destColorContext.Get()
-            )
-        );
+            destColorContext.Get()));
 
     // White level scale is used to multiply the color values in the image; this allows the user
     // to adjust the brightness of the image on an HDR display.
@@ -356,25 +352,11 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
         sdrWhiteScale = CLSID_D2D1Invert;
     }
 
-    DX::ThrowIfFailed(
-        context->CreateEffect(tonemapper, &m_hdrTonemapEffect)
-        );
-
-    DX::ThrowIfFailed(
-        context->CreateEffect(sdrWhiteScale, &m_sdrWhiteScaleEffect)
-        );
-
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect)
-        );
-
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect)
-        );
-
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect)
-        );
+    DX::ThrowIfFailed(context->CreateEffect(tonemapper, &m_hdrTonemapEffect));
+    DX::ThrowIfFailed(context->CreateEffect(sdrWhiteScale, &m_sdrWhiteScaleEffect));
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect));
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect));
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect));
 
     // TEST: border effect to remove seam at the boundary of the image (subpixel sampling)
     // Unclear if we can force D2D_BORDER_MODE_HARD somewhere to avoid the seam.
@@ -415,13 +397,9 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
 
     // We need to preprocess the image data before running the histogram.
     // 1. Spatial downscale to reduce the amount of processing needed.
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_D2D1Scale, &m_histogramPrescale)
-    );
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_D2D1Scale, &m_histogramPrescale));
 
-    DX::ThrowIfFailed(
-        m_histogramPrescale->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(0.5f, 0.5f))
-    );
+    DX::ThrowIfFailed(m_histogramPrescale->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(0.5f, 0.5f)));
 
     // The right place to compute HDR metadata is after color management to the
     // image's native colorspace but before any tonemapping or adjustments for the display.
@@ -432,9 +410,7 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
     //    while FP16 can go up to 65504 (5+ million nits).
     // Both steps are performed in the same color matrix.
     ComPtr<ID2D1Effect> histogramMatrix;
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_D2D1ColorMatrix, &histogramMatrix)
-    );
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_D2D1ColorMatrix, &histogramMatrix));
 
     histogramMatrix->SetInputEffect(0, m_histogramPrescale.Get());
 
@@ -468,9 +444,7 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
 
     // 4. Apply a gamma to allocate more histogram bins to lower luminance levels.
     ComPtr<ID2D1Effect> histogramGamma;
-    DX::ThrowIfFailed(
-        context->CreateEffect(CLSID_D2D1GammaTransfer, &histogramGamma)
-        );
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_D2D1GammaTransfer, &histogramGamma));
 
     histogramGamma->SetInputEffect(0, histogramMatrix.Get());
 
@@ -503,7 +477,8 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
 
 void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
 {
-    m_imageLoader.reset();
+    // TODO: This method is only called during device lost. In that situation,
+    // m_imageLoader should not be reset. Confirm this is the only case we want to call this.
 
     m_loadedImage.Reset();
     m_colorManagementEffect.Reset();
@@ -613,17 +588,6 @@ ImageCLL D2DAdvancedColorImagesRenderer::FitImageToWindow(bool computeMetadata)
     }
 
     return m_imageCLL;
-}
-
-// Derive the source color context from the image (embedded ICC profile or metadata).
-void D2DAdvancedColorImagesRenderer::UpdateImageColorContext()
-{
-    DX::ThrowIfFailed(
-        m_colorManagementEffect->SetValue(
-            D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
-            m_imageLoader->GetImageColorContext()
-            )
-        );
 }
 
 // When connected to an HDR display, the OS renders SDR content (e.g. 8888 UNORM) at

@@ -29,8 +29,20 @@
 #pragma once
 #include "DeviceResources.h"
 
+#include <cstdarg>
+
 namespace D2DAdvancedColorImages
 {
+    /// <summary>
+    /// State machine.
+    /// </summary>
+    /// <remarks>
+    /// Valid transitions:
+    /// NotInitialized      --> LoadingSucceeded || LoadingFailed
+    /// LoadingFailed       --> [N/A]
+    /// LoadingSucceeded    --> NeedDeviceResources
+    /// NeedDeviceResources --> LoadingSucceeded
+    /// </remarks>
     enum ImageLoaderState
     {
         NotInitialized,
@@ -75,9 +87,23 @@ namespace D2DAdvancedColorImages
         void ReleaseDeviceDependentResources();
 
     private:
-        inline void EnforceState(ImageLoaderState state)
+        /// <summary>
+        /// Throws if the internal ImageLoaderState does not match one of the valid values.
+        /// Pass in one or more ImageLoaderState values.
+        /// </summary>
+        /// <param name="numStates">How many ImageLoaderState values are valid.</param>
+        inline void EnforceStates(int numStates...)
         {
-            if (m_state != state) throw ref new Platform::COMException(WINCODEC_ERR_WRONGSTATE);
+            va_list args;
+            va_start(args, numStates);
+
+            for (int i = 0; i < numStates; i++)
+            {
+                auto s = va_arg(args, ImageLoaderState);
+                if (m_state == s) return;
+            }
+
+            throw ref new Platform::COMException(WINCODEC_ERR_WRONGSTATE);
         }
 
         void LoadImageCommon(_In_ IWICBitmapSource* source);
