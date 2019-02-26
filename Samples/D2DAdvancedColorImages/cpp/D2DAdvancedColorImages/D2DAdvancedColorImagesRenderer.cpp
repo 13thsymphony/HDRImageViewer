@@ -214,12 +214,14 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
 
 ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromWic(_In_ IStream * imageStream)
 {
+    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
     m_imageInfo = m_imageLoader->LoadImageFromWic(imageStream);
     return m_imageInfo;
 }
 
 ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String ^ filename, String ^ extension)
 {
+    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
     m_imageInfo = m_imageLoader->LoadImageFromDirectXTex(filename, extension);
     return m_imageInfo;
 }
@@ -646,7 +648,8 @@ void D2DAdvancedColorImagesRenderer::UpdateImageTransformState()
     if (m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
         // Set the new image as the new source to the effect pipeline.
-        m_colorManagementEffect->SetInput(0, m_imageLoader->GetLoadedImage(m_zoom));
+        m_loadedImage = m_imageLoader->GetLoadedImage(m_zoom);
+        m_colorManagementEffect->SetInput(0, m_loadedImage.Get());
     }
 }
 
