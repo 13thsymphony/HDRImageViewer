@@ -58,7 +58,7 @@
             <local:SdrBrightnessFormatter x:Key="SdrBrightnessFormatter"/>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="200"/> 
+            <ColumnDefinition Width="Auto"/> 
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
