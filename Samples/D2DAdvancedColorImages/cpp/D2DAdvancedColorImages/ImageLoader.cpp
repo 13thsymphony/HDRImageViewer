@@ -1,14 +1,3 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-
 #include "pch.h"
 #include "ImageLoader.h"
 #include "DirectXHelper.h"
@@ -370,6 +359,16 @@ ID2D1ColorContext* ImageLoader::GetImageColorContext()
 
     // Do NOT call GetImageColorContextInternal - it was already called by LoadImageCommon.
     return m_colorContext.Get();
+}
+
+/// <summary>
+/// Gets ImageInfo.
+/// </summary>
+ImageInfo ImageLoader::GetImageInfo()
+{
+    EnforceStates(2, ImageLoaderState::LoadingSucceeded, ImageLoaderState::NeedDeviceResources);
+
+    return m_imageInfo;
 }
 
 /// <summary>

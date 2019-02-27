@@ -45,6 +45,7 @@
       <Filter>RenderEffects</Filter>
     </ClCompile>
     <ClCompile Include="ImageLoader.cpp" />
+    <ClCompile Include="ImageExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h" />
@@ -78,6 +79,8 @@
       <Filter>RenderEffects</Filter>
     </ClInclude>
     <ClInclude Include="ImageLoader.h" />
+    <ClInclude Include="ImageExporter.h" />
+    <ClInclude Include="MagicConstants.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
