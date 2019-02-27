@@ -420,8 +420,10 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="DirectXTex\DirectXTexEXR.h" />
+    <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="LuminanceHeatmapEffect.h" />
+    <ClInclude Include="MagicConstants.h" />
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
@@ -440,6 +442,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="DirectXTex\DirectXTexEXR.cpp" />
+    <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="LuminanceHeatmapEffect.cpp" />
     <ClCompile Include="pch.cpp">

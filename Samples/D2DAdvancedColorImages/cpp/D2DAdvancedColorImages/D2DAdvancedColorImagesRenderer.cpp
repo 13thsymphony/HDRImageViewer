@@ -14,6 +14,8 @@
 #include "DirectXPage.xaml.h"
 #include "DirectXHelper.h"
 #include "DirectXTex.h"
+#include "ImageExporter.h"
+#include "MagicConstants.h"
 #include "SimpleTonemapEffect.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
@@ -31,20 +33,6 @@ using namespace Windows::Storage;
 using namespace Windows::Storage::Streams;
 using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
-
-static const float sc_DefaultHdrDispMaxNits = 1499.0f; // Experimentally chosen for compatibility with 2018 TVs.
-static const float sc_DefaultSdrDispMaxNits = 270.0f; // Experimentally chosen based on typical SDR displays.
-static const float sc_DefaultImageMaxCLL = 1000.0f; // Needs more tuning based on real world content.
-static const float sc_DefaultImageMedCLL = 200.0f; // Needs more tuning based on real world content.
-static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
-static const float sc_MinZoomSphereMap = 0.25f;
-static const float sc_nominalRefWhite = 80.0f; // Nominal white nits for sRGB and scRGB.
-
-// 400 bins with gamma of 10 lets us measure luminance to within 10% error for any
-// luminance above ~1.5 nits, up to 1 million nits.
-static const unsigned int sc_histNumBins = 400;
-static const float        sc_histGamma = 0.1f;
-static const unsigned int sc_histMaxNits = 1000000;
 
 D2DAdvancedColorImagesRenderer::D2DAdvancedColorImagesRenderer(
     const std::shared_ptr<DX::DeviceResources>& deviceResources
@@ -229,64 +217,7 @@ ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String ^ filen
 
 void D2DAdvancedColorImagesRenderer::ExportImageToSdr(_In_ IStream* outputStream, GUID wicFormat)
 {
-    // Temporarily repurpose the HDR render effect pipeline for export.
-
-    // Cache original pipeline values.
-    float temp_whiteScaleOutput, temp_tonemapOutput, temp_zoom;
-    D2D1_HDRTONEMAP_DISPLAY_MODE temp_dispMode;
-
-    DX::ThrowIfFailed(m_sdrWhiteScaleEffect->GetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, &temp_whiteScaleOutput));
-    DX::ThrowIfFailed(m_hdrTonemapEffect->GetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, &temp_tonemapOutput));
-    DX::ThrowIfFailed(m_hdrTonemapEffect->GetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, &temp_dispMode));
-    temp_zoom = m_zoom;
-
-    // Configure pipeline for SDR export.
-    DX::ThrowIfFailed(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, sc_DefaultSdrDispMaxNits));
-    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits));
-    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
-    m_zoom = 1.0f;
-    UpdateImageTransformState(); // X/Y translation is handled by the IWICImageEncoder.
-
-    // Render out to WIC.
-    auto dev = m_deviceResources->GetD2DDevice();
-    auto wic = m_deviceResources->GetWicImagingFactory();
-
-    ComPtr<IWICBitmapEncoder> encoder;
-    DX::ThrowIfFailed(wic->CreateEncoder(wicFormat, nullptr, &encoder));
-    DX::ThrowIfFailed(encoder->Initialize(outputStream, WICBitmapEncoderNoCache));
-
-    ComPtr<IWICBitmapFrameEncode> frame;
-    DX::ThrowIfFailed(encoder->CreateNewFrame(&frame, nullptr));
-    DX::ThrowIfFailed(frame->Initialize(nullptr));
-
-    ComPtr<ID2D1Image> d2dImage;
-    m_sdrWhiteScaleEffect->GetOutput(&d2dImage);
-
-    // IWICImageEncoder's internal pixel format conversion from FP16 to UINT8 does not perform gamma correction.
-    // For simplicity, rely on the IWICBitmapFrameEncode's format converter which does perform gamma correction.
-    WICImageParameters params = {
-        D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        96.0f,                                     // DpiX
-        96.0f,                                     // DpiY
-        0,                                         // OffsetX
-        0,                                         // OffsetY
-        static_cast<UINT>(m_imageInfo.size.Width), // SizeX
-        static_cast<UINT>(m_imageInfo.size.Height) // SizeY
-    };
-
-    ComPtr<IWICImageEncoder> imageEncoder;
-    DX::ThrowIfFailed(wic->CreateImageEncoder(dev, &imageEncoder));
-    DX::ThrowIfFailed(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), &params));
-    DX::ThrowIfFailed(frame->Commit());
-    DX::ThrowIfFailed(encoder->Commit());
-    DX::ThrowIfFailed(outputStream->Commit(STGC_DEFAULT));
-
-    // Restore original pipeline state.
-    DX::ThrowIfFailed(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, temp_whiteScaleOutput));
-    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, temp_tonemapOutput));
-    DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, temp_dispMode));
-    m_zoom = temp_zoom;
-    UpdateImageTransformState();
+    ImageExporter::ExportToSdr(m_imageLoader.get(), m_deviceResources.get(), outputStream, wicFormat);
 }
 
 // Configures a Direct2D image pipeline, including source, color management, 
