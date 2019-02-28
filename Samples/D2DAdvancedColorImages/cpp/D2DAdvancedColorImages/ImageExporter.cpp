@@ -7,6 +7,7 @@
 using namespace Microsoft::WRL;
 
 using namespace D2DAdvancedColorImages;
+using DX::CHK;
 
 ImageExporter::ImageExporter()
 {
@@ -35,32 +36,30 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
     ComPtr<ID2D1TransformedImageSource> source = loader->GetLoadedImage(1.0f);
 
     ComPtr<ID2D1Effect> colorManage;
-    DX::ThrowIfFailed(ctx->CreateEffect(CLSID_D2D1ColorManagement, &colorManage));
+    CHK(ctx->CreateEffect(CLSID_D2D1ColorManagement, &colorManage));
     colorManage->SetInput(0, source.Get());
+    CHK(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_QUALITY, D2D1_COLORMANAGEMENT_QUALITY_BEST));
 
     ComPtr<ID2D1ColorContext> sourceCtx = loader->GetImageColorContext();
-    DX::ThrowIfFailed(
-        colorManage->SetValue(
-            D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
-            sourceCtx.Get()));
+    CHK(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT, sourceCtx.Get()));
 
     ComPtr<ID2D1ColorContext1> destCtx;
     // scRGB
-    DX::ThrowIfFailed(ctx->CreateColorContextFromDxgiColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, &destCtx));
-    DX::ThrowIfFailed(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT, destCtx.Get()));
+    CHK(ctx->CreateColorContextFromDxgiColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, &destCtx));
+    CHK(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT, destCtx.Get()));
 
     GUID tmGuid = {};
     if (DX::CheckPlatformSupport(DX::Win1809)) tmGuid = CLSID_D2D1HdrToneMap;
     else tmGuid = CLSID_CustomSimpleTonemapEffect;
 
     ComPtr<ID2D1Effect> tonemap;
-    DX::ThrowIfFailed(ctx->CreateEffect(tmGuid, &tonemap));
+    CHK(ctx->CreateEffect(tmGuid, &tonemap));
     tonemap->SetInputEffect(0, colorManage.Get());
-    DX::ThrowIfFailed(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits));
-    DX::ThrowIfFailed(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
+    CHK(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits));
+    CHK(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
 
     ComPtr<ID2D1Effect> whiteScale;
-    DX::ThrowIfFailed(ctx->CreateEffect(CLSID_D2D1ColorMatrix, &whiteScale));
+    CHK(ctx->CreateEffect(CLSID_D2D1ColorMatrix, &whiteScale));
     whiteScale->SetInputEffect(0, tonemap.Get());
 
     float scale = D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL / sc_DefaultSdrDispMaxNits;
@@ -71,17 +70,17 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
         0, 0, 0, 1,      // [A] Preserve alpha values.
         0, 0, 0, 0);     //     No offset.
 
-    DX::ThrowIfFailed(whiteScale->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
+    CHK(whiteScale->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
 
     // Render out to WIC.
 
     ComPtr<IWICBitmapEncoder> encoder;
-    DX::ThrowIfFailed(wic->CreateEncoder(wicFormat, nullptr, &encoder));
-    DX::ThrowIfFailed(encoder->Initialize(stream, WICBitmapEncoderNoCache));
+    CHK(wic->CreateEncoder(wicFormat, nullptr, &encoder));
+    CHK(encoder->Initialize(stream, WICBitmapEncoderNoCache));
 
     ComPtr<IWICBitmapFrameEncode> frame;
-    DX::ThrowIfFailed(encoder->CreateNewFrame(&frame, nullptr));
-    DX::ThrowIfFailed(frame->Initialize(nullptr));
+    CHK(encoder->CreateNewFrame(&frame, nullptr));
+    CHK(frame->Initialize(nullptr));
 
     ComPtr<ID2D1Image> d2dImage;
     whiteScale->GetOutput(&d2dImage);
@@ -99,9 +98,9 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
     };
 
     ComPtr<IWICImageEncoder> imageEncoder;
-    DX::ThrowIfFailed(wic->CreateImageEncoder(dev, &imageEncoder));
-    DX::ThrowIfFailed(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), &params));
-    DX::ThrowIfFailed(frame->Commit());
-    DX::ThrowIfFailed(encoder->Commit());
-    DX::ThrowIfFailed(stream->Commit(STGC_DEFAULT));
+    CHK(wic->CreateImageEncoder(dev, &imageEncoder));
+    CHK(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), &params));
+    CHK(frame->Commit());
+    CHK(encoder->Commit());
+    CHK(stream->Commit(STGC_DEFAULT));
 }
