@@ -15,6 +15,9 @@
 
 namespace DX
 {
+    // TODO: Migrate to just use this shorter identifier.
+#define CHK ThrowIfFailed
+
     inline void ThrowIfFailed(HRESULT hr)
     {
         if (FAILED(hr))
