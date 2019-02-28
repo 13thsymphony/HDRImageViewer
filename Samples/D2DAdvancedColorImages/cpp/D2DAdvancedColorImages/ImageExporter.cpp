@@ -77,11 +77,60 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
 }
 
 /// <summary>
+/// Copies D2D target bitmap (typically same as swap chain) data into CPU accessible memory. Primarily for debug/test purposes.
+/// </summary>
+/// <remarks>
+/// For simplicity, relies on IWICImageEncoder to convert to FP16. Caller should get pixel dimensions
+/// from the target bitmap.
+/// </remarks>
+std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DX::DeviceResources* res)
+{
+    auto wic = res->GetWicImagingFactory();
+
+    auto ras = ref new Windows::Storage::Streams::InMemoryRandomAccessStream();
+    ComPtr<IStream> stream;
+    CHK(CreateStreamOverRandomAccessStream(ras, IID_PPV_ARGS(&stream)));
+
+    auto d2dBitmap = res->GetD2DTargetBitmap();
+    auto d2dSize = d2dBitmap->GetPixelSize();
+    auto size = Windows::Foundation::Size(static_cast<float>(d2dSize.width), static_cast<float>(d2dSize.height));
+
+    ExportToWic(d2dBitmap, size, res, stream.Get(), GUID_ContainerFormatWmp);
+
+    // WIC decoders require stream to be at position 0.
+    LARGE_INTEGER zero = {};
+    ULARGE_INTEGER ignore = {};
+    CHK(stream->Seek(zero, 0, &ignore));
+
+    ComPtr<IWICBitmapDecoder> decode;
+    CHK(wic->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnDemand, &decode));
+    
+    ComPtr<IWICBitmapFrameDecode> frame;
+    CHK(decode->GetFrame(0, &frame));
+    GUID fmt = {};
+    CHK(frame->GetPixelFormat(&fmt));
+    CHK(fmt == GUID_WICPixelFormat64bppRGBAHalf ? S_OK : WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT); // FP16
+
+    auto width = static_cast<uint32_t>(size.Width);
+    auto height = static_cast<uint32_t>(size.Height);
+
+    std::vector<DirectX::XMFLOAT4> pixels = std::vector<DirectX::XMFLOAT4>(width * height);
+    CHK(frame->CopyPixels(
+        nullptr,                                                            // Rect
+        width * sizeof(DirectX::XMFLOAT4),                                  // Stride (bytes)
+        static_cast<uint32_t>(pixels.size() * sizeof(DirectX::XMFLOAT4)),   // Total size (bytes)
+        reinterpret_cast<byte *>(pixels.data())));                          // Buffer
+
+    return pixels;
+}
+
+/// <summary>
 /// Encodes to WIC using default encode options.
 /// </summary>
 /// <remarks>
-/// Relies on IWICImageBitmapFrameEncode's pixel format conversion (which performs gamma correction).
+/// First converts to FP16 in D2D, then uses the WIC encoder's internal converter.
 /// </remarks>
+/// <param name="wicFormat">The WIC container format to encode to.</param>
 void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size, DX::DeviceResources* res, IStream* stream, GUID wicFormat)
 {
     auto dev = res->GetD2DDevice();
