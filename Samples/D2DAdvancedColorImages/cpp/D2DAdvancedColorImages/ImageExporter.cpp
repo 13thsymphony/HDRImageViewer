@@ -25,9 +25,7 @@ ImageExporter::~ImageExporter()
 /// <param name="wicFormat">WIC container format GUID (GUID_ContainerFormat...)</param>
 void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, IStream* stream, GUID wicFormat)
 {
-    auto dev = res->GetD2DDevice();
     auto ctx = res->GetD2DDeviceContext();
-    auto wic = res->GetWicImagingFactory();
 
     // Effect graph: ImageSource > ColorManagement  > HDRTonemap > WhiteScale
     // This graph is derived from, but not identical to RenderEffectKind::HdrTonemap.
@@ -72,7 +70,22 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
 
     CHK(whiteScale->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
 
-    // Render out to WIC.
+    ComPtr<ID2D1Image> d2dImage;
+    whiteScale->GetOutput(&d2dImage);
+
+    ImageExporter::ExportToWic(d2dImage.Get(), loader->GetImageInfo().size, res, stream, wicFormat);
+}
+
+/// <summary>
+/// Encodes to WIC using default encode options.
+/// </summary>
+/// <remarks>
+/// Relies on IWICImageBitmapFrameEncode's pixel format conversion (which performs gamma correction).
+/// </remarks>
+void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size, DX::DeviceResources* res, IStream* stream, GUID wicFormat)
+{
+    auto dev = res->GetD2DDevice();
+    auto wic = res->GetWicImagingFactory();
 
     ComPtr<IWICBitmapEncoder> encoder;
     CHK(wic->CreateEncoder(wicFormat, nullptr, &encoder));
@@ -82,24 +95,21 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
     CHK(encoder->CreateNewFrame(&frame, nullptr));
     CHK(frame->Initialize(nullptr));
 
-    ComPtr<ID2D1Image> d2dImage;
-    whiteScale->GetOutput(&d2dImage);
-
-    // IWICImageEncoder's internal pixel format conversion from FP16 to UINT8 does not perform gamma correction.
+    // IWICImageEncoder's internal pixel format conversion from float to uint does not perform gamma correction.
     // For simplicity, rely on the IWICBitmapFrameEncode's format converter which does perform gamma correction.
     WICImageParameters params = {
         D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        96.0f,                                                // DpiX
-        96.0f,                                                // DpiY
-        0,                                                    // OffsetX
-        0,                                                    // OffsetY
-        static_cast<UINT>(loader->GetImageInfo().size.Width), // SizeX
-        static_cast<UINT>(loader->GetImageInfo().size.Height) // SizeY
+        96.0f,                             // DpiX
+        96.0f,                             // DpiY
+        0,                                 // OffsetX
+        0,                                 // OffsetY
+        static_cast<uint32_t>(size.Width), // SizeX
+        static_cast<uint32_t>(size.Height) // SizeY
     };
 
     ComPtr<IWICImageEncoder> imageEncoder;
     CHK(wic->CreateImageEncoder(dev, &imageEncoder));
-    CHK(imageEncoder->WriteFrame(d2dImage.Get(), frame.Get(), &params));
+    CHK(imageEncoder->WriteFrame(img, frame.Get(), &params));
     CHK(frame->Commit());
     CHK(encoder->Commit());
     CHK(stream->Commit(STGC_DEFAULT));
