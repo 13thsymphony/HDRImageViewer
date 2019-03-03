@@ -81,6 +81,7 @@
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="MagicConstants.h" />
+    <ClInclude Include="ImageInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

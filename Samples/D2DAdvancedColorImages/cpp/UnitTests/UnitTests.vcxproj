@@ -8,7 +8,7 @@
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
     <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.17763.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.17134.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformMinVersion>10.0.17763.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <UnitTestPlatformVersion Condition="'$(UnitTestPlatformVersion)' == ''">15.0</UnitTestPlatformVersion>
     <ProjectSubType>NativeUnitTestProject</ProjectSubType>
@@ -181,6 +181,7 @@
     <Image Include="Assets\Square150x150Logo.scale-200.png" />
     <Image Include="Assets\StoreLogo.png" />
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Image Include="TestInputs\Png_BasicSrgbColors_5x5.png" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UnitTestApp.xaml.cpp">
