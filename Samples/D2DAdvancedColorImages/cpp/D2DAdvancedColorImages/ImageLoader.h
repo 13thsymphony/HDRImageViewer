@@ -17,6 +17,7 @@
 
 #pragma once
 #include "DeviceResources.h"
+#include "ImageInfo.h"
 
 #include <cstdarg>
 
@@ -38,24 +39,6 @@ namespace D2DAdvancedColorImages
         LoadingSucceeded,
         LoadingFailed,
         NeedDeviceResources // Device resources must be (re)created but otherwise image data is valid.
-    };
-
-    struct ImageInfo
-    {
-        unsigned int                                    bitsPerPixel;
-        unsigned int                                    bitsPerChannel;
-        bool                                            isFloat;
-        Windows::Foundation::Size                       size;
-        unsigned int                                    numProfiles;
-        Windows::Graphics::Display::AdvancedColorKind   imageKind;
-        bool                                            isXboxHdrScreenshot;
-        bool                                            isValid;
-    };
-
-    struct ImageCLL
-    {
-        float   maxNits;
-        float   medNits;
     };
 
     class ImageLoader

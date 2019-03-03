@@ -8,6 +8,9 @@
       <UniqueIdentifier>f3dcdcac-5f4b-4304-8018-55917e13535a</UniqueIdentifier>
       <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
     </Filter>
+    <Filter Include="TestInputs">
+      <UniqueIdentifier>{dd268937-ee88-4fc9-aca6-6659c6849568}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="UnitTestApp.xaml" />
@@ -45,6 +48,9 @@
     </Image>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
       <Filter>Assets</Filter>
+    </Image>
+    <Image Include="TestInputs\Png_BasicSrgbColors_5x5.png">
+      <Filter>TestInputs</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

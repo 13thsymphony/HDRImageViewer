@@ -421,6 +421,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
     </ClInclude>
     <ClInclude Include="DirectXTex\DirectXTexEXR.h" />
     <ClInclude Include="ImageExporter.h" />
+    <ClInclude Include="ImageInfo.h" />
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="LuminanceHeatmapEffect.h" />
     <ClInclude Include="MagicConstants.h" />
