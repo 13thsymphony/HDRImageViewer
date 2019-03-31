@@ -6,7 +6,6 @@
 
 using namespace D2DAdvancedColorImages;
 
-using namespace concurrency;
 using namespace DirectX;
 using namespace Microsoft::WRL;
 using namespace Platform;

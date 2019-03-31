@@ -6,6 +6,7 @@
 
 #include <collection.h>
 #include <ppltasks.h>
+#include <shcore.h>
 
 // DirectX
 #include <dxgi1_6.h>

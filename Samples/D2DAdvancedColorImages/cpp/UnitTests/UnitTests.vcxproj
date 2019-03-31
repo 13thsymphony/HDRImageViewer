@@ -171,6 +171,10 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <None Include="packages.config" />
+    <None Include="TestInputs\Jxr_HdrRuler.jxr" />
+    <None Include="TestInputs\Jxr_HdrScene.jxr" />
+    <None Include="TestInputs\Jxr_HdrWithIcc.jxr" />
+    <None Include="TestInputs\Jxr_HdrXboxOne_1025px.jxr" />
     <None Include="UnitTests_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +186,7 @@
     <Image Include="Assets\StoreLogo.png" />
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
     <Image Include="TestInputs\Png_BasicSrgbColors_5x5.png" />
+    <Image Include="TestInputs\Tif_16bpcArgbIcc.tif" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UnitTestApp.xaml.cpp">

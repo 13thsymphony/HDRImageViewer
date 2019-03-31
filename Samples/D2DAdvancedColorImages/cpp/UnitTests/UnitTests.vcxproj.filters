@@ -52,6 +52,9 @@
     <Image Include="TestInputs\Png_BasicSrgbColors_5x5.png">
       <Filter>TestInputs</Filter>
     </Image>
+    <Image Include="TestInputs\Tif_16bpcArgbIcc.tif">
+      <Filter>TestInputs</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -59,5 +62,17 @@
   <ItemGroup>
     <None Include="UnitTests_TemporaryKey.pfx" />
     <None Include="packages.config" />
+    <None Include="TestInputs\Jxr_HdrRuler.jxr">
+      <Filter>TestInputs</Filter>
+    </None>
+    <None Include="TestInputs\Jxr_HdrScene.jxr">
+      <Filter>TestInputs</Filter>
+    </None>
+    <None Include="TestInputs\Jxr_HdrWithIcc.jxr">
+      <Filter>TestInputs</Filter>
+    </None>
+    <None Include="TestInputs\Jxr_HdrXboxOne_1025px.jxr">
+      <Filter>TestInputs</Filter>
+    </None>
   </ItemGroup>
 </Project>
