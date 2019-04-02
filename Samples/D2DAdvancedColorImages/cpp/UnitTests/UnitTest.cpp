@@ -65,10 +65,10 @@ namespace UnitTests
                     CreateStreamOverRandomAccessStream(stream, IID_PPV_ARGS(&iStream));
 
                     auto loader = std::make_unique<ImageLoader>(m_devRes);
-                    Assert::AreEqual(loader->GetState(), ImageLoaderState::NotInitialized);
+                    Assert::IsTrue(loader->GetState() == ImageLoaderState::NotInitialized);
 
                     ImageInfo info = loader->LoadImageFromWic(iStream.Get());
-                    Assert::AreEqual(loader->GetState(), ImageLoaderState::LoadingSucceeded);
+                    Assert::IsTrue(loader->GetState() == ImageLoaderState::LoadingSucceeded);
 
                     auto imageSource = loader->GetLoadedImage(1.0f);
                     auto imageSource2 = loader->GetLoadedImage(0.5f);
@@ -76,9 +76,10 @@ namespace UnitTests
                     Assert::AreEqual(info.bitsPerPixel, definitions[i].info.bitsPerPixel);
                     Assert::AreEqual(info.bitsPerChannel, definitions[i].info.bitsPerChannel);
                     Assert::AreEqual(info.isFloat, definitions[i].info.isFloat);
-                    Assert::AreEqual(info.size, definitions[i].info.size);
+                    Assert::AreEqual(info.size.Width, definitions[i].info.size.Width);
+                    Assert::AreEqual(info.size.Height, definitions[i].info.size.Height);
                     Assert::AreEqual(info.numProfiles, definitions[i].info.numProfiles);
-                    Assert::AreEqual(info.imageKind, definitions[i].info.imageKind);
+                    Assert::IsTrue(info.imageKind == definitions[i].info.imageKind);
                     Assert::AreEqual(info.isXboxHdrScreenshot, definitions[i].info.isXboxHdrScreenshot);
                     Assert::AreEqual(info.isValid, definitions[i].info.isValid);
                 });
