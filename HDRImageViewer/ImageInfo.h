@@ -12,6 +12,7 @@ namespace HDRImageViewer
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
         bool                                            isXboxHdrScreenshot;
         bool                                            isValid;
+        bool                                            isHeif;
     };
 
     struct ImageCLL

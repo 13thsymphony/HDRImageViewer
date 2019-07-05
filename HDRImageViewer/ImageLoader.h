@@ -79,6 +79,23 @@ namespace HDRImageViewer
             throw ref new Platform::COMException(WINCODEC_ERR_WRONGSTATE);
         }
 
+        /// <summary>
+        /// Only use in image load routines where errors from malformed files are not exceptional, and we want to
+        /// inform the caller this failed.
+        /// </summary>
+        inline void IFRIMG(HRESULT hr)
+        {
+            if (FAILED(hr))
+            {
+                m_imageInfo.isValid = false;
+                m_state = ImageLoaderState::LoadingFailed;
+
+                return;
+            }
+        }
+
+        void LoadImageFromWicInt(_In_ IStream* imageStream);
+        void LoadImageFromDirectXTexInt(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
         void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateDeviceDependentResourcesInternal();
         void PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source);
