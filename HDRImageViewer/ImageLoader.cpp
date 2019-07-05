@@ -4,7 +4,7 @@
 #include "DirectXTex.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
-using namespace D2DAdvancedColorImages;
+using namespace HDRImageViewer;
 
 using namespace DirectX;
 using namespace Microsoft::WRL;

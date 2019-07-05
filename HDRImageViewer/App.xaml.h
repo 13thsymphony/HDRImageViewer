@@ -14,7 +14,7 @@
 #include "App.g.h"
 #include "DirectXPage.xaml.h"
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.

@@ -107,7 +107,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -116,7 +116,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -125,7 +125,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -134,7 +134,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -143,7 +143,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -152,7 +152,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)D2DAdvancedColorImages\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\ImageLoader.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DeviceResources.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\DirectXTexEXR.obj;$(SolutionDir)HDRImageViewer\$(IntermediateOutputPath)\pch.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

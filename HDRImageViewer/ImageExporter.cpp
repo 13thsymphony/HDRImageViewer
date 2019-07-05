@@ -6,7 +6,7 @@
 
 using namespace Microsoft::WRL;
 
-using namespace D2DAdvancedColorImages;
+using namespace HDRImageViewer;
 using DX::CHK;
 
 ImageExporter::ImageExporter()

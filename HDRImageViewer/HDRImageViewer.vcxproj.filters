@@ -28,7 +28,7 @@
     <ClCompile Include="DeviceResources.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="D2DAdvancedColorImagesRenderer.cpp" />
+    <ClCompile Include="HDRImageViewerRenderer.cpp" />
     <ClCompile Include="SdrOverlayEffect.cpp">
       <Filter>RenderEffects</Filter>
     </ClCompile>
@@ -60,7 +60,7 @@
     <ClInclude Include="DirectXHelper.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
+    <ClInclude Include="HDRImageViewerRenderer.h" />
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="SdrOverlayEffect.h">
       <Filter>RenderEffects</Filter>
@@ -213,6 +213,5 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Package.StoreAssociation.xml" />
-    <None Include="D2DAdvancedColorImages_StoreKey.pfx" />
   </ItemGroup>
 </Project>

@@ -28,7 +28,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3b235a3e-4663-54cf-9a96-f76899ade1f2}</ProjectGuid>
-    <RootNamespace>D2DAdvancedColorImages</RootNamespace>
+    <RootNamespace>HDRImageViewer</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
@@ -37,11 +37,9 @@
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.17763.0</WindowsTargetPlatformMinVersion>
-    <ProjectName>D2DAdvancedColorImages</ProjectName>
-    <PackageCertificateThumbprint>78009E8D6FA6B7A714605247C1C6E95F0CDF94CC</PackageCertificateThumbprint>
-    <PackageCertificateKeyFile>D2DAdvancedColorImages_StoreKey.pfx</PackageCertificateKeyFile>
+    <ProjectName>HDRImageViewer</ProjectName>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
     <AppInstallerUpdateFrequency>1</AppInstallerUpdateFrequency>
@@ -109,22 +107,28 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
@@ -140,31 +144,24 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuildStep>
-      <Command>:: fxc.exe needs the path to d2d1effecthelpers.hlsli (/I parameter).
-:: Parse the Visual Studio macro into a form usable by fxc.exe.
-set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
-set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -181,31 +178,24 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuildStep>
-      <Command>:: fxc.exe needs the path to d2d1effecthelpers.hlsli (/I parameter).
-:: Parse the Visual Studio macro into a form usable by fxc.exe.
-set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
-set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -222,31 +212,24 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuildStep>
-      <Command>:: fxc.exe needs the path to d2d1effecthelpers.hlsli (/I parameter).
-:: Parse the Visual Studio macro into a form usable by fxc.exe.
-set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
-set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -263,31 +246,24 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuildStep>
-      <Command>:: fxc.exe needs the path to d2d1effecthelpers.hlsli (/I parameter).
-:: Parse the Visual Studio macro into a form usable by fxc.exe.
-set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
-set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -304,31 +280,24 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuildStep>
-      <Command>:: fxc.exe needs the path to d2d1effecthelpers.hlsli (/I parameter).
-:: Parse the Visual Studio macro into a form usable by fxc.exe.
-set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
-set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -345,31 +314,24 @@ fxc /T ps_4_0 /Od /Zi SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main 
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuildStep>
-      <Command>:: fxc.exe needs the path to d2d1effecthelpers.hlsli (/I parameter).
-:: Parse the Visual Studio macro into a form usable by fxc.exe.
-set INCLUDEPATHS="$(WindowsSDK_IncludePath)"
-set INCLUDEPATHS=%INCLUDEPATHS:;=" /I "%
-fxc /T lib_4_0 SimpleTonemapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SimpleTonemapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SimpleTonemapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SimpleTonemapEffect.fxlib" /Fo "$(OutDir)SimpleTonemapEffect.cso" /Fh "$(OutDir)SimpleTonemapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SdrOverlayEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SdrOverlayEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SdrOverlayEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SdrOverlayEffect.fxlib" /Fo "$(OutDir)SdrOverlayEffect.cso" /Fh "$(OutDir)SdrOverlayEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 LuminanceHeatmapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)LuminanceHeatmapEffect.fxlib" /Fo "$(OutDir)LuminanceHeatmapEffect.cso" /Fh "$(OutDir)LuminanceHeatmapEffectShader.h" /nologo /I %INCLUDEPATHS%
-fxc /T lib_4_0 SphereMapEffect.hlsl /D D2D_FUNCTION /D D2D_ENTRY=main /Fl "$(ProjectDir)SphereMapEffect.fxlib" /nologo /I %INCLUDEPATHS%
-fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main /setprivate "$(ProjectDir)SphereMapEffect.fxlib" /Fo "$(OutDir)SphereMapEffect.cso" /Fh "$(OutDir)SphereMapEffectShader.h" /nologo /I %INCLUDEPATHS%
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Generate shader-linking compatible pixel shaders for D2D custom effects</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(OutDir)SimpleTonemapEffect.cso;$(OutDir)SimpleTonemapEffectShader.h;$(OutDir)SdrOverlayEffect.cso;$(OutDir)SdrOverlayEffectShader.h;$(OutDir)LuminanceHeatmapEffect.cso;$(OutDir)LuminanceHeatmapEffectShader.h;$(OutDir)SphereMapEffect.cso;$(OutDir)SphereMapEffectShader.h</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>SimpleTonemapEffect.hlsl;SdrOverlayEffect.hlsl;LuminanceHeatmapEffect.hlsl;SphereMapEffect.hlsl</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <TreatOutputAsContent>
+      </TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -427,7 +389,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
     <ClInclude Include="MagicConstants.h" />
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="D2DAdvancedColorImagesRenderer.h" />
+    <ClInclude Include="HDRImageViewerRenderer.h" />
     <ClInclude Include="SdrBrightnessFormatter.h" />
     <ClInclude Include="SimpleTonemapEffect.h" />
     <ClInclude Include="SphereMapEffect.h" />
@@ -454,7 +416,7 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="D2DAdvancedColorImagesRenderer.cpp" />
+    <ClCompile Include="HDRImageViewerRenderer.cpp" />
     <ClCompile Include="SimpleTonemapEffect.cpp" />
     <ClCompile Include="SphereMapEffect.cpp" />
     <ClCompile Include="SdrOverlayEffect.cpp" />
@@ -473,31 +435,174 @@ fxc /T ps_4_0 SphereMapEffect.hlsl /D D2D_FULL_SHADER /D D2D_ENTRY=main /E main 
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="SdrOverlayEffect.hlsl">
+    <FxCompile Include="SdrOverlayEffect.hlsl">
       <FileType>Document</FileType>
-    </Text>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileD2DCustomEffect>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="LuminanceHeatmapEffect.hlsl">
+    <FxCompile Include="LuminanceHeatmapEffect.hlsl">
       <FileType>Document</FileType>
-    </Text>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileD2DCustomEffect>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="D2DAdvancedColorImages_StoreKey.pfx" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="SphereMapEffect.hlsl">
+    <FxCompile Include="SphereMapEffect.hlsl">
       <FileType>Document</FileType>
-    </Text>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileD2DCustomEffect>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="SimpleTonemapEffect.hlsl">
+    <FxCompile Include="SimpleTonemapEffect.hlsl">
       <FileType>Document</FileType>
-    </Text>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </DeploymentContent>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileD2DCustomEffect>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <CompileD2DCustomEffect Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileD2DCustomEffect>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

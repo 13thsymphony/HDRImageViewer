@@ -21,7 +21,7 @@
 
 #include <cstdarg>
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     /// <summary>
     /// State machine.

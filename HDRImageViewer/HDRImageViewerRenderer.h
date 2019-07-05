@@ -18,13 +18,13 @@
 #include "RenderOptions.h"
 #include "ImageLoader.h"
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
-    class D2DAdvancedColorImagesRenderer : public DX::IDeviceNotify
+    class HDRImageViewerRenderer : public DX::IDeviceNotify
     {
     public:
-        D2DAdvancedColorImagesRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources);
-        ~D2DAdvancedColorImagesRenderer();
+        HDRImageViewerRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources);
+        ~HDRImageViewerRenderer();
 
         void CreateDeviceIndependentResources();
         void CreateDeviceDependentResources();
