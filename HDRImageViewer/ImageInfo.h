@@ -1,6 +1,6 @@
 #pragma once
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     struct ImageInfo
     {

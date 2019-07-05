@@ -14,11 +14,11 @@
 #include "DirectXPage.g.h"
 
 #include "DeviceResources.h"
-#include "D2DAdvancedColorImagesRenderer.h"
+#include "HDRImageViewerRenderer.h"
 #include "RenderOptions.h"
 #include "SdrBrightnessFormatter.h"
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     /// <summary>
     /// A page that hosts the Direct2D app in a SwapChainPanel, and app UI in XAML.
@@ -85,13 +85,13 @@ namespace D2DAdvancedColorImages
 
         // Resources used to draw the DirectX content in the XAML page.
         std::shared_ptr<DX::DeviceResources>            m_deviceResources;
-        std::unique_ptr<D2DAdvancedColorImagesRenderer> m_renderer;
+        std::unique_ptr<HDRImageViewerRenderer> m_renderer;
         Windows::UI::Input::GestureRecognizer^          m_gestureRecognizer;
         bool                                            m_isWindowVisible;
 
         // Cached information for UI.
-        D2DAdvancedColorImages::ImageInfo               m_imageInfo;
-        D2DAdvancedColorImages::ImageCLL                m_imageCLL;
+        HDRImageViewer::ImageInfo               m_imageInfo;
+        HDRImageViewer::ImageCLL                m_imageCLL;
         bool                                            m_isImageValid;
         Windows::Graphics::Display::AdvancedColorInfo^  m_dispInfo;
         RenderOptionsViewModel^                         m_renderOptionsViewModel;

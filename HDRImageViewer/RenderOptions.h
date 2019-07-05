@@ -13,7 +13,7 @@
 
 #include "pch.h"
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     /// <summary>
     /// Supported render effects which are inserted into the render pipeline.

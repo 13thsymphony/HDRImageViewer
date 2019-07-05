@@ -13,7 +13,7 @@
 
 #include "pch.h"
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     // The brightness adjustment slider maps the UI linear value to an exponential (power of 2) multiplier factor.
     // The user sees the multiplier as the tooltip text, and the renderer uses this multiplier internally.

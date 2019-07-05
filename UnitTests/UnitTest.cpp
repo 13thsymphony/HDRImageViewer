@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 
-#include "..\D2DAdvancedColorImages\ImageLoader.h"
-using namespace D2DAdvancedColorImages;
+#include "..\HDRImageViewer\ImageLoader.h"
+using namespace HDRImageViewer;
 
 using namespace concurrency;
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -21,8 +21,8 @@ namespace UnitTests
     {
         std::wstring                        filename;
         bool                                useWic; // Either WIC or DirectXTex to decode.
-        D2DAdvancedColorImages::ImageInfo   info;
-        D2DAdvancedColorImages::ImageCLL    cllInfo;
+        HDRImageViewer::ImageInfo   info;
+        HDRImageViewer::ImageCLL    cllInfo;
     };
 
     TEST_CLASS(ImageLoaderTests)

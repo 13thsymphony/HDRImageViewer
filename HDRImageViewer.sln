@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HDRImageViewer", "HDRImageViewer\HDRImageViewer.vcxproj", "{3B235A3E-4663-54CF-9A96-F76899ADE1F2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{36D84A0A-18FB-43B0-9E44-0F1E252E7057}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2} = {3B235A3E-4663-54CF-9A96-F76899ADE1F2}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2}.Debug|x64.ActiveCfg = Debug|x64
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2}.Debug|x64.Build.0 = Debug|x64
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2}.Debug|x64.Deploy.0 = Debug|x64
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2}.Release|x64.ActiveCfg = Release|x64
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2}.Release|x64.Build.0 = Release|x64
+		{3B235A3E-4663-54CF-9A96-F76899ADE1F2}.Release|x64.Deploy.0 = Release|x64
+		{36D84A0A-18FB-43B0-9E44-0F1E252E7057}.Debug|x64.ActiveCfg = Debug|x64
+		{36D84A0A-18FB-43B0-9E44-0F1E252E7057}.Debug|x64.Build.0 = Debug|x64
+		{36D84A0A-18FB-43B0-9E44-0F1E252E7057}.Debug|x64.Deploy.0 = Debug|x64
+		{36D84A0A-18FB-43B0-9E44-0F1E252E7057}.Release|x64.ActiveCfg = Release|x64
+		{36D84A0A-18FB-43B0-9E44-0F1E252E7057}.Release|x64.Build.0 = Release|x64
+		{36D84A0A-18FB-43B0-9E44-0F1E252E7057}.Release|x64.Deploy.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6FBFD978-B7DA-42D2-9370-26EE65902A57}
+	EndGlobalSection
+EndGlobal

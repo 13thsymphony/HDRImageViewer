@@ -13,7 +13,7 @@
 #include "DirectXPage.xaml.h"
 #include "DirectXHelper.h"
 
-using namespace D2DAdvancedColorImages;
+using namespace HDRImageViewer;
 
 using namespace concurrency;
 using namespace Microsoft::WRL;
@@ -120,7 +120,7 @@ DirectXPage::DirectXPage() :
     m_deviceResources = std::make_shared<DX::DeviceResources>();
     m_deviceResources->SetSwapChainPanel(swapChainPanel);
 
-    m_renderer = std::unique_ptr<D2DAdvancedColorImagesRenderer>(new D2DAdvancedColorImagesRenderer(m_deviceResources));
+    m_renderer = std::unique_ptr<HDRImageViewerRenderer>(new HDRImageViewerRenderer(m_deviceResources));
 
     // Even if AdvancedColorInfo is not available, run the change handler anyway to set default values.
     UpdateDisplayACState(acInfo);

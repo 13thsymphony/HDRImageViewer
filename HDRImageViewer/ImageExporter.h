@@ -11,7 +11,7 @@
 #include "DeviceResources.h"
 #include "ImageLoader.h"
 
-namespace D2DAdvancedColorImages
+namespace HDRImageViewer
 {
     class ImageExporter
     {

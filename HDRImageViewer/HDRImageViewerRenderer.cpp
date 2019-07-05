@@ -10,7 +10,7 @@
 //*********************************************************
 
 #include "pch.h"
-#include "D2DAdvancedColorImagesRenderer.h"
+#include "HDRImageViewerRenderer.h"
 #include "DirectXPage.xaml.h"
 #include "DirectXHelper.h"
 #include "DirectXTex.h"
@@ -19,7 +19,7 @@
 #include "SimpleTonemapEffect.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
-using namespace D2DAdvancedColorImages;
+using namespace HDRImageViewer;
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -33,7 +33,7 @@ using namespace Windows::Storage::Streams;
 using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
 
-D2DAdvancedColorImagesRenderer::D2DAdvancedColorImagesRenderer(
+HDRImageViewerRenderer::HDRImageViewerRenderer(
     const std::shared_ptr<DX::DeviceResources>& deviceResources
     ) :
     m_deviceResources(deviceResources),
@@ -55,13 +55,13 @@ D2DAdvancedColorImagesRenderer::D2DAdvancedColorImagesRenderer(
     CreateWindowSizeDependentResources();
 }
 
-D2DAdvancedColorImagesRenderer::~D2DAdvancedColorImagesRenderer()
+HDRImageViewerRenderer::~HDRImageViewerRenderer()
 {
     // Deregister device notification.
     m_deviceResources->RegisterDeviceNotify(nullptr);
 }
 
-void D2DAdvancedColorImagesRenderer::CreateDeviceIndependentResources()
+void HDRImageViewerRenderer::CreateDeviceIndependentResources()
 {
     auto fact = m_deviceResources->GetD2DFactory();
 
@@ -75,21 +75,21 @@ void D2DAdvancedColorImagesRenderer::CreateDeviceIndependentResources()
     DX::ThrowIfFailed(SphereMapEffect::Register(fact));
 }
 
-void D2DAdvancedColorImagesRenderer::CreateDeviceDependentResources()
+void HDRImageViewerRenderer::CreateDeviceDependentResources()
 {
     // All this app's device-dependent resources also depend on
     // the loaded image, so they are all created in
     // CreateImageDependentResources.
 }
 
-void D2DAdvancedColorImagesRenderer::ReleaseDeviceDependentResources()
+void HDRImageViewerRenderer::ReleaseDeviceDependentResources()
 {
     m_imageLoader->ReleaseDeviceDependentResources();
 }
 
 // Whenever the app window is resized or changes displays, this method is used
 // to update the app's sizing and advanced color state.
-void D2DAdvancedColorImagesRenderer::CreateWindowSizeDependentResources()
+void HDRImageViewerRenderer::CreateWindowSizeDependentResources()
 {
     // Window size changes don't require recomputing image HDR metadata.
     FitImageToWindow(false);
@@ -97,7 +97,7 @@ void D2DAdvancedColorImagesRenderer::CreateWindowSizeDependentResources()
 
 // White level scale is used to multiply the color values in the image; allows the user to
 // adjust the brightness of the image on an HDR display.
-void D2DAdvancedColorImagesRenderer::SetRenderOptions(
+void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
     float brightnessAdjustment,
     AdvancedColorInfo^ acInfo
@@ -200,28 +200,28 @@ void D2DAdvancedColorImagesRenderer::SetRenderOptions(
     Draw();
 }
 
-ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromWic(_In_ IStream * imageStream)
+ImageInfo HDRImageViewerRenderer::LoadImageFromWic(_In_ IStream * imageStream)
 {
     m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
     m_imageInfo = m_imageLoader->LoadImageFromWic(imageStream);
     return m_imageInfo;
 }
 
-ImageInfo D2DAdvancedColorImagesRenderer::LoadImageFromDirectXTex(String ^ filename, String ^ extension)
+ImageInfo HDRImageViewerRenderer::LoadImageFromDirectXTex(String ^ filename, String ^ extension)
 {
     m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
     m_imageInfo = m_imageLoader->LoadImageFromDirectXTex(filename, extension);
     return m_imageInfo;
 }
 
-void D2DAdvancedColorImagesRenderer::ExportImageToSdr(_In_ IStream* outputStream, GUID wicFormat)
+void HDRImageViewerRenderer::ExportImageToSdr(_In_ IStream* outputStream, GUID wicFormat)
 {
     ImageExporter::ExportToSdr(m_imageLoader.get(), m_deviceResources.get(), outputStream, wicFormat);
 }
 
 // Configures a Direct2D image pipeline, including source, color management, 
 // tonemapping, and white level, based on the loaded image.
-void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
+void HDRImageViewerRenderer::CreateImageDependentResources()
 {
     auto d2dFactory = m_deviceResources->GetD2DFactory();
     auto context = m_deviceResources->GetD2DDeviceContext();
@@ -324,7 +324,7 @@ void D2DAdvancedColorImagesRenderer::CreateImageDependentResources()
 
 // Perform histogram pipeline setup; this should occur as part of image resource creation.
 // Histogram results in no visual output but is used to calculate HDR metadata for the image.
-void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
+void HDRImageViewerRenderer::CreateHistogramResources()
 {
     auto context = m_deviceResources->GetD2DDeviceContext();
 
@@ -408,7 +408,7 @@ void D2DAdvancedColorImagesRenderer::CreateHistogramResources()
     }
 }
 
-void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
+void HDRImageViewerRenderer::ReleaseImageDependentResources()
 {
     // TODO: This method is only called during device lost. In that situation,
     // m_imageLoader should not be reset. Confirm this is the only case we want to call this.
@@ -425,7 +425,7 @@ void D2DAdvancedColorImagesRenderer::ReleaseImageDependentResources()
     m_finalOutput.Reset();
 }
 
-void D2DAdvancedColorImagesRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEventArgs^ args)
+void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEventArgs^ args)
 {
     Point position = args->Position;
     Point positionDelta = args->Delta.Translation;
@@ -485,7 +485,7 @@ void D2DAdvancedColorImagesRenderer::UpdateManipulationState(_In_ ManipulationUp
 // Overrides any pan/zoom state set by the user to fit image to the window size.
 // Returns the computed content light level (CLL) of the image in nits.
 // Recomputing the HDR metadata is only needed when loading a new image.
-ImageCLL D2DAdvancedColorImagesRenderer::FitImageToWindow(bool computeMetadata)
+ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
 {
     if (m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
@@ -527,7 +527,7 @@ ImageCLL D2DAdvancedColorImagesRenderer::FitImageToWindow(bool computeMetadata)
 // a user configurable white level; this typically is around 200-300 nits. It is the responsibility
 // of an advanced color app (e.g. FP16 scRGB) to emulate the OS-implemented SDR white level adjustment,
 // BUT only for non-HDR content (SDR or WCG).
-void D2DAdvancedColorImagesRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel)
+void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel)
 {
     float scale = 1.0f;
 
@@ -574,7 +574,7 @@ void D2DAdvancedColorImagesRenderer::UpdateWhiteLevelScale(float brightnessAdjus
 }
 
 // Call this after updating any spatial transform state to regenerate the effect graph.
-void D2DAdvancedColorImagesRenderer::UpdateImageTransformState()
+void HDRImageViewerRenderer::UpdateImageTransformState()
 {
     if (m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
@@ -587,7 +587,7 @@ void D2DAdvancedColorImagesRenderer::UpdateImageTransformState()
 // Uses a histogram to compute a modified version of maximum content light level/ST.2086 MaxCLL
 // and average content light level.
 // Performs Begin/EndDraw on the D2D context.
-void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
+void HDRImageViewerRenderer::ComputeHdrMetadata()
 {
     // Initialize with a sentinel value.
     m_imageCLL = { -1.0f, -1.0f };
@@ -665,7 +665,7 @@ void D2DAdvancedColorImagesRenderer::ComputeHdrMetadata()
 }
 
 // Set HDR10 metadata to allow HDR displays to optimize behavior based on our content.
-void D2DAdvancedColorImagesRenderer::EmitHdrMetadata()
+void HDRImageViewerRenderer::EmitHdrMetadata()
 {
     auto acKind = m_dispInfo ? m_dispInfo->CurrentAdvancedColorKind : AdvancedColorKind::StandardDynamicRange;
 
@@ -718,7 +718,7 @@ void D2DAdvancedColorImagesRenderer::EmitHdrMetadata()
 }
 
 // If AdvancedColorInfo does not have valid data, picks an appropriate default value.
-float D2DAdvancedColorImagesRenderer::GetBestDispMaxLuminance()
+float HDRImageViewerRenderer::GetBestDispMaxLuminance()
 {
     float val = m_dispInfo->MaxLuminanceInNits;
 
@@ -741,7 +741,7 @@ float D2DAdvancedColorImagesRenderer::GetBestDispMaxLuminance()
 }
 
 // Renders the loaded image with user-specified options.
-void D2DAdvancedColorImagesRenderer::Draw()
+void HDRImageViewerRenderer::Draw()
 {
     auto d2dContext = m_deviceResources->GetD2DDeviceContext();
 
@@ -770,14 +770,14 @@ void D2DAdvancedColorImagesRenderer::Draw()
 }
 
 // Notifies renderers that device resources need to be released.
-void D2DAdvancedColorImagesRenderer::OnDeviceLost()
+void HDRImageViewerRenderer::OnDeviceLost()
 {
     ReleaseImageDependentResources();
     ReleaseDeviceDependentResources();
 }
 
 // Notifies renderers that device resources may now be recreated.
-void D2DAdvancedColorImagesRenderer::OnDeviceRestored()
+void HDRImageViewerRenderer::OnDeviceRestored()
 {
     CreateDeviceDependentResources();
     CreateImageDependentResources();
