@@ -49,6 +49,9 @@
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="TestInputs\Jpg_ProPhotoIcc.jpg">
+      <Filter>TestInputs</Filter>
+    </Image>
     <Image Include="TestInputs\Png_BasicSrgbColors_5x5.png">
       <Filter>TestInputs</Filter>
     </Image>

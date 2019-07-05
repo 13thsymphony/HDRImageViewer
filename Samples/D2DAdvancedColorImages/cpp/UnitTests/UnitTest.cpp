@@ -32,12 +32,15 @@ namespace UnitTests
 
         TEST_METHOD_INITIALIZE(methodName)
         {
-            m_devRes = std::make_shared<DX::DeviceResources>();
+			// TODO: Move device resource initialization to test method initialize.
+            // m_devRes = std::make_shared<DX::DeviceResources>();
         }
 
         TEST_METHOD(LoadValidWicImages)
         {
             HRESULT hr = S_OK;
+
+            m_devRes = std::make_shared<DX::DeviceResources>();
 
             TestInputDefinition definitions[] = {
                 // Filename                     |useWIC | bpp |bpc|isfloat|pixelsize    |numICC| ACKind                               |isXbox|valid| maxCLL|medCLL
@@ -46,8 +49,8 @@ namespace UnitTests
                 { L"Jxr_HdrRuler.jxr"           , true,  { 64 , 16, true , Size(192, 108) , 0, AdvancedColorKind::HighDynamicRange    , false, true }, { 0, 0 } },
                 { L"Jxr_HdrScene.jxr"           , true,  { 64 , 16, true , Size(192, 108) , 0, AdvancedColorKind::HighDynamicRange    , false, true }, { 0, 0 } },
                 { L"Jxr_HdrWithIcc.jxr"         , true,  { 128, 32, true , Size(51, 34)   , 1, AdvancedColorKind::HighDynamicRange    , false, true }, { 0, 0 } },
-                { L"Jxr_HdrXboxOne_1025.jxr"    , true,  { 64 , 16, true , Size(1025, 576), 0, AdvancedColorKind::HighDynamicRange    , true , true }, { 0, 0 } },
-                { L"Tif_16bpcArgb.tif"          , true,  { 48 , 16, false, Size(224, 149) , 1, AdvancedColorKind::HighDynamicRange    , false, true }, { 0, 0 } },
+                { L"Jxr_HdrXboxOne_1025px.jxr"  , true,  { 64 , 16, true , Size(1025, 576), 0, AdvancedColorKind::HighDynamicRange    , true , true }, { 0, 0 } },
+                { L"Tif_16bpcArgbIcc.tif"       , true,  { 48 , 16, false, Size(224, 149) , 1, AdvancedColorKind::HighDynamicRange    , false, true }, { 0, 0 } },
             };
 
             for (int i = 0; i < ARRAYSIZE(definitions); i++)
@@ -82,6 +85,15 @@ namespace UnitTests
                     Assert::IsTrue(info.imageKind == definitions[i].info.imageKind);
                     Assert::AreEqual(info.isXboxHdrScreenshot, definitions[i].info.isXboxHdrScreenshot);
                     Assert::AreEqual(info.isValid, definitions[i].info.isValid);
+                }).then([=](task<void> previousTask) {
+                    try
+                    {
+                        previousTask.get();
+                    }
+                    catch (Platform::COMException^ e)
+                    {
+                        Assert::AreEqual(static_cast<int>(S_OK), e->HResult);
+                    }
                 });
             }
         }
