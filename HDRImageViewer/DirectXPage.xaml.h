@@ -17,6 +17,7 @@
 #include "HDRImageViewerRenderer.h"
 #include "RenderOptions.h"
 #include "SdrBrightnessFormatter.h"
+#include "ErrorContentDialog.xaml.h"
 
 namespace HDRImageViewer
 {

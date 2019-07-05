@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="DirectXPage.xaml" />
+    <Page Include="ErrorContentDialog.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\SmallTile.scale-100.png">

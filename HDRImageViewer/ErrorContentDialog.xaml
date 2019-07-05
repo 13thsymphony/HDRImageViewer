@@ -1,0 +1,17 @@
+﻿<ContentDialog
+    x:Class="HDRImageViewer.ErrorContentDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HDRImageViewer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Error"
+    PrimaryButtonText="OK">
+
+    <StackPanel>
+        <TextBlock>We were unable to load the image.</TextBlock>
+        <TextBlock x:Name="InvalidImageText" Visibility="Collapsed">The file may be corrupt or invalid.</TextBlock>
+        <TextBlock x:Name="NeedHevcText" Visibility="Collapsed">You need to install the HEVC codec to load this image. <Hyperlink NavigateUri="ms-windows-store://pdp/?ProductId=9NMZLZ57R3T7">Obtain the codec on the Windows Store.</Hyperlink></TextBlock>
+    </StackPanel>
+</ContentDialog>

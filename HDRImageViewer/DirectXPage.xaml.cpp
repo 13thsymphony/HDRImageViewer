@@ -251,12 +251,8 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
         }
         catch (...)
         {
-            auto dialog = ref new ContentDialog();
-
-            dialog->Title = imageFile->Name;
-            dialog->Content = L"We were unable to load this image.";
-            dialog->CloseButtonText = L"OK";
-
+            auto dialog = ref new ErrorContentDialog();
+            dialog->SetNeedHevcText(true);
             dialog->ShowAsync();
 
             return;
