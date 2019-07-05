@@ -54,16 +54,18 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         WICDecodeMetadataCacheOnDemand,
         &decoder));
 
+
+    ComPtr<IWICBitmapFrameDecode> frame;
+    IFRIMG(decoder->GetFrame(0, &frame));
+
     GUID fmt;
     IFRIMG(decoder->GetContainerFormat(&fmt));
 
     if (fmt == GUID_ContainerFormatHeif)
     {
         m_imageInfo.isHeif = true;
+        IFRIMG(CheckCanDecode(frame.Get()) == true ? S_OK : E_FAIL);
     }
-
-    ComPtr<IWICBitmapFrameDecode> frame;
-    IFRIMG(decoder->GetFrame(0, &frame));
 
     LoadImageCommon(frame.Get());
 }
@@ -273,8 +275,6 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
     auto context = m_deviceResources->GetD2DDeviceContext();
 
     // Load the image from WIC using ID2D1ImageSource.
-    // TODO: This method is what fails when the HEVC or AV1 codecs are not installed:
-    // is there a more explicit check we can do?
     IFRIMG(m_deviceResources->GetD2DDeviceContext()->CreateImageSourceFromWic(
         m_formatConvert.Get(),
         &m_imageSource));
@@ -538,5 +538,28 @@ GUID ImageLoader::TranslateDxgiFormatToWic(DXGI_FORMAT fmt)
     default:
         return GUID_WICPixelFormatUndefined;
         break;
+    }
+}
+
+/// <summary>
+/// Some WIC codecs, (HEIF/HEVC, HEIF/AV1, WebP, etc) aren't always present in the OS
+/// even though they can be enumerated and created - these are typically loaded from the Store.
+/// Attempt to decode a single pixel to ensure the codec is installed.
+/// </summary>
+/// <returns>
+/// Whether the codec was available and decode succeeded.
+/// </returns>
+bool ImageLoader::CheckCanDecode(_In_ IWICBitmapFrameDecode* frame)
+{
+    auto fact = m_deviceResources->GetWicImagingFactory();
+    ComPtr<IWICBitmap> bitmap;
+    
+    if (FAILED(fact->CreateBitmapFromSourceRect(frame, 0, 0, 1, 1, &bitmap)))
+    {
+        return false;
+    }
+    else
+    {
+        return true;
     }
 }

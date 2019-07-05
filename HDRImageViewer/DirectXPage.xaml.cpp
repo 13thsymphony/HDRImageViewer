@@ -244,8 +244,7 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
         UpdateDefaultRenderOptions();
 
-        // Ensure the preceding continuation runs on the UI thread.
-    }, task_continuation_context::use_current()).then([=](task<void> previousTask) {
+    }).then([=](task<void> previousTask) {
         try
         {
             previousTask.get();
@@ -262,7 +261,7 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
             return;
         }
-    });
+    }, task_continuation_context::use_current()); // Ensure the preceding continuation runs on the UI thread.
 }
 
 void DirectXPage::ExportImageToSdr(_In_ Windows::Storage::StorageFile ^ file)
