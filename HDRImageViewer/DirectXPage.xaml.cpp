@@ -156,11 +156,12 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
     {
         // For formats that are loaded by DirectXTex, we must use a file path
         // from the temporary folder.
-        createFileTask = create_task(
-            imageFile->CopyAsync(
+        createFileTask = create_task([=] {
+            return imageFile->CopyAsync(
                 ApplicationData::Current->TemporaryFolder,
                 imageFile->Name,
-                NameCollisionOption::ReplaceExisting));
+                NameCollisionOption::ReplaceExisting);
+            });
     }
     else
     {
@@ -185,6 +186,9 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
             });
         }
     }).then([=](ImageInfo info) {
+        // Temporarily store image decode result for the error handler.
+        m_tempInfo = info;
+
         if (info.isValid == false)
         {
             // Exit before any of the current image state is modified.
@@ -244,7 +248,7 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
 
         UpdateDefaultRenderOptions();
 
-    }).then([=](task<void> previousTask) {
+    }, task_continuation_context::use_current()).then([=](task<void> previousTask) {
         try
         {
             previousTask.get();
@@ -252,12 +256,26 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
         catch (...)
         {
             auto dialog = ref new ErrorContentDialog();
-            dialog->SetNeedHevcText(true);
+
+            if (m_tempInfo.isHeif == true)
+            {
+                if (type == ".heic" ||
+                    type == ".HEIC")
+                {
+                    dialog->SetNeedHevcText(true);
+                }
+                else if (type == ".avif" ||
+                         type == ".AVIF")
+                {
+                    dialog->SetNeedAv1Text(true);
+                }
+            }
+
             dialog->ShowAsync();
 
             return;
         }
-    }, task_continuation_context::use_current()); // Ensure the preceding continuation runs on the UI thread.
+    }, task_continuation_context::use_current());
 }
 
 void DirectXPage::ExportImageToSdr(_In_ Windows::Storage::StorageFile ^ file)

@@ -38,6 +38,18 @@ void ErrorContentDialog::SetNeedHevcText(bool val)
     }
 }
 
+void ErrorContentDialog::SetNeedAv1Text(bool val)
+{
+    if (val == true)
+    {
+        NeedAv1Text->Visibility = Windows::UI::Xaml::Visibility::Visible;
+    }
+    else
+    {
+        NeedAv1Text->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+    }
+}
+
 void ErrorContentDialog::SetInvalidFileText(bool val)
 {
     if (val == true)

@@ -16,6 +16,7 @@ namespace HDRImageViewer
         ErrorContentDialog();
 
         void SetNeedHevcText(bool val);
+        void SetNeedAv1Text(bool val);
         void SetInvalidFileText(bool val);
     private:
     };

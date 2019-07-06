@@ -92,6 +92,7 @@ namespace HDRImageViewer
 
         // Cached information for UI.
         HDRImageViewer::ImageInfo                       m_imageInfo;
+        HDRImageViewer::ImageInfo                       m_tempInfo;
         HDRImageViewer::ImageCLL                        m_imageCLL;
         bool                                            m_isImageValid;
         Windows::Graphics::Display::AdvancedColorInfo^  m_dispInfo;
