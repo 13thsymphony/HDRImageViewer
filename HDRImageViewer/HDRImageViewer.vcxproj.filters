@@ -197,21 +197,13 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="SdrOverlayEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
-    <Text Include="LuminanceHeatmapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
-    <Text Include="SphereMapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
-    <Text Include="SimpleTonemapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
     <None Include="Package.StoreAssociation.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="SdrOverlayEffect.hlsl" />
+    <FxCompile Include="LuminanceHeatmapEffect.hlsl" />
+    <FxCompile Include="SphereMapEffect.hlsl" />
+    <FxCompile Include="SimpleTonemapEffect.hlsl" />
   </ItemGroup>
 </Project>
