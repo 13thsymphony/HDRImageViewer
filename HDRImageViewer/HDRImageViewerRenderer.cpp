@@ -487,7 +487,9 @@ void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEve
 // Recomputing the HDR metadata is only needed when loading a new image.
 ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
 {
-    if (m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
+    // TODO: Suspect this sometimes crashes due to AV. Need to root cause.
+    if (m_imageLoader != nullptr &&
+        m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
         Size panelSize = m_deviceResources->GetLogicalSize();
 

@@ -604,11 +604,6 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
     </FxCompile>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AppCenterHelper\AppCenterHelper.csproj">
-      <Project>{d96eb181-07a2-4b64-8710-e22faf4927dc}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VSINSTALLDIR)\Common7\IDE\Extensions\Microsoft\VsGraphics\ImageContentTask.targets" />
