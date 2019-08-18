@@ -111,9 +111,10 @@
             <TextBlock Style="{StaticResource InfoLine}" x:Name="DisplayACState">Kind:</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="DisplayPeakLuminance">Peak luminance:</TextBlock>
             <MenuFlyoutSeparator />
-            <TextBlock Style="{StaticResource SectionTitle}">More controls</TextBlock>
-            <TextBlock Style="{StaticResource InfoLine}">H: Toggle UI</TextBlock>
-            <TextBlock Style="{StaticResource InfoLine}">F: Toggle fullscreen</TextBlock>
+            <TextBlock Style="{StaticResource SectionTitle}">Keyboard shortcuts</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}"><Bold>H:</Bold> Toggle UI</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}"><Bold>F, F11:</Bold> Toggle fullscreen</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}"><Bold>Esc:</Bold> Exit fullscreen</TextBlock>
         </StackPanel>
     </Grid>
 </Page>

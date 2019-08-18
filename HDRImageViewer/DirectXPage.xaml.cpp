@@ -513,7 +513,7 @@ String^ DirectXPage::ConvertACKindToString(AdvancedColorKind kind)
     return displayString;
 }
 
-void DirectXPage::OnKeyUp(_In_ CoreWindow ^sender, _In_ KeyEventArgs ^args)
+void DirectXPage::OnKeyUp(_In_ CoreWindow^ sender, _In_ KeyEventArgs^ args)
 {
     if (VirtualKey::H == args->VirtualKey)
     {
@@ -526,7 +526,8 @@ void DirectXPage::OnKeyUp(_In_ CoreWindow ^sender, _In_ KeyEventArgs ^args)
             ControlsPanel->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
         }
     }
-    else if (VirtualKey::F == args->VirtualKey)
+    else if (VirtualKey::F == args->VirtualKey ||
+             VirtualKey::F11 == args->VirtualKey)
     {
         if (ApplicationView::GetForCurrentView()->IsFullScreenMode)
         {
@@ -535,6 +536,13 @@ void DirectXPage::OnKeyUp(_In_ CoreWindow ^sender, _In_ KeyEventArgs ^args)
         else
         {
             ApplicationView::GetForCurrentView()->TryEnterFullScreenMode();
+        }
+    }
+    else if (VirtualKey::Escape == args->VirtualKey)
+    {
+        if (ApplicationView::GetForCurrentView()->IsFullScreenMode)
+        {
+            ApplicationView::GetForCurrentView()->ExitFullScreenMode();
         }
     }
 }
