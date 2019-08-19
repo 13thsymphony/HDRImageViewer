@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "DirectXHelper.h"
+#include "Common\DirectXHelper.h"
 #include "ImageExporter.h"
 #include "MagicConstants.h"
-#include "SimpleTonemapEffect.h"
+#include "RenderEffects\SimpleTonemapEffect.h"
 
 using namespace Microsoft::WRL;
 

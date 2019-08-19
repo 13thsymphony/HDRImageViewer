@@ -1,4 +1,12 @@
-﻿#pragma once
+﻿//*********************************************************
+//
+// HDRImageViewerRenderer
+//
+// Main manager of all native DirectX image rendering resources.
+//
+//*********************************************************
+
+#pragma once
 
 #include "Common\DeviceResources.h"
 #include "RenderEffects\SdrOverlayEffect.h"
@@ -9,10 +17,23 @@
 
 namespace HDRImageViewer
 {
+    [Windows::Foundation::Metadata::WebHostHidden]
     public ref class HDRImageViewerRenderer sealed : public DX::IDeviceNotify
     {
     public:
-        HDRImageViewerRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources);
+        HDRImageViewerRenderer(Windows::UI::Xaml::Controls::SwapChainPanel^ panel);
+
+        // DeviceResources wrapper methods for Windows Runtime Component
+        void SetSwapChainPanel(Windows::UI::Xaml::Controls::SwapChainPanel^ panel) { m_deviceResources->SetSwapChainPanel(panel); }
+        void SetLogicalSize(Windows::Foundation::Size logicalSize)                 { m_deviceResources->SetLogicalSize(logicalSize); }
+        void SetCurrentOrientation(Windows::Graphics::Display::DisplayOrientations currentOrientation)
+                                                                                   { m_deviceResources->SetCurrentOrientation(currentOrientation); }
+        void SetDpi(float dpi)                                                     { m_deviceResources->SetDpi(dpi); }
+        void SetCompositionScale(float compositionScaleX, float compositionScaleY) { m_deviceResources->SetCompositionScale(compositionScaleX, compositionScaleY); }
+        void ValidateDevice()                                                      { m_deviceResources->ValidateDevice(); }
+        void HandleDeviceLost()                                                    { m_deviceResources->HandleDeviceLost(); }
+        void Trim()                                                                { m_deviceResources->Trim(); }
+        void Present()                                                             { m_deviceResources->Present(); }
 
         void CreateDeviceIndependentResources();
         void CreateDeviceDependentResources();

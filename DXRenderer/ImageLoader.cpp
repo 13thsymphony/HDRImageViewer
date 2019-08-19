@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "ImageLoader.h"
-#include "DirectXHelper.h"
+#include "Common\DirectXHelper.h"
 #include "DirectXTex.h"
 #include "DirectXTex\DirectXTexEXR.h"
 

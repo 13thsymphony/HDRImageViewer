@@ -1,15 +1,4 @@
-﻿//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// This code is licensed under the MIT License (MIT).
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-
-#include "pch.h"
+﻿#include "pch.h"
 #include "HDRImageViewerRenderer.h"
 #include "Common\DirectXHelper.h"
 #include "DirectXTex.h"
@@ -31,11 +20,10 @@ using namespace Windows::Storage;
 using namespace Windows::Storage::Streams;
 using namespace Windows::UI::Input;
 using namespace Windows::UI::Xaml;
+using namespace Windows::UI::Xaml::Controls;
 
 HDRImageViewerRenderer::HDRImageViewerRenderer(
-    const std::shared_ptr<DX::DeviceResources>& deviceResources
-    ) :
-    m_deviceResources(deviceResources),
+    SwapChainPanel^ panel) :
     m_renderEffectKind(RenderEffectKind::None),
     m_zoom(1.0f),
     m_minZoom(1.0f), // Dynamically calculated on window size.
@@ -46,6 +34,11 @@ HDRImageViewerRenderer::HDRImageViewerRenderer(
     m_imageInfo{},
     m_isComputeSupported(false)
 {
+    // DeviceResources must be initialized first.
+    // TODO: Current architecture does not allow multiple Renderers to share DeviceResources.
+    m_deviceResources = std::make_shared<DX::DeviceResources>();
+    m_deviceResources->SetSwapChainPanel(panel);
+
     // Register to be notified if the GPU device is lost or recreated.
     m_deviceResources->RegisterDeviceNotify(this);
 
