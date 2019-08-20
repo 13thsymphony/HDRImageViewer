@@ -14,6 +14,7 @@
 #include "DirectXHelper.h"
 
 using namespace HDRImageViewer;
+using namespace DXRenderer;
 
 using namespace concurrency;
 using namespace Microsoft::WRL;
@@ -117,10 +118,7 @@ DirectXPage::DirectXPage() :
 
     // At this point we have access to the device and
     // can create the device-dependent resources.
-    m_deviceResources = std::make_shared<DX::DeviceResources>();
-    m_deviceResources->SetSwapChainPanel(swapChainPanel);
-
-    m_renderer = std::unique_ptr<HDRImageViewerRenderer>(new HDRImageViewerRenderer(m_deviceResources));
+    m_renderer = ref new HDRImageViewerRenderer(swapChainPanel);
 
     // Even if AdvancedColorInfo is not available, run the change handler anyway to set default values.
     UpdateDisplayACState(acInfo);
@@ -179,10 +177,7 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
             return create_task(imageFile->OpenAsync(FileAccessMode::Read)
         ).then([=](IRandomAccessStream^ ras) {
             // If file opening fails, fall through to error handler at the end of task chain.
-
-            ComPtr<IStream> iStream;
-            DX::ThrowIfFailed(CreateStreamOverRandomAccessStream(ras, IID_PPV_ARGS(&iStream)));
-            return m_renderer->LoadImageFromWic(iStream.Get());
+            return m_renderer->LoadImageFromWic(ras);
             });
         }
     }).then([=](ImageInfo info) {
@@ -317,9 +312,7 @@ void DirectXPage::ExportImageToSdr(_In_ Windows::Storage::StorageFile ^ file)
     }
 
     create_task(file->OpenAsync(FileAccessMode::ReadWrite)).then([=](IRandomAccessStream^ ras) {
-        ComPtr<IStream> iStream;
-        DX::ThrowIfFailed(CreateStreamOverRandomAccessStream(ras, IID_PPV_ARGS(&iStream)));
-        m_renderer->ExportImageToSdr(iStream.Get(), wicFormat);
+        m_renderer->ExportImageToSdr(ras, wicFormat);
     });
 }
 
@@ -410,7 +403,7 @@ void DirectXPage::ExportImageButtonClick(Platform::Object^ sender, Windows::UI::
 // Saves the current state of the app for suspend and terminate events.
 void DirectXPage::SaveInternalState(_In_ IPropertySet^ state)
 {
-    m_deviceResources->Trim();
+    m_renderer->Trim();
 }
 
 // Loads the current state of the app for resume events.
@@ -483,21 +476,21 @@ void DirectXPage::OnVisibilityChanged(_In_ CoreWindow^ sender, _In_ VisibilityCh
 
 void DirectXPage::OnDpiChanged(_In_ DisplayInformation^ sender, _In_ Object^ args)
 {
-    m_deviceResources->SetDpi(sender->LogicalDpi);
+    m_renderer->SetDpi(sender->LogicalDpi);
     m_renderer->CreateWindowSizeDependentResources();
     m_renderer->Draw();
 }
 
 void DirectXPage::OnOrientationChanged(_In_ DisplayInformation^ sender, _In_ Object^ args)
 {
-    m_deviceResources->SetCurrentOrientation(sender->CurrentOrientation);
+    m_renderer->SetCurrentOrientation(sender->CurrentOrientation);
     m_renderer->CreateWindowSizeDependentResources();
     m_renderer->Draw();
 }
 
 void DirectXPage::OnDisplayContentsInvalidated(_In_ DisplayInformation^ sender, _In_ Object^ args)
 {
-    m_deviceResources->ValidateDevice();
+    m_renderer->ValidateDevice();
     m_renderer->CreateWindowSizeDependentResources();
     m_renderer->Draw();
 }
@@ -524,14 +517,14 @@ void DirectXPage::OnAdvancedColorInfoChanged(_In_ DisplayInformation ^sender, _I
 
 void DirectXPage::OnCompositionScaleChanged(_In_ SwapChainPanel^ sender, _In_ Object^ args)
 {
-    m_deviceResources->SetCompositionScale(sender->CompositionScaleX, sender->CompositionScaleY);
+    m_renderer->SetCompositionScale(sender->CompositionScaleX, sender->CompositionScaleY);
     m_renderer->CreateWindowSizeDependentResources();
     m_renderer->Draw();
 }
 
 void DirectXPage::OnSwapChainPanelSizeChanged(_In_ Object^ sender, _In_ SizeChangedEventArgs^ e)
 {
-    m_deviceResources->SetLogicalSize(e->NewSize);
+    m_renderer->SetLogicalSize(e->NewSize);
     m_renderer->CreateWindowSizeDependentResources();
     m_renderer->Draw();
 }

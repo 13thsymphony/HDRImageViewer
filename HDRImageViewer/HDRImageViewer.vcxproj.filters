@@ -5,15 +5,6 @@
       <UniqueIdentifier>d6d27eff-6efd-4cdf-9154-377ac3856a6b</UniqueIdentifier>
       <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
     </Filter>
-    <Filter Include="Common">
-      <UniqueIdentifier>{a6fce137-2822-4f7a-8593-eff13050174b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DirectXTex">
-      <UniqueIdentifier>{4dd4e189-cc32-4255-a36d-fd664194d72c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="RenderEffects">
-      <UniqueIdentifier>{2696d988-fd48-43de-b313-d0320f662368}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
@@ -22,66 +13,12 @@
     <ClCompile Include="App.xaml.cpp" />
     <ClCompile Include="DirectXPage.xaml.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="BasicReaderWriter.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="DeviceResources.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="HDRImageViewerRenderer.cpp" />
-    <ClCompile Include="SdrOverlayEffect.cpp">
-      <Filter>RenderEffects</Filter>
-    </ClCompile>
-    <ClCompile Include="LuminanceHeatmapEffect.cpp">
-      <Filter>RenderEffects</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectXTex\DirectXTexEXR.cpp">
-      <Filter>DirectXTex</Filter>
-    </ClCompile>
-    <ClCompile Include="SphereMapEffect.cpp">
-      <Filter>RenderEffects</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleTonemapEffect.cpp">
-      <Filter>RenderEffects</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageLoader.cpp" />
-    <ClCompile Include="ImageExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h" />
     <ClInclude Include="DirectXPage.xaml.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="BasicReaderWriter.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceResources.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectXHelper.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="HDRImageViewerRenderer.h" />
-    <ClInclude Include="RenderOptions.h" />
-    <ClInclude Include="SdrOverlayEffect.h">
-      <Filter>RenderEffects</Filter>
-    </ClInclude>
-    <ClInclude Include="LuminanceHeatmapEffect.h">
-      <Filter>RenderEffects</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectXTex\DirectXTexEXR.h">
-      <Filter>DirectXTex</Filter>
-    </ClInclude>
-    <ClInclude Include="SphereMapEffect.h">
-      <Filter>RenderEffects</Filter>
-    </ClInclude>
     <ClInclude Include="SdrBrightnessFormatter.h" />
-    <ClInclude Include="SimpleTonemapEffect.h">
-      <Filter>RenderEffects</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageLoader.h" />
-    <ClInclude Include="ImageExporter.h" />
-    <ClInclude Include="MagicConstants.h" />
-    <ClInclude Include="ImageInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -198,21 +135,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Package.StoreAssociation.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="SphereMapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </FxCompile>
-    <FxCompile Include="SdrOverlayEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </FxCompile>
-    <FxCompile Include="SimpleTonemapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </FxCompile>
-    <FxCompile Include="LuminanceHeatmapEffect.hlsl">
-      <Filter>RenderEffects</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

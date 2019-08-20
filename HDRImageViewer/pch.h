@@ -26,12 +26,5 @@
 #include <wrl/client.h>
 
 // DirectX
-#include <dxgi1_6.h>
-#include <d3d11_3.h>
-#include <d2d1_3.h>
-#include <d2d1effectauthor_1.h>
-#include <d2d1effecthelpers.h>
-#include <dwrite_3.h>
 #include <wincodec.h>
-#include <DirectXMath.h>
-
+#include <d3d11_3.h> // TODO: Only needed for unused DirectXHelper code
