@@ -6,8 +6,7 @@
 
 using namespace Microsoft::WRL;
 
-using namespace HDRImageViewer;
-using DX::CHK;
+using namespace DXRenderer;
 
 ImageExporter::ImageExporter()
 {
@@ -23,7 +22,7 @@ ImageExporter::~ImageExporter()
 /// RenderEffectKind::HdrTonemap. Not yet suitable for general purpose use.
 /// </summary>
 /// <param name="wicFormat">WIC container format GUID (GUID_ContainerFormat...)</param>
-void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, IStream* stream, GUID wicFormat)
+void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStream* stream, GUID wicFormat)
 {
     auto ctx = res->GetD2DDeviceContext();
 
@@ -47,7 +46,7 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
     CHK(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT, destCtx.Get()));
 
     GUID tmGuid = {};
-    if (DX::CheckPlatformSupport(DX::Win1809)) tmGuid = CLSID_D2D1HdrToneMap;
+    if (CheckPlatformSupport(DXRenderer::Win1809)) tmGuid = CLSID_D2D1HdrToneMap;
     else tmGuid = CLSID_CustomSimpleTonemapEffect;
 
     ComPtr<ID2D1Effect> tonemap;
@@ -83,7 +82,7 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
 /// For simplicity, relies on IWICImageEncoder to convert to FP16. Caller should get pixel dimensions
 /// from the target bitmap.
 /// </remarks>
-std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DX::DeviceResources* res)
+std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DeviceResources* res)
 {
     auto wic = res->GetWicImagingFactory();
 
@@ -131,7 +130,7 @@ std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DX::DeviceResources*
 /// First converts to FP16 in D2D, then uses the WIC encoder's internal converter.
 /// </remarks>
 /// <param name="wicFormat">The WIC container format to encode to.</param>
-void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size, DX::DeviceResources* res, IStream* stream, GUID wicFormat)
+void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size, DeviceResources* res, IStream* stream, GUID wicFormat)
 {
     auto dev = res->GetD2DDevice();
     auto wic = res->GetWicImagingFactory();

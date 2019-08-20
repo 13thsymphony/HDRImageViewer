@@ -4,7 +4,7 @@
 #include "DirectXTex.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
-using namespace HDRImageViewer;
+using namespace DXRenderer;
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -15,7 +15,7 @@ using namespace Windows::Graphics::Display;
 
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats (128bpp).
 
-ImageLoader::ImageLoader(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
+ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources) :
     m_deviceResources(deviceResources),
     m_state(ImageLoaderState::NotInitialized)
 {
@@ -36,7 +36,7 @@ ImageInfo ImageLoader::LoadImageFromWic(_In_ IStream* imageStream)
 
     // Decode the image using WIC.
     ComPtr<IWICBitmapDecoder> decoder;
-    DX::ThrowIfFailed(
+    CHK(
         wicFactory->CreateDecoderFromStream(
             imageStream,
             nullptr,
@@ -45,7 +45,7 @@ ImageInfo ImageLoader::LoadImageFromWic(_In_ IStream* imageStream)
         ));
 
     ComPtr<IWICBitmapFrameDecode> frame;
-    DX::ThrowIfFailed(
+    CHK(
         decoder->GetFrame(0, &frame)
     );
 
@@ -74,15 +74,15 @@ ImageInfo ImageLoader::LoadImageFromDirectXTex(String^ filename, String^ extensi
 
     if (extension == L".EXR" || extension == L".exr")
     {
-        DX::ThrowIfFailed(LoadFromEXRFile(filestr, nullptr, *dxtScratch));
+        CHK(LoadFromEXRFile(filestr, nullptr, *dxtScratch));
     }
     else if (extension == L".HDR" || extension == L".hdr")
     {
-        DX::ThrowIfFailed(LoadFromHDRFile(filestr, nullptr, *dxtScratch));
+        CHK(LoadFromHDRFile(filestr, nullptr, *dxtScratch));
     }
     else
     {
-        DX::ThrowIfFailed(LoadFromDDSFile(filestr, 0, nullptr, *dxtScratch));
+        CHK(LoadFromDDSFile(filestr, 0, nullptr, *dxtScratch));
     }
 
     auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.
@@ -92,7 +92,7 @@ ImageInfo ImageLoader::LoadImageFromDirectXTex(String^ filename, String^ extensi
     auto decompScratch = new ScratchImage();
     if (DirectX::IsCompressed(image->format))
     {
-        DX::ThrowIfFailed(
+        CHK(
             DirectX::Decompress(*image, DXGI_FORMAT_UNKNOWN, *decompScratch)
         );
 
@@ -109,7 +109,7 @@ ImageInfo ImageLoader::LoadImageFromDirectXTex(String^ filename, String^ extensi
 
     ComPtr<IWICBitmap> dxtWicBitmap;
     auto fact = m_deviceResources->GetWicImagingFactory();
-    DX::ThrowIfFailed(
+    CHK(
         fact->CreateBitmapFromMemory(
             static_cast<UINT>(image->width),
             static_cast<UINT>(image->height),
@@ -151,11 +151,11 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     ComPtr<IWICBitmapFrameDecode> frame;
     if (SUCCEEDED(source->QueryInterface(IID_PPV_ARGS(&frame))))
     {
-        DX::ThrowIfFailed(
+        CHK(
             wicFactory->CreateColorContext(&m_wicColorContext)
         );
 
-        DX::ThrowIfFailed(
+        CHK(
             frame->GetColorContexts(
                 1,
                 m_wicColorContext.GetAddressOf(),
@@ -168,12 +168,12 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     // decode to the appropriate WIC pixel format.
 
     WICPixelFormatGUID pixelFormat;
-    DX::ThrowIfFailed(
+    CHK(
         source->GetPixelFormat(&pixelFormat)
     );
 
     ComPtr<IWICComponentInfo> componentInfo;
-    DX::ThrowIfFailed(
+    CHK(
         wicFactory->CreateComponentInfo(
             pixelFormat,
             &componentInfo
@@ -181,16 +181,16 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     );
 
     ComPtr<IWICPixelFormatInfo2> pixelFormatInfo;
-    DX::ThrowIfFailed(
+    CHK(
         componentInfo.As(&pixelFormatInfo)
     );
 
     WICPixelFormatNumericRepresentation formatNumber;
-    DX::ThrowIfFailed(
+    CHK(
         pixelFormatInfo->GetNumericRepresentation(&formatNumber)
     );
 
-    DX::ThrowIfFailed(pixelFormatInfo->GetBitsPerPixel(&m_imageInfo.bitsPerPixel));
+    CHK(pixelFormatInfo->GetBitsPerPixel(&m_imageInfo.bitsPerPixel));
 
     // Calculate the bits per channel (bit depth) using GetChannelMask.
     // This accounts for nonstandard color channel packing and padding, e.g. 32bppRGB,
@@ -199,7 +199,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     ZeroMemory(channelMaskBytes, ARRAYSIZE(channelMaskBytes));
     unsigned int maskSize;
 
-    DX::ThrowIfFailed(
+    CHK(
         pixelFormatInfo->GetChannelMask(
             0,  // Read the first color channel.
             ARRAYSIZE(channelMaskBytes),
@@ -238,11 +238,11 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
                                              // is possible to further optimize this for memory usage.
     }
 
-    DX::ThrowIfFailed(
+    CHK(
         wicFactory->CreateFormatConverter(&m_formatConvert)
     );
 
-    DX::ThrowIfFailed(
+    CHK(
         m_formatConvert->Initialize(
             source,
             fmt,
@@ -255,7 +255,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 
     UINT width;
     UINT height;
-    DX::ThrowIfFailed(
+    CHK(
         m_formatConvert->GetSize(&width, &height)
     );
 
@@ -280,7 +280,7 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
     auto context = m_deviceResources->GetD2DDeviceContext();
 
     // Load the image from WIC using ID2D1ImageSource.
-    DX::ThrowIfFailed(
+    CHK(
         m_deviceResources->GetD2DDeviceContext()->CreateImageSourceFromWic(
             m_formatConvert.Get(),
             &m_imageSource));
@@ -289,15 +289,15 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
     if (m_imageInfo.isXboxHdrScreenshot)
     {
         ComPtr<ID2D1ColorContext1> colorContext1;
-        DX::ThrowIfFailed(
+        CHK(
             context->CreateColorContextFromDxgiColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020, &colorContext1));
 
-        DX::ThrowIfFailed(colorContext1.As(&m_colorContext));
+        CHK(colorContext1.As(&m_colorContext));
     }
     // If the image contains an embedded color profile, use it.
     else if (m_imageInfo.numProfiles >= 1)
     {
-        DX::ThrowIfFailed(
+        CHK(
             context->CreateColorContextFromWicColorContext(
                 m_wicColorContext.Get(),
                 &m_colorContext));
@@ -306,7 +306,7 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
     // floating point == scRGB, others == sRGB.
     else
     {
-        DX::ThrowIfFailed(
+        CHK(
             context->CreateColorContext(
                 m_imageInfo.isFloat ? D2D1_COLOR_SPACE_SCRGB : D2D1_COLOR_SPACE_SRGB,
                 nullptr,
@@ -338,7 +338,7 @@ ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom)
 
     ComPtr<ID2D1TransformedImageSource> source;
 
-    DX::ThrowIfFailed(
+    CHK(
         m_deviceResources->GetD2DDeviceContext()->CreateTransformedImageSource(
             m_imageSource.Get(),
             &props,
@@ -442,7 +442,7 @@ void ImageLoader::PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitm
         info->size.Width == 0 ||
         info->size.Height == 0)
     {
-        DX::ThrowIfFailed(E_INVALIDARG);
+        CHK(E_INVALIDARG);
     }
 
     info->imageKind = AdvancedColorKind::StandardDynamicRange;
@@ -487,7 +487,7 @@ bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapSource* source)
     // Eventually should detect whether the codec actually is JPEG XR. This requires the IWICBitmapDecoder.
 
     WICPixelFormatGUID fmt = {};
-    DX::ThrowIfFailed(frame->GetPixelFormat(&fmt));
+    CHK(frame->GetPixelFormat(&fmt));
     if (fmt != GUID_WICPixelFormat32bppBGR101010)
     {
         return false;

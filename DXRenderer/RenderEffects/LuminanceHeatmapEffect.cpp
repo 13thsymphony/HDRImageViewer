@@ -81,7 +81,8 @@ IFACEMETHODIMP LuminanceHeatmapEffect::Initialize(
 
     try
     {
-        data = reader->ReadData("LuminanceHeatmapEffect.cso");
+        // CSO files are stored in the project subfolder in the app install location.
+        data = reader->ReadData("DXRenderer\\LuminanceHeatmapEffect.cso");
     }
     catch (Platform::Exception^ e)
     {

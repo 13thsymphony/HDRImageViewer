@@ -13,7 +13,7 @@
 
 #include <ppltasks.h>
 
-namespace DX
+namespace DXRenderer
 {
     // TODO: Migrate to just use this shorter identifier.
 #define CHK ThrowIfFailed

@@ -159,7 +159,8 @@ IFACEMETHODIMP SimpleTonemapEffect::Initialize(
 
     try
     {
-        data = reader->ReadData("SimpleTonemapEffect.cso");
+        // CSO files are stored in the project subfolder in the app install location.
+        data = reader->ReadData("DXRenderer\\SimpleTonemapEffect.cso");
     }
     catch (Platform::Exception^ e)
     {

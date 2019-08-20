@@ -81,7 +81,8 @@ IFACEMETHODIMP SdrOverlayEffect::Initialize(
 
     try
     {
-        data = reader->ReadData("SdrOverlayEffect.cso");
+        // CSO files are stored in the project subfolder in the app install location.
+        data = reader->ReadData("DXRenderer\\SdrOverlayEffect.cso");
     }
     catch (Platform::Exception^ e)
     {

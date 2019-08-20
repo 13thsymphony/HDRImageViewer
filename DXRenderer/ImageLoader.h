@@ -8,7 +8,7 @@
 //
 // ImageLoader relies on the caller to explicitly inform it
 // of device lost/restored events, i.e. it does not
-// independently register for DX::IDeviceNotify.
+// independently register for IDeviceNotify.
 //
 // Throws WINCODEC_ERR_[foo] HRESULTs in exceptions as these
 // match well with the intended error states.
@@ -21,7 +21,7 @@
 
 #include <cstdarg>
 
-namespace HDRImageViewer
+namespace DXRenderer
 {
     /// <summary>
     /// State machine.
@@ -44,7 +44,7 @@ namespace HDRImageViewer
     class ImageLoader
     {
     public:
-        ImageLoader(const std::shared_ptr<DX::DeviceResources>& deviceResources);
+        ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources);
         ~ImageLoader();
 
         ImageLoaderState GetState() const { return m_state; };
@@ -85,7 +85,7 @@ namespace HDRImageViewer
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
         GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
 
-        std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
+        std::shared_ptr<DeviceResources>                    m_deviceResources;
 
         // Device-independent
         Microsoft::WRL::ComPtr<IWICFormatConverter>             m_formatConvert;

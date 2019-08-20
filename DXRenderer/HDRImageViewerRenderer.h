@@ -15,10 +15,10 @@
 #include "RenderOptions.h"
 #include "ImageLoader.h"
 
-namespace HDRImageViewer
+namespace DXRenderer
 {
     [Windows::Foundation::Metadata::WebHostHidden]
-    public ref class HDRImageViewerRenderer sealed : public DX::IDeviceNotify
+    public ref class HDRImageViewerRenderer sealed : public DXRenderer::IDeviceNotify
     {
     public:
         HDRImageViewerRenderer(Windows::UI::Xaml::Controls::SwapChainPanel^ panel);
@@ -85,7 +85,7 @@ namespace HDRImageViewer
         float GetBestDispMaxLuminance();
 
         // Cached pointer to device resources.
-        std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
+        std::shared_ptr<DeviceResources>                        m_deviceResources;
         std::unique_ptr<ImageLoader>                            m_imageLoader;
 
         // WIC and Direct2D resources.

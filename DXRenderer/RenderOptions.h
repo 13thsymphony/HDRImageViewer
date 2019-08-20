@@ -13,7 +13,7 @@
 
 #include "pch.h"
 
-namespace HDRImageViewer
+namespace DXRenderer
 {
     /// <summary>
     /// Supported render effects which are inserted into the render pipeline.

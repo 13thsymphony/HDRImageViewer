@@ -1,6 +1,6 @@
 #pragma once
 
-namespace HDRImageViewer
+namespace DXRenderer
 {
     public value struct ImageInfo
     {

@@ -105,7 +105,8 @@ IFACEMETHODIMP SphereMapEffect::Initialize(
 
     try
     {
-        data = reader->ReadData("SphereMapEffect.cso");
+        // CSO files are stored in the project subfolder in the app install location.
+        data = reader->ReadData("DXRenderer\\SphereMapEffect.cso");
     }
     catch (Platform::Exception^ e)
     {
