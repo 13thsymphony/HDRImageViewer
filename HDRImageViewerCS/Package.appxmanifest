@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4" IgnorableNamespaces="uap mp">
+    <Identity Name="24700lepusmagnum.HDRandWCGImageViewer" Publisher="CN=DC282004-FA5B-46E0-8880-6E68BFA41465" Version="1.1.0.0" />
+    <mp:PhoneIdentity PhoneProductId="a87b377f-cb50-442c-a4e8-871dca2f8432" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+    <Properties>
+        <DisplayName>HDR + WCG Image Viewer</DisplayName>
+        <PublisherDisplayName>Simon Tao</PublisherDisplayName>
+        <Logo>Assets\StoreLogo-sdk.png</Logo>
+    </Properties>
+    <Dependencies>
+        <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.18362.0" />
+    </Dependencies>
+    <Resources>
+        <Resource Language="x-generate" />
+    </Resources>
+    <Applications>
+        <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="HDRImageViewerCS.App" desktop4:SupportsMultipleInstances="true">
+            <uap:VisualElements DisplayName="HDR + WCG Image Viewer" Square150x150Logo="Assets\squaretile-sdk.png" Square44x44Logo="Assets\smalltile-sdk.png" Description="View HDR images in full quality on an HDR or SDR display, including Radiance RGBE, OpenEXR, and JPEG-XR." BackgroundColor="#00207F">
+                <uap:DefaultTile ShortName="HDR Viewer" Square71x71Logo="Assets\SmallTile.png" Wide310x150Logo="Assets\WideTile.png" Square310x310Logo="Assets\LargeTile.png">
+                    <uap:ShowNameOnTiles>
+                        <uap:ShowOn Tile="square150x150Logo" />
+                    </uap:ShowNameOnTiles>
+                </uap:DefaultTile>
+                <uap:SplashScreen Image="Assets\splash-sdk.png" BackgroundColor="#00207F" />
+            </uap:VisualElements>
+            <Extensions>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".jxr">
+                        <uap:DisplayName>JPEG XR image</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/jxr">.jxr</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".jpg">
+                        <uap:DisplayName>JPEG image</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/jpg">.jpg</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".tif">
+                        <uap:DisplayName>TIFF image</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/tif">.tif</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".png">
+                        <uap:DisplayName>PNG image</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/png">.png</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".hdr">
+                        <uap:DisplayName>Radiance RGBE image</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/hdr">.hdr</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".exr">
+                        <uap:DisplayName>OpenEXR image</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/exr">.exr</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".dds">
+                        <uap:DisplayName>DirectDraw Surface</uap:DisplayName>
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/dds">.dds</uap:FileType>
+                        </uap:SupportedFileTypes>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+            </Extensions>
+        </Application>
+    </Applications>
+</Package>
