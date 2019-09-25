@@ -7,6 +7,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -30,6 +31,7 @@ namespace HDRImageViewerCS
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            // TODO: Add Resuming.
         }
 
         /// <summary>
@@ -38,6 +40,16 @@ namespace HDRImageViewerCS
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
+        {
+            if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
+            {
+                // TODO: Load state from previously suspended application and pass into LaunchApp.
+            }
+
+            LaunchApp(null, e.PrelaunchActivated);
+        }
+
+        private void LaunchApp(IStorageItem file, bool PrelaunchActivated)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -50,35 +62,32 @@ namespace HDRImageViewerCS
 
                 rootFrame.NavigationFailed += OnNavigationFailed;
 
-                if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
-                {
-                    //TODO: Load state from previously suspended application
-                }
-
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
 
-            if (e.PrelaunchActivated == false)
+            if (PrelaunchActivated == false)
             {
                 if (rootFrame.Content == null)
                 {
-                    // When the navigation stack isn't restored navigate to the first page,
-                    // configuring the new page by passing required information as a navigation
-                    // parameter
-                    rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                    // TODO: Pass in file to load in launch args?
+                    rootFrame.Navigate(typeof(DXViewerPage));
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
-            }
 
-            
+                DXViewerPage page = rootFrame.Content as DXViewerPage;
+
+                // TODO: page.LoadDefaultImage(); or load selected image
+            }
         }
 
         // Invoked when the app is launched via the file type association for which the app has registered.
         protected override void OnFileActivated(Windows.ApplicationModel.Activation.FileActivatedEventArgs e)
         {
-            
+            IStorageItem file = e.Files.First();
+
+            LaunchApp(file, false);
         }
 
         /// <summary>
@@ -89,6 +98,11 @@ namespace HDRImageViewerCS
         void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+        }
+        
+        private void InitializeContent(FileActivatedEventArgs e)
+        {
+
         }
 
         /// <summary>
@@ -104,5 +118,7 @@ namespace HDRImageViewerCS
             //TODO: Save application state and stop any background activity
             deferral.Complete();
         }
+
+        DXViewerPage m_mainPage;
     }
 }
