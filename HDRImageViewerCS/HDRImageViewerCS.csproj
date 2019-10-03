@@ -203,6 +203,12 @@
       <Version>6.2.8</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DXRenderer\DXRenderer.vcxproj">
+      <Project>{c2d1f457-8781-42ca-9db7-0f8bfca84ac4}</Project>
+      <Name>DXRenderer</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

@@ -78,7 +78,7 @@ namespace HDRImageViewerCS
 
                 DXViewerPage page = rootFrame.Content as DXViewerPage;
 
-                // TODO: page.LoadDefaultImage(); or load selected image
+                page.LoadImageAsync(file);
             }
         }
 
