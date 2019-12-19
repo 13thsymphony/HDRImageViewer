@@ -29,7 +29,6 @@ namespace DX
 
     enum OSVer
     {
-        Win1803,
         Win1809,
         Win1903
     };
@@ -42,10 +41,6 @@ namespace DX
         int apiLevel = 0;
         switch (version)
         {
-        case Win1803:
-            apiLevel = 6;
-            break;
-
         case Win1809:
             apiLevel = 7;
             break;

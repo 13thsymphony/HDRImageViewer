@@ -349,17 +349,6 @@ void HDRImageViewerRenderer::CreateHistogramResources()
 
     float scale = sc_histMaxNits / sc_nominalRefWhite;
 
-    // 3a. In Windows 10 version 1803, the color management effect does not perform
-    // reference white scaling when converting from HDR10 to scRGB (as used by Xbox HDR screenshots).
-    // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
-    // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
-    // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809.
-    if (m_imageInfo.isXboxHdrScreenshot && !DX::CheckPlatformSupport(DX::Win1809))
-    {
-        scale /= 125.0f;
-    }
-
     D2D1_MATRIX_5X4_F rgbtoYnorm = D2D1::Matrix5x4F(
         0.2126f / scale, 0, 0, 0,
         0.7152f / scale, 0, 0, 0,
@@ -545,17 +534,6 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
     default:
         scale = sdrWhiteLevel / sc_nominalRefWhite;
         break;
-    }
-
-    // In Windows 10 version 1803, the color management effect does not perform
-    // reference white scaling when converting from HDR10 to scRGB (as used by Xbox HDR screenshots).
-    // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
-    // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
-    // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809.
-    if (m_imageInfo.isXboxHdrScreenshot && !DX::CheckPlatformSupport(DX::Win1809))
-    {
-        scale *= 125.0f;
     }
 
     // The user may want to manually adjust brightness specifically for this image, on top of any
