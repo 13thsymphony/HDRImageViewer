@@ -54,7 +54,6 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         WICDecodeMetadataCacheOnDemand,
         &decoder));
 
-
     ComPtr<IWICBitmapFrameDecode> frame;
     IFRIMG(decoder->GetFrame(0, &frame));
 
@@ -184,6 +183,16 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     WICPixelFormatGUID pixelFormat;
     IFRIMG(source->GetPixelFormat(&pixelFormat));
 
+    // If an image supports GUID_WICPixelFormat32bppR10G10B10A2HDR10, this is not returned by
+    // default for compatibility with legacy callers; instead, we must specifically request it.
+
+    ComPtr<IWICBitmapSourceTransform> sourceTransform;
+    IFRIMG(source->QueryInterface(IID_PPV_ARGS(&sourceTransform)));
+
+    GUID checkHDR10Fmt = {};
+    IFRIMG(sourceTransform->GetClosestPixelFormat(&checkHDR10Fmt));
+
+
     ComPtr<IWICComponentInfo> componentInfo;
     IFRIMG(wicFactory->CreateComponentInfo(pixelFormat, &componentInfo));
 
@@ -280,7 +289,7 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
         &m_imageSource));
 
     // Xbox One HDR screenshots use the HDR10 colorspace, and this must be manually specified.
-    if (m_imageInfo.isXboxHdrScreenshot)
+    if (m_imageInfo.forceBT2100ColorSpace)
     {
         // TODO: Need consistent rules for using IFRIMG vs. IFT (when are errors exceptional?).
         ComPtr<ID2D1ColorContext1> colorContext1;
@@ -453,7 +462,7 @@ void ImageLoader::PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitm
     if (IsImageXboxHdrScreenshot(source))
     {
         m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
-        m_imageInfo.isXboxHdrScreenshot = true;
+        m_imageInfo.forceBT2100ColorSpace = true;
     }
 }
 
