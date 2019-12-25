@@ -76,6 +76,13 @@ namespace HDRImageViewer
                 if (m_state == s) return;
             }
 
+            // TODO: We should not rely on EnforceStates to catch image loading failed.
+            // For now, return a more informative error in this case.
+            if (m_state == ImageLoaderState::LoadingFailed)
+            {
+                throw ref new Platform::COMException(WINCODEC_ERR_BADIMAGE);
+            }
+
             throw ref new Platform::COMException(WINCODEC_ERR_WRONGSTATE);
         }
 
@@ -92,7 +99,8 @@ namespace HDRImageViewer
         void LoadImageFromDirectXTexInt(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
         void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateDeviceDependentResourcesInternal();
-        void PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source);
+        void PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource* source);
+        void PopulatePixelFormatInfo(ImageInfo& info, WICPixelFormatGUID format);
         bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
         GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
         bool CheckCanDecode(_In_ IWICBitmapFrameDecode* frame);

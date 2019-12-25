@@ -165,6 +165,29 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
     m_imageInfo = {};
 
+    // Check whether the image data is natively stored in a floating-point format, and
+    // decode to the appropriate WIC pixel format.
+
+    WICPixelFormatGUID imageFmt;
+    IFRIMG(source->GetPixelFormat(&imageFmt));
+
+    // HEIF/HEVC supports GUID_WICPixelFormat32bppR10G10B10A2HDR10, but this is not returned by
+    // default for compatibility with legacy callers; instead, we must specifically request it.
+
+    ComPtr<IWICBitmapSourceTransform> sourceTransform;
+    IFRIMG(source->QueryInterface(IID_PPV_ARGS(&sourceTransform)));
+
+    GUID checkHDR10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
+    IFRIMG(sourceTransform->GetClosestPixelFormat(&checkHDR10Fmt));
+
+    if (checkHDR10Fmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10)
+    {
+        imageFmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10;
+    }
+
+    PopulatePixelFormatInfo(m_imageInfo, imageFmt);
+
+    // TODO: Factor all color context extraction to separate method.
     // Attempt to read the embedded color profile from the image; only valid for WIC images.
     ComPtr<IWICBitmapFrameDecode> frame;
     if (SUCCEEDED(source->QueryInterface(IID_PPV_ARGS(&frame))))
@@ -177,58 +200,10 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
             &m_imageInfo.numProfiles));
     }
 
-    // Check whether the image data is natively stored in a floating-point format, and
-    // decode to the appropriate WIC pixel format.
-
-    WICPixelFormatGUID pixelFormat;
-    IFRIMG(source->GetPixelFormat(&pixelFormat));
-
-    // If an image supports GUID_WICPixelFormat32bppR10G10B10A2HDR10, this is not returned by
-    // default for compatibility with legacy callers; instead, we must specifically request it.
-
-    ComPtr<IWICBitmapSourceTransform> sourceTransform;
-    IFRIMG(source->QueryInterface(IID_PPV_ARGS(&sourceTransform)));
-
-    GUID checkHDR10Fmt = {};
-    IFRIMG(sourceTransform->GetClosestPixelFormat(&checkHDR10Fmt));
-
-
-    ComPtr<IWICComponentInfo> componentInfo;
-    IFRIMG(wicFactory->CreateComponentInfo(pixelFormat, &componentInfo));
-
-    ComPtr<IWICPixelFormatInfo2> pixelFormatInfo;
-    IFRIMG(componentInfo.As(&pixelFormatInfo));
-
-    WICPixelFormatNumericRepresentation formatNumber;
-    IFRIMG(pixelFormatInfo->GetNumericRepresentation(&formatNumber));
-
-    IFRIMG(pixelFormatInfo->GetBitsPerPixel(&m_imageInfo.bitsPerPixel));
-
-    // Calculate the bits per channel (bit depth) using GetChannelMask.
-    // This accounts for nonstandard color channel packing and padding, e.g. 32bppRGB,
-    // but assumes each channel has equal bits (e.g. RGB565 doesn't work).
-    unsigned char channelMaskBytes[sc_MaxBytesPerPixel];
-    ZeroMemory(channelMaskBytes, ARRAYSIZE(channelMaskBytes));
-    unsigned int maskSize;
-
-    IFRIMG(pixelFormatInfo->GetChannelMask(
-        0,  // Read the first color channel.
-        ARRAYSIZE(channelMaskBytes),
-        channelMaskBytes,
-        &maskSize));
-
-    // Count up the number of bits set in the mask for the first color channel.
-    for (unsigned int i = 0; i < maskSize * 8; i++)
+    if (imageFmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10)
     {
-        unsigned int byte = i / 8;
-        unsigned int bit = i % 8;
-        if ((channelMaskBytes[byte] & (1 << bit)) != 0)
-        {
-            m_imageInfo.bitsPerChannel += 1;
-        }
+        m_imageInfo.forceBT2100ColorSpace = true;
     }
-
-    m_imageInfo.isFloat = (WICPixelFormatNumericRepresentationFloat == formatNumber) ? true : false;
 
     // When decoding, preserve the numeric representation (float vs. non-float)
     // of the native image data. This avoids WIC performing an implicit gamma conversion
@@ -264,7 +239,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 
     m_imageInfo.size = Size(static_cast<float>(width), static_cast<float>(height));
 
-    PopulateImageInfoACKind(&m_imageInfo, source);
+    PopulateImageInfoACKind(m_imageInfo, source);
 
     m_state = ImageLoaderState::NeedDeviceResources;
 
@@ -433,29 +408,29 @@ void ImageLoader::ReleaseDeviceDependentResources()
 /// </summary>
 /// <param name="info">Requires that all fields other than imageKind are already populated.</param>
 /// <param name="source">For some detection types, IWICBitmapFrameDecode is needed.</param>
-void ImageLoader::PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source)
+void ImageLoader::PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource* source)
 {
-    if (info->bitsPerPixel == 0 ||
-        info->bitsPerChannel == 0 ||
-        info->size.Width == 0 ||
-        info->size.Height == 0)
+    if (info.bitsPerPixel == 0 ||
+        info.bitsPerChannel == 0 ||
+        info.size.Width == 0 ||
+        info.size.Height == 0)
     {
         IFRIMG(E_INVALIDARG);
     }
 
-    info->imageKind = AdvancedColorKind::StandardDynamicRange;
+    info.imageKind = AdvancedColorKind::StandardDynamicRange;
 
     // Bit depth > 8bpc or color gamut > sRGB signifies a WCG image.
     // The presence of a color profile is used as an approximation for wide gamut.
-    if (info->bitsPerChannel > 8 || info->numProfiles >= 1)
+    if (info.bitsPerChannel > 8 || info.numProfiles >= 1)
     {
-        info->imageKind = AdvancedColorKind::WideColorGamut;
+        info.imageKind = AdvancedColorKind::WideColorGamut;
     }
 
     // Currently, all supported floating point images are considered HDR.
-    if (info->isFloat == true)
+    if (info.isFloat == true)
     {
-        info->imageKind = AdvancedColorKind::HighDynamicRange;
+        info.imageKind = AdvancedColorKind::HighDynamicRange;
     }
 
     // Xbox One HDR screenshots have to be specially detected.
@@ -463,6 +438,60 @@ void ImageLoader::PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitm
     {
         m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
         m_imageInfo.forceBT2100ColorSpace = true;
+    }
+}
+
+/// <summary>
+/// Fills in the bit depth (channel/pixel) and float fields.
+/// </summary>
+void ImageLoader::PopulatePixelFormatInfo(ImageInfo& info, WICPixelFormatGUID format)
+{
+    // This format doesn't support IWICComponentInfo, rely on hardcoded knowledge.
+    if (format == GUID_WICPixelFormat32bppR10G10B10A2HDR10)
+    {
+        info.bitsPerChannel = 10;
+        info.bitsPerPixel = 32;
+        info.isFloat = false;
+    }
+    else
+    {
+        auto wicFactory = m_deviceResources->GetWicImagingFactory();
+        ComPtr<IWICComponentInfo> componentInfo;
+        IFRIMG(wicFactory->CreateComponentInfo(format, &componentInfo));
+
+        ComPtr<IWICPixelFormatInfo2> pixelFormatInfo;
+        IFRIMG(componentInfo.As(&pixelFormatInfo));
+
+        WICPixelFormatNumericRepresentation formatNumber;
+        IFRIMG(pixelFormatInfo->GetNumericRepresentation(&formatNumber));
+
+        IFRIMG(pixelFormatInfo->GetBitsPerPixel(&info.bitsPerPixel));
+
+        // Calculate the bits per channel (bit depth) using GetChannelMask.
+        // This accounts for nonstandard color channel packing and padding, e.g. 32bppRGB,
+        // but assumes each channel has equal bits (e.g. RGB565 doesn't work).
+        unsigned char channelMaskBytes[sc_MaxBytesPerPixel];
+        ZeroMemory(channelMaskBytes, ARRAYSIZE(channelMaskBytes));
+        unsigned int maskSize;
+
+        IFRIMG(pixelFormatInfo->GetChannelMask(
+            0,  // Read the first color channel.
+            ARRAYSIZE(channelMaskBytes),
+            channelMaskBytes,
+            &maskSize));
+
+        // Count up the number of bits set in the mask for the first color channel.
+        for (unsigned int i = 0; i < maskSize * 8; i++)
+        {
+            unsigned int byte = i / 8;
+            unsigned int bit = i % 8;
+            if ((channelMaskBytes[byte] & (1 << bit)) != 0)
+            {
+                info.bitsPerChannel += 1;
+            }
+        }
+
+        info.isFloat = (WICPixelFormatNumericRepresentationFloat == formatNumber) ? true : false;
     }
 }
 
