@@ -118,7 +118,7 @@ namespace HDRImageViewer
         ImageInfo                                               m_imageInfo;
 
         // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
-        Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
+        Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;
         Microsoft::WRL::ComPtr<ID2D1ColorContext>               m_colorContext;
     };
 }

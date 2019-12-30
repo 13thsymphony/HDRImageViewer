@@ -17,7 +17,8 @@ static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported imag
 
 ImageLoader::ImageLoader(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
     m_deviceResources(deviceResources),
-    m_state(ImageLoaderState::NotInitialized)
+    m_state(ImageLoaderState::NotInitialized),
+    m_imageInfo{}
 {
 }
 
@@ -187,7 +188,6 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     EnforceStates(1, ImageLoaderState::NotInitialized);
 
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
-    m_imageInfo = {};
 
     WICPixelFormatGUID imageFmt;
     IFRIMG(source->GetPixelFormat(&imageFmt));
@@ -337,7 +337,45 @@ void ImageLoader::CreateHeifHdr10CpuResources(IWICBitmapSource* source)
 /// </remarks>
 void ImageLoader::CreateHeifHdr10GpuResources()
 {
+    ComPtr<IWICBitmap> wicBitmap;
+    ComPtr<IWICBitmapLock> wicLock;
+    IFRIMG(m_wicCachedSource.As(&wicBitmap));
+    IFRIMG(wicBitmap->Lock({}, WICBitmapLockRead, &wicLock));
 
+    UINT lockStride, lockSize = 0;
+    WICInProcPointer lockData = nullptr;
+    IFRIMG(wicLock->GetStride(&lockStride));
+    IFRIMG(wicLock->GetDataPointer(&lockSize, &lockData));
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = lockData;
+    initData.SysMemPitch = lockStride;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = static_cast<unsigned int>(m_imageInfo.size.Width);
+    desc.Height = static_cast<unsigned int>(m_imageInfo.size.Height);
+    desc.MipLevels = desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+        // BT.2100 colorspace is represented in a D2D color context.
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    auto d3dDevice = m_deviceResources->GetD3DDevice();
+    ComPtr<ID3D11Texture2D> tex;
+    IFRIMG(d3dDevice->CreateTexture2D(&desc, &initData, tex.GetAddressOf()));
+
+    ComPtr<IDXGISurface> dxgiSurface;
+    IFRIMG(tex.As(&dxgiSurface));
+
+    auto context = m_deviceResources->GetD2DDeviceContext();
+    
+    IFRIMG(context->CreateImageSourceFromDxgi(
+        &dxgiSurface,
+        1,
+        DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709,
+        D2D1_IMAGE_SOURCE_FROM_DXGI_OPTIONS_NONE,
+        &m_imageSource));
 }
 
 /// <summary>
@@ -351,9 +389,17 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
     auto context = m_deviceResources->GetD2DDeviceContext();
 
     // Load the image from WIC using ID2D1ImageSource.
-    IFRIMG(m_deviceResources->GetD2DDeviceContext()->CreateImageSourceFromWic(
-        m_wicCachedSource.Get(),
-        &m_imageSource));
+    if (m_imageInfo.isHeif == true &&
+        m_imageInfo.forceBT2100ColorSpace == true)
+    {
+        CreateHeifHdr10GpuResources();
+    }
+    else
+    {
+        ComPtr<ID2D1ImageSourceFromWic> wicImageSource;
+        IFRIMG(context->CreateImageSourceFromWic(m_wicCachedSource.Get(), &wicImageSource));
+        IFRIMG(wicImageSource.As(&m_imageSource));
+    }
 
     // Xbox One HDR screenshots and HEIF HDR images use the HDR10/BT.2100 colorspace, but this is not represented
     // in a WIC color context so we must manually set behavior.
@@ -499,18 +545,16 @@ void ImageLoader::ReleaseDeviceDependentResources()
 /// <summary>
 /// Determines what advanced color kind the image is.
 /// </summary>
-/// <param name="info">Requires that all fields other than imageKind are already populated.</param>
+/// <param name="info">Requires that pixel format info be populated.</param>
 /// <param name="source">For some detection types, IWICBitmapFrameDecode is needed. TODO: Not anymore?</param>
 void ImageLoader::PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource* source)
 {
     UNREFERENCED_PARAMETER(source);
 
     if (info.bitsPerPixel == 0 ||
-        info.bitsPerChannel == 0 ||
-        info.size.Width == 0 ||
-        info.size.Height == 0)
+        info.bitsPerChannel == 0)
     {
-        IFRIMG(E_INVALIDARG);
+        IFRIMG(WINCODEC_ERR_INVALIDPARAMETER);
     }
 
     info.imageKind = AdvancedColorKind::StandardDynamicRange;
