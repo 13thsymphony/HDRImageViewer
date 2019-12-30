@@ -60,10 +60,35 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
     GUID fmt;
     IFRIMG(decoder->GetContainerFormat(&fmt));
 
+    // Perform initial detection and handling of special case WIC decoders.
     if (fmt == GUID_ContainerFormatHeif)
     {
         m_imageInfo.isHeif = true;
+
+        // HEVC codec is not always installed on the system.
         IFRIMG(CheckCanDecode(frame.Get()) == true ? S_OK : E_FAIL);
+
+        // HEIF/HEVC supports GUID_WICPixelFormat32bppR10G10B10A2HDR10.
+        // We must specifically detect and request HDR10 via IWICBitmapSourceTransform.
+        ComPtr<IWICBitmapSourceTransform> sourceTransform;
+        IFRIMG(frame->QueryInterface(IID_PPV_ARGS(&sourceTransform)));
+
+        GUID checkHDR10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
+        IFRIMG(sourceTransform->GetClosestPixelFormat(&checkHDR10Fmt));
+
+        if (checkHDR10Fmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10 &&
+            m_imageInfo.isHeif == true)
+        {
+            m_imageInfo.forceBT2100ColorSpace = true;
+        }
+    }
+    else if (fmt == GUID_ContainerFormatWmp)
+    {
+        // Xbox One HDR screenshots have to be specially detected and are always HDR10/BT.2100.
+        if (IsImageXboxHdrScreenshot(frame.Get()))
+        {
+            m_imageInfo.forceBT2100ColorSpace = true;
+        }
     }
 
     LoadImageCommon(frame.Get());
@@ -157,7 +182,6 @@ void ImageLoader::LoadImageFromDirectXTexInt(String^ filename, String^ extension
 /// After initial decode, obtains image information and do common setup.
 /// Populates all members of ImageInfo.
 /// </summary>
-/// <param name="source">Ideally IWICBitmapFrameDecode, otherwise some ImageInfo will not be populated.</param>
 void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 {
     EnforceStates(1, ImageLoaderState::NotInitialized);
@@ -165,87 +189,155 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
     m_imageInfo = {};
 
-    // Check whether the image data is natively stored in a floating-point format, and
-    // decode to the appropriate WIC pixel format.
-
     WICPixelFormatGUID imageFmt;
     IFRIMG(source->GetPixelFormat(&imageFmt));
 
-    // HEIF/HEVC supports GUID_WICPixelFormat32bppR10G10B10A2HDR10, but this is not returned by
-    // default for compatibility with legacy callers; instead, we must specifically request it.
-
-    ComPtr<IWICBitmapSourceTransform> sourceTransform;
-    IFRIMG(source->QueryInterface(IID_PPV_ARGS(&sourceTransform)));
-
-    GUID checkHDR10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
-    IFRIMG(sourceTransform->GetClosestPixelFormat(&checkHDR10Fmt));
-
-    if (checkHDR10Fmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10)
+    if (m_imageInfo.forceBT2100ColorSpace == true &&
+        m_imageInfo.isHeif == true)
     {
-        imageFmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10;
+        // For compat, GetPixelFormat() always returns 8bpc in this situation,
+        // but we will be doing a special codepath to get the 10bpc data.
+        imageFmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
     }
 
     PopulatePixelFormatInfo(m_imageInfo, imageFmt);
-
-    // TODO: Factor all color context extraction to separate method.
-    // Attempt to read the embedded color profile from the image; only valid for WIC images.
-    ComPtr<IWICBitmapFrameDecode> frame;
-    if (SUCCEEDED(source->QueryInterface(IID_PPV_ARGS(&frame))))
-    {
-        IFRIMG(wicFactory->CreateColorContext(&m_wicColorContext));
-
-        IFRIMG(frame->GetColorContexts(
-            1,
-            m_wicColorContext.GetAddressOf(),
-            &m_imageInfo.numProfiles));
-    }
-
-    if (imageFmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10)
-    {
-        m_imageInfo.forceBT2100ColorSpace = true;
-    }
-
-    // When decoding, preserve the numeric representation (float vs. non-float)
-    // of the native image data. This avoids WIC performing an implicit gamma conversion
-    // which occurs when converting between a fixed-point/integer pixel format (sRGB gamma)
-    // and a float-point pixel format (linear gamma). Gamma adjustment, if specified by
-    // the ICC profile, will be performed by the Direct2D color management effect.
-
-    WICPixelFormatGUID fmt = {};
-    if (m_imageInfo.isFloat)
-    {
-        fmt = GUID_WICPixelFormat64bppPRGBAHalf; // Equivalent to DXGI_FORMAT_R16G16B16A16_FLOAT.
-    }
-    else
-    {
-        fmt = GUID_WICPixelFormat64bppPRGBA; // Equivalent to DXGI_FORMAT_R16G16B16A16_UNORM.
-                                             // Many SDR images (e.g. JPEG) use <=32bpp, so it
-                                             // is possible to further optimize this for memory usage.
-    }
-
-    IFRIMG(wicFactory->CreateFormatConverter(&m_formatConvert));
-
-    IFRIMG(m_formatConvert->Initialize(
-        source,
-        fmt,
-        WICBitmapDitherTypeNone,
-        nullptr,
-        0.0f,
-        WICBitmapPaletteTypeCustom));
+    PopulateImageInfoACKind(m_imageInfo, source);
 
     UINT width;
     UINT height;
-    IFRIMG(m_formatConvert->GetSize(&width, &height));
-
+    IFRIMG(source->GetSize(&width, &height));
     m_imageInfo.size = Size(static_cast<float>(width), static_cast<float>(height));
 
-    PopulateImageInfoACKind(m_imageInfo, source);
+    if (m_imageInfo.isHeif == true &&
+        m_imageInfo.forceBT2100ColorSpace == true)
+    {
+        CreateHeifHdr10CpuResources(source);
+    }
+    else
+    {
+        // Attempt to read the embedded color profile from the image; only valid for WIC images.
+        ComPtr<IWICBitmapFrameDecode> frame;
+        if (SUCCEEDED(source->QueryInterface(IID_PPV_ARGS(&frame))))
+        {
+            IFRIMG(wicFactory->CreateColorContext(&m_wicColorContext));
+
+            IFRIMG(frame->GetColorContexts(
+                1,
+                m_wicColorContext.GetAddressOf(),
+                &m_imageInfo.numProfiles));
+        }
+
+        // When decoding, preserve the numeric representation (float vs. non-float)
+        // of the native image data. This avoids WIC performing an implicit gamma conversion
+        // which occurs when converting between a fixed-point/integer pixel format (sRGB gamma)
+        // and a float-point pixel format (linear gamma). Gamma adjustment, if specified by
+        // the ICC profile, will be performed by the Direct2D color management effect.
+
+        WICPixelFormatGUID fmt = {};
+        if (m_imageInfo.isFloat)
+        {
+            fmt = GUID_WICPixelFormat64bppPRGBAHalf; // Equivalent to DXGI_FORMAT_R16G16B16A16_FLOAT.
+        }
+        else
+        {
+            fmt = GUID_WICPixelFormat64bppPRGBA; // Equivalent to DXGI_FORMAT_R16G16B16A16_UNORM.
+                                                 // Many SDR images (e.g. JPEG) use <=32bpp, so it
+                                                 // is possible to further optimize this for memory usage.
+        }
+
+        ComPtr<IWICFormatConverter> format;
+        IFRIMG(wicFactory->CreateFormatConverter(&format));
+
+        IFRIMG(format->Initialize(
+            source,
+            fmt,
+            WICBitmapDitherTypeNone,
+            nullptr,
+            0.0f,
+            WICBitmapPaletteTypeCustom));
+
+        IFRIMG(format.As(&m_wicCachedSource));
+    }
 
     m_state = ImageLoaderState::NeedDeviceResources;
 
     CreateDeviceDependentResourcesInternal();
 
     m_imageInfo.isValid = true;
+}
+
+/// <summary>
+/// Special codepath to generate a WIC software cache of an HDR10 HEIF image.
+/// </summary>
+/// <param name="source">Must be a valid HEIF HDR10 IWICBitmapFrameDecode.</param>
+/// <remarks>
+/// GUID_WICPixelFormat32bppR10G10B10A2HDR10 has very limited support in WIC and D2D, so instead
+/// we must create a full resolution WIC bitmap cache and drop into D3D to upload to GPU.
+///
+/// Needs to be paired with CreateHeifHdr10GpuResources.
+/// </remarks>
+void ImageLoader::CreateHeifHdr10CpuResources(IWICBitmapSource* source)
+{
+    // Sanity checks
+    IFRIMG(m_imageInfo.isHeif == true ? S_OK : WINCODEC_ERR_INVALIDPARAMETER);
+    IFRIMG(m_imageInfo.forceBT2100ColorSpace == true ? S_OK : WINCODEC_ERR_INVALIDPARAMETER);
+
+    auto fact = m_deviceResources->GetWicImagingFactory();
+
+    UINT width, height = 0;
+    IFRIMG(source->GetSize(&width, &height));
+
+    ComPtr<IWICBitmapFrameDecode> frame;
+    IFRIMG(source->QueryInterface(IID_PPV_ARGS(&frame)));
+
+    ComPtr<IWICBitmapSourceTransform> sourceTransform;
+    IFRIMG(frame.As(&sourceTransform));
+
+    ComPtr<IWICBitmap> hdr10Bitmap;
+    IFRIMG(fact->CreateBitmap(
+        width,
+        height,
+        GUID_WICPixelFormat32bppR10G10B10A2HDR10,
+        WICBitmapCacheOnLoad,
+        &hdr10Bitmap));
+
+    ComPtr<IWICBitmapLock> lock;
+    IFRIMG(hdr10Bitmap->Lock({}, WICBitmapLockWrite, &lock));
+
+    UINT lockStride, lockSize = 0;
+    WICInProcPointer lockData = nullptr;
+    IFRIMG(lock->GetStride(&lockStride));
+    IFRIMG(lock->GetDataPointer(&lockSize, &lockData));
+
+    GUID checkHdr10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
+
+    IFRIMG(sourceTransform->CopyPixels(
+        {},
+        width,
+        height,
+        &checkHdr10Fmt, // Assumes we have already checked GetClosestPixelFormat
+        WICBitmapTransformRotate0,
+        lockStride,
+        lockSize,
+        lockData));
+
+    IFRIMG(checkHdr10Fmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10 ? S_OK : WINCODEC_ERR_INVALIDPARAMETER);
+
+    IFRIMG(hdr10Bitmap.As(&m_wicCachedSource));
+}
+
+/// <summary>
+/// Special codepath to generate a D2D image source backed by an HDR10 HEIF image.
+/// </summary>
+/// <remarks>
+/// GUID_WICPixelFormat32bppR10G10B10A2HDR10 has very limited support in WIC and D2D, so instead
+/// we must create a full resolution WIC bitmap cache and drop into D3D to upload to GPU.
+///
+/// Needs to be paired with CreateHeifHdr10CpuResources.
+/// </remarks>
+void ImageLoader::CreateHeifHdr10GpuResources()
+{
+
 }
 
 /// <summary>
@@ -260,10 +352,11 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
 
     // Load the image from WIC using ID2D1ImageSource.
     IFRIMG(m_deviceResources->GetD2DDeviceContext()->CreateImageSourceFromWic(
-        m_formatConvert.Get(),
+        m_wicCachedSource.Get(),
         &m_imageSource));
 
-    // Xbox One HDR screenshots use the HDR10 colorspace, and this must be manually specified.
+    // Xbox One HDR screenshots and HEIF HDR images use the HDR10/BT.2100 colorspace, but this is not represented
+    // in a WIC color context so we must manually set behavior.
     if (m_imageInfo.forceBT2100ColorSpace)
     {
         // TODO: Need consistent rules for using IFRIMG vs. IFT (when are errors exceptional?).
@@ -407,9 +500,11 @@ void ImageLoader::ReleaseDeviceDependentResources()
 /// Determines what advanced color kind the image is.
 /// </summary>
 /// <param name="info">Requires that all fields other than imageKind are already populated.</param>
-/// <param name="source">For some detection types, IWICBitmapFrameDecode is needed.</param>
+/// <param name="source">For some detection types, IWICBitmapFrameDecode is needed. TODO: Not anymore?</param>
 void ImageLoader::PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource* source)
 {
+    UNREFERENCED_PARAMETER(source);
+
     if (info.bitsPerPixel == 0 ||
         info.bitsPerChannel == 0 ||
         info.size.Width == 0 ||
@@ -428,16 +523,18 @@ void ImageLoader::PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource
     }
 
     // Currently, all supported floating point images are considered HDR.
+    // This includes JPEG XR, OpenEXR, and Radiance RGBE.
     if (info.isFloat == true)
     {
         info.imageKind = AdvancedColorKind::HighDynamicRange;
     }
 
-    // Xbox One HDR screenshots have to be specially detected.
-    if (IsImageXboxHdrScreenshot(source))
+    // All images using the HDR10/BT.2100 colorspace are HDR. Currently, WIC color contexts cannot
+    // represent BT.2100, so all supported BT.2100 images have the force flag set.
+    // This includes Xbox One JPEG XR screenshots and HEIF HDR images.
+    if (m_imageInfo.forceBT2100ColorSpace == true)
     {
         m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
-        m_imageInfo.forceBT2100ColorSpace = true;
     }
 }
 
@@ -501,18 +598,10 @@ void ImageLoader::PopulatePixelFormatInfo(ImageInfo& info, WICPixelFormatGUID fo
 /// <remarks>
 /// Xbox One HDR screenshots use JPEG XR with 10-bit precision and the HDR10 colorspace, however they are
 /// indistinguishable from SDR/sRGB 10-bit JPEG XRs except for custom XMP metadata embedded in them.
+/// Relies on caller to ensure the container is JPEG XR (IWICBitmapDecoder).
 /// </remarks>
-/// <param name="source">Must be an IWICBitmapFrameDecode</param>
-bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapSource* source)
+bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapFrameDecode* frame)
 {
-    ComPtr<IWICBitmapFrameDecode> frame;
-    if (FAILED(source->QueryInterface(IID_PPV_ARGS(&frame))))
-    {
-        return false;
-    }
-
-    // Eventually should detect whether the codec actually is JPEG XR. This requires the IWICBitmapDecoder.
-
     WICPixelFormatGUID fmt = {};
     IFT(frame->GetPixelFormat(&fmt));
     if (fmt != GUID_WICPixelFormat32bppBGR101010)
@@ -536,9 +625,11 @@ bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapSource* source)
         PropVariantClear(&prop);
         return false;
     }
-
-    PropVariantClear(&prop);
-    return true;
+    else
+    {
+        PropVariantClear(&prop);
+        return true;
+    }
 }
 
 

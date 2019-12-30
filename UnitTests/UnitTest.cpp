@@ -83,7 +83,7 @@ namespace UnitTests
                     Assert::AreEqual(info.size.Height, definitions[i].info.size.Height);
                     Assert::AreEqual(info.numProfiles, definitions[i].info.numProfiles);
                     Assert::IsTrue(info.imageKind == definitions[i].info.imageKind);
-                    Assert::AreEqual(info.isXboxHdrScreenshot, definitions[i].info.isXboxHdrScreenshot);
+                    Assert::AreEqual(info.forceBT2100ColorSpace, definitions[i].info.forceBT2100ColorSpace);
                     Assert::AreEqual(info.isValid, definitions[i].info.isValid);
                 }).then([=](task<void> previousTask) {
                     try

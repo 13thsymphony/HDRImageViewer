@@ -76,7 +76,7 @@ namespace HDRImageViewer
                 if (m_state == s) return;
             }
 
-            // TODO: We should not rely on EnforceStates to catch image loading failed.
+            // TODO: We should not rely on EnforceStates to catch unexpected image loading failed.
             // For now, return a more informative error in this case.
             if (m_state == ImageLoaderState::LoadingFailed)
             {
@@ -99,22 +99,25 @@ namespace HDRImageViewer
         void LoadImageFromDirectXTexInt(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
         void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateDeviceDependentResourcesInternal();
+
         void PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource* source);
         void PopulatePixelFormatInfo(ImageInfo& info, WICPixelFormatGUID format);
-        bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
+        bool IsImageXboxHdrScreenshot(_In_ IWICBitmapFrameDecode * frame);
         GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
         bool CheckCanDecode(_In_ IWICBitmapFrameDecode* frame);
+        void CreateHeifHdr10CpuResources(_In_ IWICBitmapSource* source);
+        void CreateHeifHdr10GpuResources();
 
         std::shared_ptr<DX::DeviceResources>                    m_deviceResources;
 
         // Device-independent
-        Microsoft::WRL::ComPtr<IWICFormatConverter>             m_formatConvert;
+        Microsoft::WRL::ComPtr<IWICBitmapSource>                m_wicCachedSource;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
 
-        // Device-dependent
+        // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
         Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
         Microsoft::WRL::ComPtr<ID2D1ColorContext>               m_colorContext;
     };
