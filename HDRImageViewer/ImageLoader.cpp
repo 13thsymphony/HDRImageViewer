@@ -293,11 +293,13 @@ void ImageLoader::CreateHeifHdr10CpuResources(IWICBitmapSource* source)
     ComPtr<IWICBitmapSourceTransform> sourceTransform;
     IFRIMG(frame.As(&sourceTransform));
 
+    GUID hdr10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
+
     ComPtr<IWICBitmap> hdr10Bitmap;
     IFRIMG(fact->CreateBitmap(
         width,
         height,
-        GUID_WICPixelFormat32bppR10G10B10A2HDR10,
+        hdr10Fmt,
         WICBitmapCacheOnLoad,
         &hdr10Bitmap));
 
@@ -309,19 +311,15 @@ void ImageLoader::CreateHeifHdr10CpuResources(IWICBitmapSource* source)
     IFRIMG(lock->GetStride(&lockStride));
     IFRIMG(lock->GetDataPointer(&lockSize, &lockData));
 
-    GUID checkHdr10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
-
     IFRIMG(sourceTransform->CopyPixels(
         {},
         width,
         height,
-        &checkHdr10Fmt, // Assumes we have already checked GetClosestPixelFormat
+        &hdr10Fmt, // Assumes we have already checked GetClosestPixelFormat
         WICBitmapTransformRotate0,
         lockStride,
         lockSize,
         lockData));
-
-    IFRIMG(checkHdr10Fmt == GUID_WICPixelFormat32bppR10G10B10A2HDR10 ? S_OK : WINCODEC_ERR_INVALIDPARAMETER);
 
     IFRIMG(hdr10Bitmap.As(&m_wicCachedSource));
 }
@@ -367,12 +365,13 @@ void ImageLoader::CreateHeifHdr10GpuResources()
 
     ComPtr<IDXGISurface> dxgiSurface;
     IFRIMG(tex.As(&dxgiSurface));
+    IDXGISurface* arrSurfaces[] = { dxgiSurface.Get() };
 
     auto context = m_deviceResources->GetD2DDeviceContext();
     
     IFRIMG(context->CreateImageSourceFromDxgi(
-        &dxgiSurface,
-        1,
+        arrSurfaces,
+        ARRAYSIZE(arrSurfaces),
         DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709,
         D2D1_IMAGE_SOURCE_FROM_DXGI_OPTIONS_NONE,
         &m_imageSource));
@@ -480,6 +479,14 @@ ImageInfo ImageLoader::GetImageInfo()
     EnforceStates(2, ImageLoaderState::LoadingSucceeded, ImageLoaderState::NeedDeviceResources);
 
     return m_imageInfo;
+}
+
+/// <summary>
+/// For testing only. Obtains the cached WIC source.
+/// </summary>
+IWICBitmapSource* HDRImageViewer::ImageLoader::GetWicSourceTest()
+{
+    return m_wicCachedSource.Get();
 }
 
 /// <summary>

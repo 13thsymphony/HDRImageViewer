@@ -55,6 +55,7 @@ namespace HDRImageViewer
         ID2D1TransformedImageSource* GetLoadedImage(float zoom);
         ID2D1ColorContext* GetImageColorContext();
         ImageInfo GetImageInfo();
+        IWICBitmapSource* GetWicSourceTest();
 
         void CreateDeviceDependentResources();
         void ReleaseDeviceDependentResources();

@@ -3,6 +3,7 @@
 #include "ImageExporter.h"
 #include "MagicConstants.h"
 #include "SimpleTonemapEffect.h"
+#include "DirectXTex.h"
 
 using namespace Microsoft::WRL;
 
@@ -73,6 +74,36 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DX::DeviceResources* res, I
     whiteScale->GetOutput(&d2dImage);
 
     ImageExporter::ExportToWic(d2dImage.Get(), loader->GetImageInfo().size, res, stream, wicFormat);
+}
+
+/// <summary>
+/// Saves a WIC bitmap to DDS image file. Primarily for debug/test purposes, specifically HDR10 HEIF images.
+/// </summary>
+void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT outputFmt)
+{
+    ComPtr<IWICBitmapLock> lock;
+    IFT(bitmap->Lock({}, WICBitmapLockRead, &lock));
+    UINT width, height, stride, size = 0;
+    WICInProcPointer data;
+    IFT(lock->GetDataPointer(&size, &data));
+    IFT(lock->GetSize(&width, &height));
+    IFT(lock->GetStride(&stride));
+
+    DirectX::Image img;
+    img.format = outputFmt;
+    img.width = width;
+    img.height = height;
+    img.rowPitch = stride;
+    img.slicePitch = size;
+    img.pixels = data;
+
+    DirectX::Blob blob;
+
+    IFT(DirectX::SaveToDDSMemory(img, DirectX::DDS_FLAGS_NONE, blob));
+
+    ULONG written = 0;
+    IFT(stream->Write(blob.GetBufferPointer(), blob.GetBufferSize(), &written));
+    IFT(written == blob.GetBufferSize() ? S_OK : E_FAIL);
 }
 
 /// <summary>
