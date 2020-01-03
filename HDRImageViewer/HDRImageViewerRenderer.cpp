@@ -219,6 +219,16 @@ void HDRImageViewerRenderer::ExportImageToSdr(_In_ IStream* outputStream, GUID w
     ImageExporter::ExportToSdr(m_imageLoader.get(), m_deviceResources.get(), outputStream, wicFormat);
 }
 
+// Test only. Exports to DXGI encoded DDS.
+void HDRImageViewerRenderer::ExportAsDdsTest(_In_ IStream* outputStream)
+{
+    auto wicSource = m_imageLoader->GetWicSourceTest();
+    ComPtr<IWICBitmap> bitmap;
+    IFT(wicSource->QueryInterface(IID_PPV_ARGS(&bitmap)));
+
+    ImageExporter::ExportToDds(bitmap.Get(), outputStream, DXGI_FORMAT_R10G10B10A2_UNORM);
+}
+
 // Configures a Direct2D image pipeline, including source, color management, 
 // tonemapping, and white level, based on the loaded image.
 void HDRImageViewerRenderer::CreateImageDependentResources()

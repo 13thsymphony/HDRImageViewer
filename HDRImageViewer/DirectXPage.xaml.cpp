@@ -293,7 +293,9 @@ void DirectXPage::ExportImageToSdr(_In_ Windows::Storage::StorageFile ^ file)
     create_task(file->OpenAsync(FileAccessMode::ReadWrite)).then([=](IRandomAccessStream^ ras) {
         ComPtr<IStream> iStream;
         DX::ThrowIfFailed(CreateStreamOverRandomAccessStream(ras, IID_PPV_ARGS(&iStream)));
-        m_renderer->ExportImageToSdr(iStream.Get(), wicFormat);
+        // TEST
+        //m_renderer->ExportImageToSdr(iStream.Get(), wicFormat);
+        m_renderer->ExportAsDdsTest(iStream.Get());
     });
 }
 

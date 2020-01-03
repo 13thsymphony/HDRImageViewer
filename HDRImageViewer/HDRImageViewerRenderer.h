@@ -52,6 +52,7 @@ namespace HDRImageViewer
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
         void      ExportImageToSdr(_In_ IStream* outputStream, GUID wicFormat);
+        void      ExportAsDdsTest(_In_ IStream* outputStream);
 
         // IDeviceNotify methods handle device lost and restored.
         virtual void OnDeviceLost();
