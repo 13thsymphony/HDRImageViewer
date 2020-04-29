@@ -6,7 +6,6 @@ static const float sc_DefaultImageMaxCLL = 1000.0f; // Needs more tuning based o
 static const float sc_DefaultImageMedCLL = 200.0f; // Needs more tuning based on real world content.
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const float sc_MinZoomSphereMap = 0.25f;
-static const float sc_nominalRefWhite = 80.0f; // Nominal white nits for sRGB and scRGB.
 
 // 400 bins with gamma of 10 lets us measure luminance to within 10% error for any
 // luminance above ~1.5 nits, up to 1 million nits.

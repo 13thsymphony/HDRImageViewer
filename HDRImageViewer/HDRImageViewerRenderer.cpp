@@ -107,7 +107,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     m_renderEffectKind = effect;
     m_brightnessAdjust = brightnessAdjustment;
 
-    auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : sc_nominalRefWhite;
+    auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
     UpdateWhiteLevelScale(m_brightnessAdjust, sdrWhite);
 
@@ -165,7 +165,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     float targetMaxNits = GetBestDispMaxLuminance();
 
     // Update HDR tonemappers with display information.
-    // The 1803 custom tonemapper uses mostly the same property definitions as the 1809 Direct2D tonemapper, for simplicity.
+    // The custom tonemapper uses mostly the same property definitions as the 1809 Direct2D tonemapper, for simplicity.
     DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
 
     float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
@@ -177,7 +177,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
 
     DX::ThrowIfFailed(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
 
-    // The 1809 Direct2D tonemapper optimizes for HDR or SDR displays; the 1803 custom tonemapper ignores this hint.
+    // The Direct2D tonemapper optimizes for HDR or SDR displays; the custom tonemapper ignores this hint.
     D2D1_HDRTONEMAP_DISPLAY_MODE mode =
         m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
         D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
@@ -357,7 +357,7 @@ void HDRImageViewerRenderer::CreateHistogramResources()
 
     histogramMatrix->SetInputEffect(0, m_histogramPrescale.Get());
 
-    float scale = sc_histMaxNits / sc_nominalRefWhite;
+    float scale = sc_histMaxNits / D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
     D2D1_MATRIX_5X4_F rgbtoYnorm = D2D1::Matrix5x4F(
         0.2126f / scale, 0, 0, 0,
@@ -542,7 +542,7 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
     case AdvancedColorKind::StandardDynamicRange:
     case AdvancedColorKind::WideColorGamut:
     default:
-        scale = sdrWhiteLevel / sc_nominalRefWhite;
+        scale = sdrWhiteLevel / D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
         break;
     }
 
