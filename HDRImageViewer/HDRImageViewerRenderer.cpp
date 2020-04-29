@@ -279,24 +279,19 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // Some effects are implemented as Direct2D custom effects; see the RenderEffects filter in the
     // Solution Explorer.
 
-    GUID sdrWhiteScale = {};
     GUID tonemapper = {};
     if (DX::CheckPlatformSupport(DX::Win1809))
     {
         // HDR tonemapper and white level adjust are only available in 1809 and above.
         tonemapper = CLSID_D2D1HdrToneMap;
-        sdrWhiteScale = CLSID_D2D1WhiteLevelAdjustment;
     }
     else
     {
         tonemapper = CLSID_CustomSimpleTonemapEffect;
-
-        // For 1803, this effect should never actually be rendered. Invert is a good "sentinel".
-        sdrWhiteScale = CLSID_D2D1Invert;
     }
 
     DX::ThrowIfFailed(context->CreateEffect(tonemapper, &m_hdrTonemapEffect));
-    DX::ThrowIfFailed(context->CreateEffect(sdrWhiteScale, &m_sdrWhiteScaleEffect));
+    DX::ThrowIfFailed(context->CreateEffect(CLSID_D2D1WhiteLevelAdjustment, &m_sdrWhiteScaleEffect));
     DX::ThrowIfFailed(context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect));
     DX::ThrowIfFailed(context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect));
     DX::ThrowIfFailed(context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect));
