@@ -278,6 +278,32 @@ void DirectXPage::LoadImage(_In_ StorageFile^ imageFile)
     }, task_continuation_context::use_current());
 }
 
+void DirectXPage::SetUIHidden(bool value)
+{
+    if (value == false)
+    {
+        ControlsPanel->Visibility = Windows::UI::Xaml::Visibility::Visible;
+    }
+    else
+    {
+        ControlsPanel->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+    }
+}
+
+void DirectXPage::SetUIFullscreen(bool value)
+{
+    if (value == false)
+    {
+        ApplicationView::GetForCurrentView()->ExitFullScreenMode();
+        ApplicationView::GetForCurrentView()->PreferredLaunchWindowingMode = ApplicationViewWindowingMode::Auto;
+    }
+    else
+    {
+        ApplicationView::GetForCurrentView()->TryEnterFullScreenMode();
+        ApplicationView::GetForCurrentView()->PreferredLaunchWindowingMode = ApplicationViewWindowingMode::FullScreen;
+    }
+}
+
 void DirectXPage::ExportImageToSdr(_In_ Windows::Storage::StorageFile ^ file)
 {
     GUID wicFormat = {};
@@ -538,11 +564,11 @@ void DirectXPage::OnKeyUp(_In_ CoreWindow^ sender, _In_ KeyEventArgs^ args)
     {
         if (Windows::UI::Xaml::Visibility::Collapsed == ControlsPanel->Visibility)
         {
-            ControlsPanel->Visibility = Windows::UI::Xaml::Visibility::Visible;
+            SetUIHidden(false);
         }
         else
         {
-            ControlsPanel->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+            SetUIHidden(true);
         }
     }
     else if (VirtualKey::F == args->VirtualKey ||
@@ -550,19 +576,16 @@ void DirectXPage::OnKeyUp(_In_ CoreWindow^ sender, _In_ KeyEventArgs^ args)
     {
         if (ApplicationView::GetForCurrentView()->IsFullScreenMode)
         {
-            ApplicationView::GetForCurrentView()->ExitFullScreenMode();
+            SetUIFullscreen(false);
         }
         else
         {
-            ApplicationView::GetForCurrentView()->TryEnterFullScreenMode();
+            SetUIFullscreen(true);
         }
     }
     else if (VirtualKey::Escape == args->VirtualKey)
     {
-        if (ApplicationView::GetForCurrentView()->IsFullScreenMode)
-        {
-            ApplicationView::GetForCurrentView()->ExitFullScreenMode();
-        }
+        SetUIFullscreen(false);
     }
 }
 
