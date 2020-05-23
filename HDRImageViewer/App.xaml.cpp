@@ -121,11 +121,10 @@ void App::OnActivated(Windows::ApplicationModel::Activation::IActivatedEventArgs
 
             std::wstringstream help;
             help
-                << L"-f\n\tStart in fullscreen mode\n"
-                << L"\tNOTE: This only applies on next startup.\n\n"
+                << L"-f\n\tStart in fullscreen mode\n\n"
                 << L"-h\n\tStart with UI hidden\n\n"
                 << L"-input:[filename]\n\tLoad [filename]\n"
-                << L"\tNOTE: The file must be in the current working directory,\n"
+                << L"\tNOTE: Filename must be relative to the current working directory,\n"
                 << L"\tas HDRImageViewer only has access to this directory.";
 
             Platform::String^ helpString = ref new String(help.str().c_str());
@@ -154,23 +153,28 @@ void App::OnActivated(Windows::ApplicationModel::Activation::IActivatedEventArgs
 
         if (fullFilename != nullptr)
         {
-            try
-            {
-                create_task(StorageFile::GetFileFromPathAsync(fullFilename)).then([=](StorageFile^ file) {
-                    if (file != nullptr)
+            create_task(StorageFile::GetFileFromPathAsync(fullFilename)).then([=](StorageFile^ file) {
+
+                if (file != nullptr)
+                {
+                    m_directXPage->LoadImage(file);
+                }
+
+            }).then([=](task<void> t) {
+
+                    try
                     {
-                        m_directXPage->LoadImage(file);
+                        t.get();
                     }
-                    });
-            }
-            catch (Platform::Exception^ e)
-            {
-                auto fileCtrl = ref new Windows::UI::Xaml::Controls::ContentDialog();
-                fileCtrl->Title = L"Error loading the specified file";
-                fileCtrl->Content = e->Message;
-                fileCtrl->CloseButtonText = L"OK";
-                fileCtrl->ShowAsync();
-            }
+                    catch (Platform::Exception^ e)
+                    {
+                        auto fileCtrl = ref new Windows::UI::Xaml::Controls::ContentDialog();
+                        fileCtrl->Title = L"Error";
+                        fileCtrl->Content = e->Message;
+                        fileCtrl->CloseButtonText = L"OK";
+                        fileCtrl->ShowAsync();
+                    }
+            });
         }
     }
 }
