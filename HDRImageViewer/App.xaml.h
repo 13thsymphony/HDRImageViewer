@@ -24,6 +24,7 @@ namespace HDRImageViewer
     public:
         App();
         virtual void OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEventArgs^ e) override;
+        virtual void OnActivated(Windows::ApplicationModel::Activation::IActivatedEventArgs^ args) override;
         virtual void OnFileActivated(Windows::ApplicationModel::Activation::FileActivatedEventArgs^ e) override;
 
     private:

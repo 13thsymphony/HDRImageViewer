@@ -36,6 +36,9 @@ namespace HDRImageViewer
         void LoadDefaultImage();
         void LoadImage(_In_ Windows::Storage::StorageFile^ imageFile);
 
+        void SetUIFullscreen(bool value);
+        void SetUIHidden(bool value);
+
         property RenderOptionsViewModel^ ViewModel
         {
             RenderOptionsViewModel^ get() { return m_renderOptionsViewModel; }
