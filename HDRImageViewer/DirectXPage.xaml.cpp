@@ -472,6 +472,12 @@ void DirectXPage::OnVisibilityChanged(_In_ CoreWindow^ sender, _In_ VisibilityCh
     }
 }
 
+// ResizeCompleted is used to detect when the window has been moved between different displays.
+void DirectXPage::OnResizeCompleted(_In_ CoreWindow^ sender, _In_  Object^ args)
+{
+    UpdateRenderOptions();
+}
+
 // DisplayInformation event handlers.
 
 void DirectXPage::OnDpiChanged(_In_ DisplayInformation^ sender, _In_ Object^ args)
@@ -589,12 +595,6 @@ void DirectXPage::SliderChanged(_In_ Object^ sender, _In_ RangeBaseValueChangedE
 
 
 void DirectXPage::CheckBoxChanged(_In_ Object^ sender, _In_ RoutedEventArgs^ e)
-{
-    UpdateRenderOptions();
-}
-
-// ResizeCompleted is used to detect when the window has been moved between different displays.
-void DirectXPage::OnResizeCompleted(_In_ CoreWindow^ sender, _In_  Object^ args)
 {
     UpdateRenderOptions();
 }

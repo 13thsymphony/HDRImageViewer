@@ -16,7 +16,7 @@
     <Applications>
         <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="HDRImageViewerCS.App" desktop4:SupportsMultipleInstances="true">
             <uap:VisualElements DisplayName="HDR + WCG Image Viewer" Square150x150Logo="Assets\squaretile-sdk.png" Square44x44Logo="Assets\smalltile-sdk.png" Description="View HDR images in full quality on an HDR or SDR display, including Radiance RGBE, OpenEXR, and JPEG-XR." BackgroundColor="#00207F">
-                <uap:DefaultTile ShortName="HDR Viewer" Square71x71Logo="Assets\SmallTile.png" Wide310x150Logo="Assets\WideTile.png" Square310x310Logo="Assets\LargeTile.png">
+                <uap:DefaultTile ShortName="HDR Viewer" Square71x71Logo="Assets\SmallTile.png">
                     <uap:ShowNameOnTiles>
                         <uap:ShowOn Tile="square150x150Logo" />
                     </uap:ShowNameOnTiles>

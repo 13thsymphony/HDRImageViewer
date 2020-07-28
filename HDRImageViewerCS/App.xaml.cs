@@ -78,7 +78,7 @@ namespace HDRImageViewerCS
 
                 DXViewerPage page = rootFrame.Content as DXViewerPage;
 
-                page.LoadImageAsync(file);
+                page.LoadImageAsync((StorageFile)file);
             }
         }
 
@@ -119,6 +119,6 @@ namespace HDRImageViewerCS
             deferral.Complete();
         }
 
-        DXViewerPage m_mainPage;
+        DXViewerPage mainPage;
     }
 }
