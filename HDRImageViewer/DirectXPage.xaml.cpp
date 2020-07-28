@@ -11,7 +11,6 @@
 
 #include "pch.h"
 #include "DirectXPage.xaml.h"
-#include "DirectXHelper.h"
 
 using namespace HDRImageViewer;
 using namespace DXRenderer;
@@ -363,7 +362,9 @@ void DirectXPage::LoadImageButtonClick(_In_ Object^ sender, _In_ RoutedEventArgs
     picker->FileTypeFilter->Append(L".exr");
     picker->FileTypeFilter->Append(L".dds");
 
-    if (CheckPlatformSupport(OSVer::Win1903))
+    // TODO: This helper is part of DXRenderer, for simplicity just copy the OS check.
+    if (Windows::Foundation::Metadata::ApiInformation::IsApiContractPresent(
+        "Windows.Foundation.UniversalApiContract", 8)) // 8 == Windows 1903/19H1
     {
         picker->FileTypeFilter->Append(L".heic");
         picker->FileTypeFilter->Append(L".avif");

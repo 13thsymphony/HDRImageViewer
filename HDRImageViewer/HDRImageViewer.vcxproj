@@ -378,6 +378,9 @@
     <ClInclude Include="DirectXPage.xaml.h">
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="ErrorContentDialog.xaml.h">
+      <DependentUpon>ErrorContentDialog.xaml</DependentUpon>
+    </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="SdrBrightnessFormatter.h" />
   </ItemGroup>
