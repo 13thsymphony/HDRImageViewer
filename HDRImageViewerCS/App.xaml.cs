@@ -78,7 +78,10 @@ namespace HDRImageViewerCS
 
                 DXViewerPage page = rootFrame.Content as DXViewerPage;
 
-                page.LoadImageAsync((StorageFile)file);
+                if (file != null)
+                {
+                    page.LoadImageAsync((StorageFile)file); // Call as one-shot.
+                }
             }
         }
 

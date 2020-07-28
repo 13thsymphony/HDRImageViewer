@@ -16,10 +16,7 @@ namespace HDRImageViewerCS
         // Expects value is a numeric type (converts to double).
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            string raw = value as string;
-            double numeric = Double.Parse(raw);
-
-            double percent = SliderToBrightness(numeric) * 100.0;
+            double percent = SliderToBrightness((double)value) * 100.0;
 
             string text = percent.ToString("N1") + "%";
             return text;

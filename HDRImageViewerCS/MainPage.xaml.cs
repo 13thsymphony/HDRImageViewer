@@ -45,7 +45,8 @@ namespace HDRImageViewerCS
         ImageCLL imageCLL;
         AdvancedColorInfo dispInfo;
         bool isImageValid;
-        public RenderOptionsViewModel ViewModel { get; }
+        RenderOptionsViewModel viewModel;
+        public RenderOptionsViewModel ViewModel { get { return viewModel; } }
 
         public DXViewerPage()
         {
@@ -90,6 +91,8 @@ namespace HDRImageViewerCS
                 GestureSettings.ManipulationTranslateY |
                 GestureSettings.ManipulationScale;
 
+            viewModel = new RenderOptionsViewModel();
+
             // At this point we have access to the device and can create the device-dependent resources.
             renderer = new HDRImageViewerRenderer(swapChainPanel);
 
@@ -107,8 +110,9 @@ namespace HDRImageViewerCS
 
             // TODO: Confirm that newAcInfo is never null. I believe this was needed in past versions for RS4 compat.
             dispInfo = newAcInfo;
-
             AdvancedColorKind newDispKind = dispInfo.CurrentAdvancedColorKind;
+            DisplayACState.Text = UIStrings.LABEL_ACKIND + UIStrings.ConvertACKindToString(newDispKind);
+
             int maxcll = (int)dispInfo.MaxLuminanceInNits;
 
             if (maxcll == 0)
@@ -330,7 +334,7 @@ namespace HDRImageViewerCS
 
             imageInfo = info;
 
-            renderer.CreateDeviceDependentResources();
+            renderer.CreateImageDependentResources();
             imageCLL = renderer.FitImageToWindow(true); // On first load of image, need to generate HDR metadata.
 
             ApplicationView.GetForCurrentView().Title = imageFile.Name;

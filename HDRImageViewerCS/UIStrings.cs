@@ -17,7 +17,7 @@ namespace HDRImageViewerCS
         public static string LABEL_COLORPROFILE         = "Color profile: ";
         public static string LABEL_YES                  = "Yes";
         public static string LABEL_NO                   = "No";
-        public static string LABEL_BITDEPTH             = "Bit depth: ";
+        public static string LABEL_BITDEPTH             = "Bits per channel: ";
         public static string LABEL_FLOAT                = "Floating point: ";
         public static string LABEL_MAXCLL               = "Estimated MaxCLL: ";
         public static string LABEL_NA                   = "N/A";
