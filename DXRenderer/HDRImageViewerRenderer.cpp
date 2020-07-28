@@ -192,7 +192,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
 ImageInfo HDRImageViewerRenderer::LoadImageFromWic(_In_ IRandomAccessStream^ imageStream)
 {
     ComPtr<IStream> iStream;
-    CHK(CreateStreamOverRandomAccessStream(imageStream, IID_PPV_ARGS(&iStream)));
+    IFT(CreateStreamOverRandomAccessStream(imageStream, IID_PPV_ARGS(&iStream)));
 
     m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
     m_imageInfo = m_imageLoader->LoadImageFromWic(iStream.Get());
@@ -209,7 +209,7 @@ ImageInfo HDRImageViewerRenderer::LoadImageFromDirectXTex(String ^ filename, Str
 void HDRImageViewerRenderer::ExportImageToSdr(_In_ IRandomAccessStream^ outputStream, Guid wicFormat)
 {
     ComPtr<IStream> iStream;
-    CHK(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
+    IFT(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
 
     ImageExporter::ExportToSdr(m_imageLoader.get(), m_deviceResources.get(), iStream.Get(), wicFormat);
 }
@@ -220,9 +220,9 @@ void HDRImageViewerRenderer::ExportAsDdsTest(_In_ IRandomAccessStream^ outputStr
     auto wicSource = m_imageLoader->GetWicSourceTest();
     ComPtr<IWICBitmap> bitmap;
     IFT(wicSource->QueryInterface(IID_PPV_ARGS(&bitmap)));
-	
-	ComPtr<IStream> iStream;
-    CHK(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
+
+    ComPtr<IStream> iStream;
+    IFT(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
 
     ImageExporter::ExportToDds(bitmap.Get(), iStream.Get(), DXGI_FORMAT_R10G10B10A2_UNORM);
 }
@@ -274,14 +274,14 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // Solution Explorer.
 
     GUID tonemapper = {};
-    if (DX::CheckPlatformSupport(DX::Win1809))
+    if (CheckPlatformSupport(Win1809))
     {
         // HDR tonemapper and white level adjust are only available in 1809 and above.
         tonemapper = CLSID_D2D1HdrToneMap;
     }
     else
     {
-		// TODO: The custom tonemapper is never used in product code, only for testing.
+        // TODO: The custom tonemapper is never used in product code, only for testing.
         tonemapper = CLSID_CustomSimpleTonemapEffect;
     }
 

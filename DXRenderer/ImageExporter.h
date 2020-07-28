@@ -23,7 +23,7 @@ namespace DXRenderer
 
         static void ExportToDds(_In_ IWICBitmap* bitmap, _In_ IStream* stream, DXGI_FORMAT outputFmt);
 
-        static std::vector<DirectX::XMFLOAT4> DumpD2DTarget(_In_ DX::DeviceResources* res);
+        static std::vector<DirectX::XMFLOAT4> DumpD2DTarget(_In_ DeviceResources* res);
 
     private:
         static void ExportToWic(_In_ ID2D1Image* img, Windows::Foundation::Size size, _In_ DeviceResources* res, IStream* stream, GUID wicFormat);

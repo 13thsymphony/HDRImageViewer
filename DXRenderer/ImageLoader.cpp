@@ -484,7 +484,7 @@ ImageInfo ImageLoader::GetImageInfo()
 /// <summary>
 /// For testing only. Obtains the cached WIC source.
 /// </summary>
-IWICBitmapSource* HDRImageViewer::ImageLoader::GetWicSourceTest()
+IWICBitmapSource* ImageLoader::GetWicSourceTest()
 {
     return m_wicCachedSource.Get();
 }

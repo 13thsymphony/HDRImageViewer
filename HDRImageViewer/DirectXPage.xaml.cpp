@@ -363,7 +363,7 @@ void DirectXPage::LoadImageButtonClick(_In_ Object^ sender, _In_ RoutedEventArgs
     picker->FileTypeFilter->Append(L".exr");
     picker->FileTypeFilter->Append(L".dds");
 
-    if (DX::CheckPlatformSupport(DX::OSVer::Win1903))
+    if (CheckPlatformSupport(OSVer::Win1903))
     {
         picker->FileTypeFilter->Append(L".heic");
         picker->FileTypeFilter->Append(L".avif");
