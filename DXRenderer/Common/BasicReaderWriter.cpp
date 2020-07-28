@@ -20,6 +20,23 @@ using namespace Windows::Foundation;
 using namespace Windows::ApplicationModel;
 using namespace concurrency;
 
+// In some environments (e.g. MSIX or invoke from command line), we have to force the absolute file path
+// for APIs such as WIC - even though the working directory appears to be correct.
+// Note this breaks file loading for cases where the working directory is not where the executable is,
+// for example during Visual Studio debugging.
+inline std::wstring GetAbsolutePath(_In_ std::wstring filename)
+{
+    WCHAR wd[MAX_PATH];
+    DWORD length = GetModuleFileName(NULL, wd, ARRAYSIZE(wd));
+    PathCchRemoveFileSpec(wd, ARRAYSIZE(wd));
+
+    std::wstringstream abspath;
+    abspath << wd << L"\\" << filename;
+
+    //MessageBox(nullptr, abspath.str().c_str(), L"Full path", MB_OK);
+    return abspath.str();
+}
+
 BasicReaderWriter::BasicReaderWriter()
 {
     m_location = Package::Current->InstalledLocation;
@@ -55,7 +72,7 @@ Platform::Array<byte>^ BasicReaderWriter::ReadData(
 
     Wrappers::FileHandle file(
         CreateFile2(
-            filename->Data(),
+            GetAbsolutePath(filename->Data()).c_str(),
             GENERIC_READ,
             FILE_SHARE_READ,
             OPEN_EXISTING,

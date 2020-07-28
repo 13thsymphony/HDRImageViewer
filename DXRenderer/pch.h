@@ -6,6 +6,7 @@
 #include <collection.h>
 #include <concrt.h>
 #include <memory>
+#include <PathCch.h>
 #include <ppltasks.h>
 #include <shcore.h>
 #include <string>

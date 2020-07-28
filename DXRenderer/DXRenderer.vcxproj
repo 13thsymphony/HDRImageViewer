@@ -295,6 +295,7 @@
     <ClInclude Include="RenderEffects\SphereMapEffect.h" />
     <ClInclude Include="RenderEffects\SdrOverlayEffect.h" />
     <ClInclude Include="RenderOptions.h" />
+    <ClInclude Include="SdrBrightnessFormatter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DirectXTex\DirectXTexEXR.cpp" />

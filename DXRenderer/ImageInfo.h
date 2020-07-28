@@ -10,8 +10,9 @@ namespace DXRenderer
         Windows::Foundation::Size                       size;
         unsigned int                                    numProfiles;
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
-        bool                                            isXboxHdrScreenshot;
+        bool                                            forceBT2100ColorSpace;
         bool                                            isValid;
+        bool                                            isHeif;
     };
 
     public value struct ImageCLL

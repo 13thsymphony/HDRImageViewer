@@ -52,6 +52,7 @@
     <ClInclude Include="DirectXTex\DirectXTexEXR.h">
       <Filter>DirectXTex</Filter>
     </ClInclude>
+    <ClInclude Include="SdrBrightnessFormatter.h" />
     <ClInclude Include="Common\BasicReaderWriter.h">
       <Filter>Common</Filter>
     </ClInclude>

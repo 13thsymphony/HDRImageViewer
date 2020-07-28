@@ -16,7 +16,7 @@
 namespace DXRenderer
 {
     // TODO: Migrate to just use this shorter identifier.
-#define CHK ThrowIfFailed
+#define IFT ThrowIfFailed
 
     inline void ThrowIfFailed(HRESULT hr)
     {
@@ -29,8 +29,8 @@ namespace DXRenderer
 
     enum OSVer
     {
-        Win1803,
-        Win1809
+        Win1809,
+        Win1903
     };
 
     // Check for OS version. Common helper function makes it easier to do testing/mockups.
@@ -41,12 +41,12 @@ namespace DXRenderer
         int apiLevel = 0;
         switch (version)
         {
-        case Win1803:
-            apiLevel = 6;
-            break;
-
         case Win1809:
             apiLevel = 7;
+            break;
+
+        case Win1903:
+            apiLevel = 8;
             break;
 
         default:

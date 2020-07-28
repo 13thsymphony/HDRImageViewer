@@ -61,10 +61,10 @@ void HDRImageViewerRenderer::CreateDeviceIndependentResources()
     m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
 
     // Register the custom render effects.
-    CHK(SimpleTonemapEffect::Register(fact));
-    CHK(SdrOverlayEffect::Register(fact));
-    CHK(LuminanceHeatmapEffect::Register(fact));
-    CHK(SphereMapEffect::Register(fact));
+    IFT(SimpleTonemapEffect::Register(fact));
+    IFT(SdrOverlayEffect::Register(fact));
+    IFT(LuminanceHeatmapEffect::Register(fact));
+    IFT(SphereMapEffect::Register(fact));
 }
 
 void HDRImageViewerRenderer::CreateDeviceDependentResources()
@@ -99,7 +99,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     m_renderEffectKind = effect;
     m_brightnessAdjust = brightnessAdjustment;
 
-    auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : sc_nominalRefWhite;
+    auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
     UpdateWhiteLevelScale(m_brightnessAdjust, sdrWhite);
 
@@ -157,8 +157,8 @@ void HDRImageViewerRenderer::SetRenderOptions(
     float targetMaxNits = GetBestDispMaxLuminance();
 
     // Update HDR tonemappers with display information.
-    // The 1803 custom tonemapper uses mostly the same property definitions as the 1809 Direct2D tonemapper, for simplicity.
-    CHK(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
+    // The custom tonemapper uses mostly the same property definitions as the 1809 Direct2D tonemapper, for simplicity.
+    IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
 
     float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
     maxCLL *= m_brightnessAdjust;
@@ -167,14 +167,14 @@ void HDRImageViewerRenderer::SetRenderOptions(
     // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
     maxCLL = max(maxCLL, 0.5f * targetMaxNits);
 
-    CHK(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
+    IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
 
-    // The 1809 Direct2D tonemapper optimizes for HDR or SDR displays; the 1803 custom tonemapper ignores this hint.
+    // The Direct2D tonemapper optimizes for HDR or SDR displays; the custom tonemapper ignores this hint.
     D2D1_HDRTONEMAP_DISPLAY_MODE mode =
         m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
         D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
 
-    CHK(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
+    IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
 
     // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
     if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
@@ -182,11 +182,8 @@ void HDRImageViewerRenderer::SetRenderOptions(
         // Both the D2D and custom HDR tonemappers output values in scRGB using scene-referred luminance - a typical SDR display will
         // be around numeric range [0.0, 3.0] corresponding to [0, 240 nits]. To encode correctly for an SDR/WCG display
         // output, we must reinterpret the scene-referred input content (80 nits) as display-referred (targetMaxNits).
-        CHK(
-            m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
-
-        CHK(
-            m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, targetMaxNits));
+        IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
+        IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, targetMaxNits));
     }
 
     Draw();
@@ -217,6 +214,19 @@ void HDRImageViewerRenderer::ExportImageToSdr(_In_ IRandomAccessStream^ outputSt
     ImageExporter::ExportToSdr(m_imageLoader.get(), m_deviceResources.get(), iStream.Get(), wicFormat);
 }
 
+// Test only. Exports to DXGI encoded DDS.
+void HDRImageViewerRenderer::ExportAsDdsTest(_In_ IRandomAccessStream^ outputStream)
+{
+    auto wicSource = m_imageLoader->GetWicSourceTest();
+    ComPtr<IWICBitmap> bitmap;
+    IFT(wicSource->QueryInterface(IID_PPV_ARGS(&bitmap)));
+	
+	ComPtr<IStream> iStream;
+    CHK(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
+
+    ImageExporter::ExportToDds(bitmap.Get(), iStream.Get(), DXGI_FORMAT_R10G10B10A2_UNORM);
+}
+
 // Configures a Direct2D image pipeline, including source, color management, 
 // tonemapping, and white level, based on the loaded image.
 void HDRImageViewerRenderer::CreateImageDependentResources()
@@ -227,36 +237,32 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // Next, configure the app's effect pipeline, consisting of a color management effect
     // followed by a tone mapping effect.
 
-    CHK(context->CreateEffect(CLSID_D2D1ColorManagement, &m_colorManagementEffect));
+    IFT(context->CreateEffect(CLSID_D2D1ColorManagement, &m_colorManagementEffect));
 
-    CHK(
-        m_colorManagementEffect->SetValue(
+    IFT(m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_QUALITY,
             D2D1_COLORMANAGEMENT_QUALITY_BEST));   // Required for floating point and DXGI color space support.
 
     // The color management effect takes a source color space and a destination color space,
     // and performs the appropriate math to convert images between them.
-    CHK(
-        m_colorManagementEffect->SetValue(
+    IFT(m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
             m_imageLoader->GetImageColorContext()));
 
     // The destination color space is the render target's (swap chain's) color space. This app uses an
     // FP16 swap chain, which requires the colorspace to be scRGB.
     ComPtr<ID2D1ColorContext1> destColorContext;
-    CHK(
-        context->CreateColorContextFromDxgiColorSpace(
+    IFT(context->CreateColorContextFromDxgiColorSpace(
             DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, // scRGB
             &destColorContext));
 
-    CHK(
-        m_colorManagementEffect->SetValue(
+    IFT(m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT,
             destColorContext.Get()));
 
     // White level scale is used to multiply the color values in the image; this allows the user
     // to adjust the brightness of the image on an HDR display.
-    CHK(context->CreateEffect(CLSID_D2D1ColorMatrix, &m_whiteScaleEffect));
+    IFT(context->CreateEffect(CLSID_D2D1ColorMatrix, &m_whiteScaleEffect));
 
     // Input to white level scale may be modified in SetRenderOptions.
     m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
@@ -267,34 +273,28 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // Some effects are implemented as Direct2D custom effects; see the RenderEffects filter in the
     // Solution Explorer.
 
-    GUID sdrWhiteScale = {};
     GUID tonemapper = {};
-    if (CheckPlatformSupport(DXRenderer::Win1809))
+    if (DX::CheckPlatformSupport(DX::Win1809))
     {
         // HDR tonemapper and white level adjust are only available in 1809 and above.
         tonemapper = CLSID_D2D1HdrToneMap;
-        sdrWhiteScale = CLSID_D2D1WhiteLevelAdjustment;
     }
     else
     {
+		// TODO: The custom tonemapper is never used in product code, only for testing.
         tonemapper = CLSID_CustomSimpleTonemapEffect;
-
-        // For 1803, this effect should never actually be rendered. Invert is a good "sentinel".
-        sdrWhiteScale = CLSID_D2D1Invert;
     }
 
-    CHK(context->CreateEffect(tonemapper, &m_hdrTonemapEffect));
-    CHK(context->CreateEffect(sdrWhiteScale, &m_sdrWhiteScaleEffect));
-    CHK(context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect));
-    CHK(context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect));
-    CHK(context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect));
+    IFT(context->CreateEffect(tonemapper, &m_hdrTonemapEffect));
+    IFT(context->CreateEffect(CLSID_D2D1WhiteLevelAdjustment, &m_sdrWhiteScaleEffect));
+    IFT(context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect));
+    IFT(context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect));
+    IFT(context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect));
 
     // TEST: border effect to remove seam at the boundary of the image (subpixel sampling)
     // Unclear if we can force D2D_BORDER_MODE_HARD somewhere to avoid the seam.
     ComPtr<ID2D1Effect> border;
-    CHK(
-        context->CreateEffect(CLSID_D2D1Border, &border)
-    );
+    IFT(context->CreateEffect(CLSID_D2D1Border, &border));
 
     border->SetValue(D2D1_BORDER_PROP_EDGE_MODE_X, D2D1_BORDER_EDGE_MODE_WRAP);
     border->SetValue(D2D1_BORDER_PROP_EDGE_MODE_Y, D2D1_BORDER_EDGE_MODE_WRAP);
@@ -304,8 +304,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     m_sphereMapEffect->SetInputEffect(0, border.Get());
 
     // SphereMap needs to know the pixel size of the image.
-    CHK(
-        m_sphereMapEffect->SetValue(
+    IFT(m_sphereMapEffect->SetValue(
             SPHEREMAP_PROP_SCENESIZE,
             D2D1::SizeF(m_imageInfo.size.Width, m_imageInfo.size.Height)));
 
@@ -328,9 +327,9 @@ void HDRImageViewerRenderer::CreateHistogramResources()
 
     // We need to preprocess the image data before running the histogram.
     // 1. Spatial downscale to reduce the amount of processing needed.
-    CHK(context->CreateEffect(CLSID_D2D1Scale, &m_histogramPrescale));
+    IFT(context->CreateEffect(CLSID_D2D1Scale, &m_histogramPrescale));
 
-    CHK(m_histogramPrescale->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(0.5f, 0.5f)));
+    IFT(m_histogramPrescale->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(0.5f, 0.5f)));
 
     // The right place to compute HDR metadata is after color management to the
     // image's native colorspace but before any tonemapping or adjustments for the display.
@@ -341,22 +340,11 @@ void HDRImageViewerRenderer::CreateHistogramResources()
     //    while FP16 can go up to 65504 (5+ million nits).
     // Both steps are performed in the same color matrix.
     ComPtr<ID2D1Effect> histogramMatrix;
-    CHK(context->CreateEffect(CLSID_D2D1ColorMatrix, &histogramMatrix));
+    IFT(context->CreateEffect(CLSID_D2D1ColorMatrix, &histogramMatrix));
 
     histogramMatrix->SetInputEffect(0, m_histogramPrescale.Get());
 
-    float scale = sc_histMaxNits / sc_nominalRefWhite;
-
-    // 3a. In Windows 10 version 1803, the color management effect does not perform
-    // reference white scaling when converting from HDR10 to scRGB (as used by Xbox HDR screenshots).
-    // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
-    // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
-    // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809.
-    if (m_imageInfo.isXboxHdrScreenshot && !CheckPlatformSupport(DXRenderer::Win1809))
-    {
-        scale /= 125.0f;
-    }
+    float scale = sc_histMaxNits / D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
     D2D1_MATRIX_5X4_F rgbtoYnorm = D2D1::Matrix5x4F(
         0.2126f / scale, 0, 0, 0,
@@ -371,21 +359,21 @@ void HDRImageViewerRenderer::CreateHistogramResources()
     // We explicitly calculate Y; this deviates from the CEA 861.3 definition of MaxCLL
     // which approximates luminance with max(R, G, B).
 
-    CHK(histogramMatrix->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, rgbtoYnorm));
+    IFT(histogramMatrix->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, rgbtoYnorm));
 
     // 4. Apply a gamma to allocate more histogram bins to lower luminance levels.
     ComPtr<ID2D1Effect> histogramGamma;
-    CHK(context->CreateEffect(CLSID_D2D1GammaTransfer, &histogramGamma));
+    IFT(context->CreateEffect(CLSID_D2D1GammaTransfer, &histogramGamma));
 
     histogramGamma->SetInputEffect(0, histogramMatrix.Get());
 
     // Gamma function offers an acceptable tradeoff between simplicity and efficient bin allocation.
     // A more sophisticated pipeline would use a more perceptually linear function than gamma.
-    CHK(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_RED_EXPONENT, sc_histGamma));
+    IFT(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_RED_EXPONENT, sc_histGamma));
     // All other channels are passthrough.
-    CHK(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_GREEN_DISABLE, TRUE));
-    CHK(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_BLUE_DISABLE, TRUE));
-    CHK(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_ALPHA_DISABLE, TRUE));
+    IFT(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_GREEN_DISABLE, TRUE));
+    IFT(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_BLUE_DISABLE, TRUE));
+    IFT(histogramGamma->SetValue(D2D1_GAMMATRANSFER_PROP_ALPHA_DISABLE, TRUE));
 
     // 5. Finally, the histogram itself.
     HRESULT hr = context->CreateEffect(CLSID_D2D1Histogram, &m_histogramEffect);
@@ -397,10 +385,10 @@ void HDRImageViewerRenderer::CreateHistogramResources()
     }
     else
     {
-        CHK(hr);
+        IFT(hr);
         m_isComputeSupported = true;
 
-        CHK(m_histogramEffect->SetValue(D2D1_HISTOGRAM_PROP_NUM_BINS, sc_histNumBins));
+        IFT(m_histogramEffect->SetValue(D2D1_HISTOGRAM_PROP_NUM_BINS, sc_histNumBins));
 
         m_histogramEffect->SetInputEffect(0, histogramGamma.Get());
     }
@@ -441,12 +429,12 @@ void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEve
         auto x = m_pointerPos.x / targetSize.width;
         auto y = m_pointerPos.y / targetSize.height;
 
-        CHK(m_sphereMapEffect->SetValue(SPHEREMAP_PROP_CENTER, D2D1::Point2F(x, y)));
+        IFT(m_sphereMapEffect->SetValue(SPHEREMAP_PROP_CENTER, D2D1::Point2F(x, y)));
 
         m_zoom *= zoomDelta;
         m_zoom = Clamp(m_zoom, sc_MinZoomSphereMap, sc_MaxZoom);
 
-        CHK(m_sphereMapEffect->SetValue(SPHEREMAP_PROP_ZOOM, m_zoom));
+        IFT(m_sphereMapEffect->SetValue(SPHEREMAP_PROP_ZOOM, m_zoom));
     }
     else
     {
@@ -499,8 +487,7 @@ ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
         m_zoom = min(sc_MaxZoom, letterboxZoom);
 
         // SphereMap needs to know the pixel size of the image.
-        CHK(
-            m_sphereMapEffect->SetValue(
+        IFT(m_sphereMapEffect->SetValue(
                 SPHEREMAP_PROP_SCENESIZE,
                 D2D1::SizeF(m_imageInfo.size.Width * m_zoom, m_imageInfo.size.Height * m_zoom)));
 
@@ -541,19 +528,8 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
     case AdvancedColorKind::StandardDynamicRange:
     case AdvancedColorKind::WideColorGamut:
     default:
-        scale = sdrWhiteLevel / sc_nominalRefWhite;
+        scale = sdrWhiteLevel / D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
         break;
-    }
-
-    // In Windows 10 version 1803, the color management effect does not perform
-    // reference white scaling when converting from HDR10 to scRGB (as used by Xbox HDR screenshots).
-    // HDR10 image data is encoded as [0, 1] UNORM values, which represents [0, 10000] nits.
-    // This should be converted to scRGB [0, 125] FP16 values (10000 / 80 nits reference), but
-    // instead remains as scRGB [0, 1] FP16 values, or [0, 80] nits.
-    // This is fixed in Windows 10 version 1809.
-    if (m_imageInfo.isXboxHdrScreenshot && !CheckPlatformSupport(DXRenderer::Win1809))
-    {
-        scale *= 125.0f;
     }
 
     // The user may want to manually adjust brightness specifically for this image, on top of any
@@ -570,7 +546,7 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
         0, 0, 0    , 1,  // [A] Preserve alpha values.
         0, 0, 0    , 0); //     No offset.
 
-    CHK(m_whiteScaleEffect->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
+    IFT(m_whiteScaleEffect->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
 }
 
 // Call this after updating any spatial transform state to regenerate the effect graph.
@@ -615,12 +591,11 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
     HRESULT hr = ctx->EndDraw();
     if (hr != D2DERR_RECREATE_TARGET)
     {
-        CHK(hr);
+        IFT(hr);
     }
 
     float *histogramData = new float[sc_histNumBins];
-    CHK(
-        m_histogramEffect->GetValue(D2D1_HISTOGRAM_PROP_HISTOGRAM_OUTPUT,
+    IFT(m_histogramEffect->GetValue(D2D1_HISTOGRAM_PROP_HISTOGRAM_OUTPUT,
             reinterpret_cast<BYTE*>(histogramData),
             sc_histNumBins * sizeof(float)
             )
@@ -712,8 +687,8 @@ void HDRImageViewerRenderer::EmitHdrMetadata()
         auto sc = m_deviceResources->GetSwapChain();
 
         ComPtr<IDXGISwapChain4> sc4;
-        CHK(sc->QueryInterface(IID_PPV_ARGS(&sc4)));
-        CHK(sc4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(metadata), &metadata));
+        IFT(sc->QueryInterface(IID_PPV_ARGS(&sc4)));
+        IFT(sc4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(metadata), &metadata));
     }
 }
 
@@ -763,7 +738,7 @@ void HDRImageViewerRenderer::Draw()
     HRESULT hr = d2dContext->EndDraw();
     if (hr != D2DERR_RECREATE_TARGET)
     {
-        CHK(hr);
+        IFT(hr);
     }
 
     m_deviceResources->Present();

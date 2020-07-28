@@ -55,6 +55,7 @@ namespace DXRenderer
         ID2D1TransformedImageSource* GetLoadedImage(float zoom);
         ID2D1ColorContext* GetImageColorContext();
         ImageInfo GetImageInfo();
+        IWICBitmapSource* GetWicSourceTest();
 
         void CreateDeviceDependentResources();
         void ReleaseDeviceDependentResources();
@@ -76,26 +77,49 @@ namespace DXRenderer
                 if (m_state == s) return;
             }
 
+            // TODO: We should not rely on EnforceStates to catch unexpected image loading failed.
+            // For now, return a more informative error in this case.
+            if (m_state == ImageLoaderState::LoadingFailed)
+            {
+                throw ref new Platform::COMException(WINCODEC_ERR_BADIMAGE);
+            }
+
             throw ref new Platform::COMException(WINCODEC_ERR_WRONGSTATE);
         }
 
+        /// <summary>
+        /// Only use in image load routines where errors from malformed files are not exceptional, and we want to
+        /// inform the caller this failed.
+        /// </summary>
+#define IFRIMG(hr) if (FAILED(hr)) { \
+                m_imageInfo.isValid = false; \
+                m_state = ImageLoaderState::LoadingFailed; \
+                return; }
+
+        void LoadImageFromWicInt(_In_ IStream* imageStream);
+        void LoadImageFromDirectXTexInt(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
         void LoadImageCommon(_In_ IWICBitmapSource* source);
         void CreateDeviceDependentResourcesInternal();
-        void PopulateImageInfoACKind(_Inout_ ImageInfo* info, _In_ IWICBitmapSource* source);
-        bool IsImageXboxHdrScreenshot(_In_ IWICBitmapSource* source);
-        GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
 
-        std::shared_ptr<DeviceResources>                    m_deviceResources;
+        void PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource* source);
+        void PopulatePixelFormatInfo(ImageInfo& info, WICPixelFormatGUID format);
+        bool IsImageXboxHdrScreenshot(_In_ IWICBitmapFrameDecode * frame);
+        GUID TranslateDxgiFormatToWic(DXGI_FORMAT fmt);
+        bool CheckCanDecode(_In_ IWICBitmapFrameDecode* frame);
+        void CreateHeifHdr10CpuResources(_In_ IWICBitmapSource* source);
+        void CreateHeifHdr10GpuResources();
+
+        std::shared_ptr<DeviceResources>                        m_deviceResources;
 
         // Device-independent
-        Microsoft::WRL::ComPtr<IWICFormatConverter>             m_formatConvert;
+        Microsoft::WRL::ComPtr<IWICBitmapSource>                m_wicCachedSource;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
 
-        // Device-dependent
-        Microsoft::WRL::ComPtr<ID2D1ImageSourceFromWic>         m_imageSource;
+        // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
+        Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;
         Microsoft::WRL::ComPtr<ID2D1ColorContext>               m_colorContext;
     };
 }

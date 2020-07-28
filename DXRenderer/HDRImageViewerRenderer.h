@@ -61,6 +61,7 @@ namespace DXRenderer
         ImageInfo LoadImageFromWic(_In_ Windows::Storage::Streams::IRandomAccessStream^ imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
         void      ExportImageToSdr(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream, Platform::Guid wicFormat);
+        void      ExportAsDdsTest(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream);
 
         // IDeviceNotify methods handle device lost and restored.
         virtual void OnDeviceLost();
