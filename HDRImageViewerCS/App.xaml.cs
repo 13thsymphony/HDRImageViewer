@@ -49,6 +49,12 @@ namespace HDRImageViewerCS
             LaunchApp(null, e.PrelaunchActivated);
         }
 
+        // Invoked when app is activated for special purposes such as via command line.
+        protected override void OnActivated(IActivatedEventArgs args)
+        {
+            base.OnActivated(args);
+        }
+
         private void LaunchApp(IStorageItem file, bool PrelaunchActivated)
         {
             Frame rootFrame = Window.Current.Content as Frame;

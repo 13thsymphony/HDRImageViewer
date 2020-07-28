@@ -23,9 +23,6 @@ namespace HDRImageViewerCS
         public static string LABEL_NA                   = "N/A";
         public static string LABEL_MEDCLL               = "Estimated MedianCLL: ";
 
-        public static string DIALOG_LOADFAILED          = "We were unable to load this image.";
-        public static string DIALOG_OK                  = "OK";
-
         public static string DIALOG_SAVECOMMIT          = "Export image to SDR";
 
         public static string[] FILEFORMATS_OPEN =
@@ -37,6 +34,12 @@ namespace HDRImageViewerCS
             ".hdr",
             ".exr",
             ".dds"
+        };
+
+        public static string[] FILEFORMATS_OPEN_19H1 =
+        {
+            ".heic",
+            ".avif"
         };
 
         public static Dictionary<string, IList<string>> FILEFORMATS_SAVE = new Dictionary<string, IList<string>>()
@@ -57,7 +60,7 @@ namespace HDRImageViewerCS
                     return "Standard Dynamic Range";
 
                 case AdvancedColorKind.WideColorGamut:
-                    return "Standard Dynamic Range\n with System Color Management";
+                    return "Wide Color Gamut";
 
                 default:
                     return "Unknown";

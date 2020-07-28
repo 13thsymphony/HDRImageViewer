@@ -256,11 +256,11 @@ namespace HDRImageViewerCS
             {
                 if (Windows.UI.Xaml.Visibility.Collapsed == ControlsPanel.Visibility)
                 {
-                    ControlsPanel.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                    SetUIHidden(false);
                 }
                 else
                 {
-                    ControlsPanel.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                    SetUIHidden(true);
                 }
             }
             else if (VirtualKey.F == args.VirtualKey ||
@@ -268,19 +268,16 @@ namespace HDRImageViewerCS
             {
                 if (ApplicationView.GetForCurrentView().IsFullScreenMode)
                 {
-                    ApplicationView.GetForCurrentView().ExitFullScreenMode();
+                    SetUIFullscreen(false);
                 }
                 else
                 {
-                    ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
+                    SetUIFullscreen(true);
                 }
             }
             else if (VirtualKey.Escape == args.VirtualKey)
             {
-                if (ApplicationView.GetForCurrentView().IsFullScreenMode)
-                {
-                    ApplicationView.GetForCurrentView().ExitFullScreenMode();
-                }
+                SetUIFullscreen(false);
             }
         }
 
@@ -320,12 +317,22 @@ namespace HDRImageViewerCS
             if (info.isValid == false)
             {
                 // Exit before any of the current image state is modified.
-                var dialog = new ContentDialog
+                var dialog = new ErrorContentDialog()
                 {
-                    Title = imageFile.Name,
-                    Content = UIStrings.DIALOG_LOADFAILED,
-                    CloseButtonText = UIStrings.DIALOG_OK
+                    Title = imageFile.Name
                 };
+
+                if (info.isHeif == true)
+                {
+                    if (type == ".heic")
+                    {
+                        dialog.SetNeedHevcText(true);
+                    }
+                    else if (type == ".avif")
+                    {
+                        dialog.SetNeedAv1Text(true);
+                    }
+                }
 
                 await dialog.ShowAsync();
 
@@ -395,6 +402,32 @@ namespace HDRImageViewerCS
             renderer.ExportImageToSdr(ras, wicFormat);
         }
 
+        private void SetUIHidden(bool value)
+        {
+            if (value == false)
+            {
+                ControlsPanel.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ControlsPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void SetUIFullscreen(bool value)
+        {
+            if (value == false)
+            {
+                ApplicationView.GetForCurrentView().ExitFullScreenMode();
+                ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
+            }
+            else
+            {
+                ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
+                ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
+            }
+        }
+
         // Saves the current state of the app for suspend and terminate events.
         public void SaveInternalState(IPropertySet state)
         {
@@ -438,6 +471,16 @@ namespace HDRImageViewerCS
             foreach (var ext in UIStrings.FILEFORMATS_OPEN)
             {
                 picker.FileTypeFilter.Add(ext);
+            }
+
+            // TODO: This helper is part of DXRenderer, for simplicity just copy the OS check.
+            if (Windows.Foundation.Metadata.ApiInformation.IsApiContractPresent(
+                "Windows.Foundation.UniversalApiContract", 8)) // 8 == Windows 1903/19H1
+            {
+                foreach (var ext in UIStrings.FILEFORMATS_OPEN_19H1)
+                {
+                    picker.FileTypeFilter.Add(ext);
+                }
             }
 
             var file = await picker.PickSingleFileAsync();
