@@ -10,20 +10,22 @@ namespace HDRImageViewerCS
 {
     static class UIStrings
     {
-        public static string LABEL_PEAKLUMINANCE        = "Peak luminance: ";
-        public static string LABEL_UNKNOWN              = "Unknown";
-        public static string LABEL_LUMINANCE_NITS       = " nits"; // Leading space is intentional.
-        public static string LABEL_ACKIND               = "Kind: ";
-        public static string LABEL_COLORPROFILE         = "Color profile: ";
-        public static string LABEL_YES                  = "Yes";
-        public static string LABEL_NO                   = "No";
-        public static string LABEL_BITDEPTH             = "Bits per channel: ";
-        public static string LABEL_FLOAT                = "Floating point: ";
-        public static string LABEL_MAXCLL               = "Estimated MaxCLL: ";
-        public static string LABEL_NA                   = "N/A";
-        public static string LABEL_MEDCLL               = "Estimated MedianCLL: ";
+        public const string LABEL_PEAKLUMINANCE        = "Peak luminance: ";
+        public const string LABEL_UNKNOWN              = "Unknown";
+        public const string LABEL_LUMINANCE_NITS       = " nits"; // Leading space is intentional.
+        public const string LABEL_ACKIND               = "Kind: ";
+        public const string LABEL_COLORPROFILE         = "Color profile: ";
+        public const string LABEL_YES                  = "Yes";
+        public const string LABEL_NO                   = "No";
+        public const string LABEL_BITDEPTH             = "Bits per channel: ";
+        public const string LABEL_FLOAT                = "Floating point: ";
+        public const string LABEL_MAXCLL               = "Estimated MaxCLL: ";
+        public const string LABEL_NA                   = "N/A";
+        public const string LABEL_MEDCLL               = "Estimated MedianCLL: ";
 
-        public static string DIALOG_SAVECOMMIT          = "Export image to SDR";
+        public const string ERROR_DEFAULTTITLE         = "Unable to load image";
+
+        public const string DIALOG_SAVECOMMIT          = "Export image to SDR";
 
         public static string[] FILEFORMATS_OPEN =
         {

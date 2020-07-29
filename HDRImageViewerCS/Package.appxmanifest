@@ -80,6 +80,22 @@
                         </uap:SupportedFileTypes>
                     </uap:FileTypeAssociation>
                 </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".heic">
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/heic">.heic</uap:FileType>
+                        </uap:SupportedFileTypes>
+                        <uap:DisplayName>HEIC image</uap:DisplayName>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
+                <uap:Extension Category="windows.fileTypeAssociation">
+                    <uap:FileTypeAssociation Name=".avif">
+                        <uap:SupportedFileTypes>
+                            <uap:FileType ContentType="image/avif">.avif</uap:FileType>
+                        </uap:SupportedFileTypes>
+                        <uap:DisplayName>AVIF image</uap:DisplayName>
+                    </uap:FileTypeAssociation>
+                </uap:Extension>
                 <uap5:Extension
                     Category="windows.appExecutionAlias"
                     Executable="HDRImageViewer.exe"

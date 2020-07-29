@@ -1,29 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
+﻿using DXRenderer;
+using System;
+using System.Threading.Tasks;
 using Windows.Foundation.Collections;
+using Windows.Graphics.Display;
 using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.System;
+using Windows.UI.Core;
+using Windows.UI.Input;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-
-using DXRenderer;
-using Windows.UI.Input;
-using Windows.Graphics.Display;
-using Windows.UI.Core;
-using Windows.Storage.Pickers;
-using Windows.Storage.Streams;
-using Windows.UI.ViewManagement;
-using Windows.System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -281,8 +270,39 @@ namespace HDRImageViewerCS
             }
         }
 
+        /// <summary>
+        /// If the OS is not at least 19H1, then shows an error dialog to the user.
+        /// </summary>
+        /// <returns>True if the check succeeded, and execution should continue.</returns>
+
+        private bool CheckHeifAvifOsVersion()
+        {
+            // TODO: This helper is part of DXRenderer, for simplicity just copy the OS check.
+            if (!Windows.Foundation.Metadata.ApiInformation.IsApiContractPresent(
+                "Windows.Foundation.UniversalApiContract", 8)) // 8 == Windows 1903/19H1
+            {
+                var dialog = new ErrorContentDialog(ErrorDialogType.Need19H1);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                dialog.ShowAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public async void LoadImageAsync(StorageFile imageFile)
         {
+            // File format handler registration is static vs. OS version (in the appxmanifset), so a user may attempt to activate
+            // the app for a HEIF or AVIF image on RS5, which won't work.
+            if (!CheckHeifAvifOsVersion())
+            {
+                return;
+            }
+
             isImageValid = false;
             BrightnessAdjustSlider.IsEnabled = false;
             RenderEffectCombo.IsEnabled = false;
@@ -317,21 +337,19 @@ namespace HDRImageViewerCS
             if (info.isValid == false)
             {
                 // Exit before any of the current image state is modified.
-                var dialog = new ErrorContentDialog()
-                {
-                    Title = imageFile.Name
-                };
+                ErrorContentDialog dialog;
 
-                if (info.isHeif == true)
+                if (type == ".heic" && info.isHeif == true)
                 {
-                    if (type == ".heic")
-                    {
-                        dialog.SetNeedHevcText(true);
-                    }
-                    else if (type == ".avif")
-                    {
-                        dialog.SetNeedAv1Text(true);
-                    }
+                    dialog = new ErrorContentDialog(ErrorDialogType.NeedHevc, imageFile.Name);
+                }
+                else if (type == ".avif" && info.isHeif == true)
+                {
+                    dialog = new ErrorContentDialog(ErrorDialogType.NeedAv1, imageFile.Name);
+                }
+                else
+                {
+                    dialog = new ErrorContentDialog(ErrorDialogType.InvalidFile, imageFile.Name);
                 }
 
                 await dialog.ShowAsync();
