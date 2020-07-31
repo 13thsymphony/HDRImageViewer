@@ -228,9 +228,15 @@ void HDRImageViewerRenderer::ExportAsDdsTest(_In_ IRandomAccessStream^ outputStr
 }
 
 // Configures a Direct2D image pipeline, including source, color management, 
-// tonemapping, and white level, based on the loaded image.
+// tonemapping, and white level, based on the loaded image. Also responsible for m_imageLoader.
 void HDRImageViewerRenderer::CreateImageDependentResources()
 {
+    // If we just came from device lost/restored, we need to manually re-setup ImageLoader.
+    if (m_imageLoader->GetState() == ImageLoaderState::NeedDeviceResources)
+    {
+        m_imageLoader->CreateDeviceDependentResources();
+    }
+
     auto d2dFactory = m_deviceResources->GetD2DFactory();
     auto context = m_deviceResources->GetD2DDeviceContext();
 
@@ -757,6 +763,8 @@ void HDRImageViewerRenderer::OnDeviceRestored()
     CreateDeviceDependentResources();
     CreateImageDependentResources();
     CreateWindowSizeDependentResources();
+
+    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, m_dispInfo);
 
     Draw();
 }
