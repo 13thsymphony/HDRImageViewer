@@ -5,6 +5,7 @@ using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.Storage.AccessCache;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Input;
@@ -13,17 +14,19 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Navigation;
+using System.Runtime.CompilerServices;
 
 namespace HDRImageViewerCS
 {
     /// <summary>
-    /// Passed by the app to a new DXViewerPage.
+    /// Passed by the app to a new DXViewerPage. Note the defaults need to be sensible.
     /// </summary>
-    struct DXViewerLaunchArgs
+    public struct DXViewerLaunchArgs
     {
-        bool useFullscreen;
-        bool hideUI;
-        StorageFile initialFile;
+        public bool useFullscreen;
+        public bool hideUI;
+        public string initialFileToken; // StorageItemAccessList token
     }
 
     /// <summary>
@@ -93,6 +96,32 @@ namespace HDRImageViewerCS
             renderer = new HDRImageViewerRenderer(swapChainPanel);
 
             UpdateDisplayACState(acInfo);
+        }
+
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            if (e.Parameter.GetType() == typeof(DXViewerLaunchArgs))
+            {
+                var args = (DXViewerLaunchArgs)e.Parameter;
+
+                if (args.hideUI)
+                {
+                    SetUIHidden(true);
+                }
+
+                if (args.useFullscreen)
+                {
+                    SetUIFullscreen(true);
+                }
+
+                if (args.initialFileToken != null)
+                {
+                    var file = await StorageApplicationPermissions.FutureAccessList.GetFileAsync(args.initialFileToken);
+                    await LoadImageAsync(file);
+                }
+            }
         }
 
         private void UpdateDisplayACState(AdvancedColorInfo newAcInfo)
@@ -301,7 +330,7 @@ namespace HDRImageViewerCS
             }
         }
 
-        public async void LoadImageAsync(StorageFile imageFile)
+        public async Task LoadImageAsync(StorageFile imageFile)
         {
             // File format handler registration is static vs. OS version (in the appxmanifset), so a user may attempt to activate
             // the app for a HEIF or AVIF image on RS5, which won't work.

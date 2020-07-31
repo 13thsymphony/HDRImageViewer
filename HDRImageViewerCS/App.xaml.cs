@@ -8,6 +8,7 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -46,22 +47,60 @@ namespace HDRImageViewerCS
                 // TODO: Load state from previously suspended application and pass into LaunchApp.
             }
 
-            LaunchApp(null, e.PrelaunchActivated);
+            LaunchAppCommon(new DXViewerLaunchArgs(), e.PrelaunchActivated);
         }
 
         // Invoked when app is activated for special purposes such as via command line.
-        protected override void OnActivated(IActivatedEventArgs args)
+        protected async override void OnActivated(IActivatedEventArgs activatedArgs)
         {
-            base.OnActivated(args);
+            base.OnActivated(activatedArgs);
 
-            switch (args.Kind)
+            DXViewerLaunchArgs launchArgs = new DXViewerLaunchArgs();
+
+            if (activatedArgs.Kind == ActivationKind.CommandLineLaunch)
             {
-                case ActivationKind.CommandLineLaunch:
-                    break;
-            }    
+                var cmd = (CommandLineActivatedEventArgs)activatedArgs;
+                var cmdArgs = cmd.Operation.Arguments.Split(' ');
+
+                // The first argument is always the "executable" name.
+                for (int i = 1; i < cmdArgs.Length; i++)
+                {
+                    // The second argument is always "" for some reason.
+                    if (cmdArgs[i].Length == 0) { continue; }
+
+                    if (cmdArgs[i].Equals("-f", StringComparison.InvariantCultureIgnoreCase))
+                    { launchArgs.useFullscreen = true; }
+
+                    if (cmdArgs[i].Equals("-h", StringComparison.InvariantCultureIgnoreCase))
+                    { launchArgs.hideUI = true; }
+
+                    var inputArg = "-input:";
+                    if (cmdArgs[i].StartsWith(inputArg, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var fullPath = cmd.Operation.CurrentDirectoryPath + "\\" + cmdArgs[i].Substring(inputArg.Length);
+                        try
+                        {
+                            var file = await StorageFile.GetFileFromPathAsync(fullPath);
+                            launchArgs.initialFileToken = StorageApplicationPermissions.FutureAccessList.Add(file);
+                        }
+                        catch
+                        {
+                            launchArgs.initialFileToken = null;
+                            var error = new ErrorContentDialog(ErrorDialogType.InvalidFile)
+                            {
+                                Title = fullPath
+                            };
+
+                            await error.ShowAsync();
+                        }
+                    }
+                }
+            }
+
+            LaunchAppCommon(launchArgs, false);
         }
 
-        private void LaunchApp(IStorageItem file, bool PrelaunchActivated)
+        private void LaunchAppCommon(DXViewerLaunchArgs launchArgs, bool PrelaunchActivated)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -82,20 +121,10 @@ namespace HDRImageViewerCS
             {
                 if (rootFrame.Content == null)
                 {
-                    // TODO: Pass in file to load in launch args?
-                    rootFrame.Navigate(typeof(DXViewerPage));
+                    rootFrame.Navigate(typeof(DXViewerPage), launchArgs);
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
-
-                DXViewerPage page = rootFrame.Content as DXViewerPage;
-
-                if (file != null)
-                {
-#pragma warning disable CS4014 // No await
-                    page.LoadImageAsync((StorageFile)file);
-#pragma warning restore CS4014 // No await
-                }
             }
         }
 
@@ -104,7 +133,14 @@ namespace HDRImageViewerCS
         {
             IStorageItem file = e.Files.First();
 
-            LaunchApp(file, false);
+            var args = new DXViewerLaunchArgs()
+            {
+                hideUI = false,
+                useFullscreen = false,
+                initialFileToken = StorageApplicationPermissions.FutureAccessList.Add(file)
+            };
+
+            LaunchAppCommon(args, false);
         }
 
         /// <summary>
