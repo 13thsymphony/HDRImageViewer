@@ -102,7 +102,7 @@ void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT
     IFT(DirectX::SaveToDDSMemory(img, DirectX::DDS_FLAGS_NONE, blob));
 
     ULONG written = 0;
-    IFT(stream->Write(blob.GetBufferPointer(), blob.GetBufferSize(), &written));
+    IFT(stream->Write(blob.GetBufferPointer(), (ULONG)blob.GetBufferSize(), &written));
     IFT(written == blob.GetBufferSize() ? S_OK : E_FAIL);
 }
 

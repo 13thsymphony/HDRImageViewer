@@ -135,7 +135,7 @@ void ImageLoader::LoadImageFromDirectXTexInt(String^ filename, String^ extension
     }
     else
     {
-        IFRIMG(LoadFromDDSFile(filestr, DirectX::DDS_FLAGS_NONE, nullptr, *dxtScratch));
+        IFRIMG(LoadFromDDSFile(filestr, DDS_FLAGS_NONE, nullptr, *dxtScratch));
     }
 
     auto image = dxtScratch->GetImage(0, 0, 0); // Always get the first image.

@@ -214,7 +214,7 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets" Condition="Exists('..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets')" />
     <Import Project="..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets" Condition="Exists('..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" />
-    <Import Project="..\packages\directxtex_uwp.2019.12.17.1\build\native\directxtex_uwp.targets" Condition="Exists('..\packages\directxtex_uwp.2019.12.17.1\build\native\directxtex_uwp.targets')" />
+    <Import Project="..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets" Condition="Exists('..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -222,6 +222,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets'))" />
     <Error Condition="!Exists('..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets'))" />
-    <Error Condition="!Exists('..\packages\directxtex_uwp.2019.12.17.1\build\native\directxtex_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_uwp.2019.12.17.1\build\native\directxtex_uwp.targets'))" />
+    <Error Condition="!Exists('..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets'))" />
   </Target>
 </Project>
