@@ -14,26 +14,33 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 namespace HDRImageViewerCS
 {
+    /// <summary>
+    /// Passed by the app to a new DXViewerPage.
+    /// </summary>
+    struct DXViewerLaunchArgs
+    {
+        bool useFullscreen;
+        bool hideUI;
+        StorageFile initialFile;
+    }
+
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class DXViewerPage : Page
     {
-
-        // Resources used to draw the DirectX content in the XAML page.
         HDRImageViewerRenderer renderer;
         GestureRecognizer gestureRecognizer;
-        bool isWindowVisible;
 
-        // Cached information for UI.
         ImageInfo imageInfo;
         ImageCLL imageCLL;
         AdvancedColorInfo dispInfo;
+
         bool isImageValid;
+        bool isWindowVisible;
+
         RenderOptionsViewModel viewModel;
         public RenderOptionsViewModel ViewModel { get { return viewModel; } }
 

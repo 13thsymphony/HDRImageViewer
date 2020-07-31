@@ -53,6 +53,12 @@ namespace HDRImageViewerCS
         protected override void OnActivated(IActivatedEventArgs args)
         {
             base.OnActivated(args);
+
+            switch (args.Kind)
+            {
+                case ActivationKind.CommandLineLaunch:
+                    break;
+            }    
         }
 
         private void LaunchApp(IStorageItem file, bool PrelaunchActivated)
@@ -86,7 +92,9 @@ namespace HDRImageViewerCS
 
                 if (file != null)
                 {
-                    page.LoadImageAsync((StorageFile)file); // Call as one-shot.
+#pragma warning disable CS4014 // No await
+                    page.LoadImageAsync((StorageFile)file);
+#pragma warning restore CS4014 // No await
                 }
             }
         }
