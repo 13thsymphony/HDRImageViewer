@@ -119,7 +119,8 @@
     <SDKReference Include="TestPlatform.Universal, Version=$(UnitTestPlatformVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicTests.cs" />
+    <Compile Include="ImageLoadTests.cs" />
+    <Compile Include="ImageTestData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnitTestApp.xaml.cs">
       <DependentUpon>UnitTestApp.xaml</DependentUpon>
@@ -146,6 +147,13 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="TestInputs\Jpg_ProPhotoIcc.jpg" />
+    <Content Include="TestInputs\Jxr_HdrRuler.jxr" />
+    <Content Include="TestInputs\Jxr_HdrScene.jxr" />
+    <Content Include="TestInputs\Jxr_HdrWithIcc.jxr" />
+    <Content Include="TestInputs\Jxr_HdrXboxOne_1025px.jxr" />
+    <Content Include="TestInputs\Png_BasicSrgbColors_5x5.png" />
+    <Content Include="TestInputs\Tif_16bpcArgbIcc.tif" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Appium.WebDriver">
@@ -160,6 +168,16 @@
     <PackageReference Include="MSTest.TestFramework">
       <Version>2.0.0</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DXRenderer\DXRenderer.vcxproj">
+      <Project>{c2d1f457-8781-42ca-9db7-0f8bfca84ac4}</Project>
+      <Name>DXRenderer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HDRImageViewerCS\HDRImageViewerCS.csproj">
+      <Project>{d30e31c0-ce8d-4c76-b04d-1ada212743bd}</Project>
+      <Name>HDRImageViewerCS</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

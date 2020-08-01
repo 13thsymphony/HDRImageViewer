@@ -540,7 +540,7 @@ namespace HDRImageViewerCS
             var file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                LoadImageAsync(file);
+                await LoadImageAsync(file);
             }
         }
 
