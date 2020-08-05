@@ -55,6 +55,7 @@ namespace DXRenderer
         void SetRenderOptions(
             RenderEffectKind effect,
             float brightnessAdjustment,
+            float dispMaxCllOverride,
             Windows::Graphics::Display::AdvancedColorInfo^ acInfo
             );
 
@@ -113,5 +114,6 @@ namespace DXRenderer
         Windows::Graphics::Display::AdvancedColorInfo^          m_dispInfo;
         ImageInfo                                               m_imageInfo;
         bool                                                    m_isComputeSupported;
+        float                                                   m_dispMaxCLLOverride;
     };
 }

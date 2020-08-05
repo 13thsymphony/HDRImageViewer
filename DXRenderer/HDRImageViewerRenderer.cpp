@@ -31,6 +31,7 @@ HDRImageViewerRenderer::HDRImageViewerRenderer(
     m_pointerPos(),
     m_imageCLL{ -1.0f, -1.0f },
     m_brightnessAdjust(1.0f),
+    m_dispMaxCLLOverride(0.0f),
     m_imageInfo{},
     m_isComputeSupported(false)
 {
@@ -92,12 +93,14 @@ void HDRImageViewerRenderer::CreateWindowSizeDependentResources()
 void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
     float brightnessAdjustment,
+    float dispMaxCllOverride, // 0 indicates no override (use the display's actual MaxCLL).
     AdvancedColorInfo^ acInfo
     )
 {
     m_dispInfo = acInfo;
     m_renderEffectKind = effect;
     m_brightnessAdjust = brightnessAdjustment;
+    m_dispMaxCLLOverride = dispMaxCllOverride;
 
     auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
@@ -698,10 +701,16 @@ void HDRImageViewerRenderer::EmitHdrMetadata()
     }
 }
 
-// If AdvancedColorInfo does not have valid data, picks an appropriate default value.
+// If AdvancedColorInfo does not have valid data, picks an appropriate default value,
+// or the manually overridden value.
 float HDRImageViewerRenderer::GetBestDispMaxLuminance()
 {
     float val = m_dispInfo->MaxLuminanceInNits;
+
+    if (m_dispMaxCLLOverride != 0.0f)
+    {
+        val = m_dispMaxCLLOverride;
+    }
 
     if (val == 0.0f)
     {
@@ -764,7 +773,7 @@ void HDRImageViewerRenderer::OnDeviceRestored()
     CreateImageDependentResources();
     CreateWindowSizeDependentResources();
 
-    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, m_dispInfo);
+    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, m_dispMaxCLLOverride, m_dispInfo);
 
     Draw();
 }

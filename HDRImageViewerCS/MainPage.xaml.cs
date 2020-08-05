@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
 using Windows.Storage;
-using Windows.Storage.Pickers;
 using Windows.Storage.AccessCache;
+using Windows.Storage.Pickers;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Input;
@@ -15,7 +15,6 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
-using System.Runtime.CompilerServices;
 
 namespace HDRImageViewerCS
 {
@@ -43,6 +42,7 @@ namespace HDRImageViewerCS
 
         bool isImageValid;
         bool isWindowVisible;
+        bool enableExperimentalTools;
 
         RenderOptionsViewModel viewModel;
         public RenderOptionsViewModel ViewModel { get { return viewModel; } }
@@ -58,7 +58,6 @@ namespace HDRImageViewerCS
             // Register event handlers for page lifecycle.
             var window = Window.Current.CoreWindow;
 
-            window.KeyUp += OnKeyUp;
             window.VisibilityChanged += OnVisibilityChanged;
             window.ResizeCompleted += OnResizeCompleted;
 
@@ -204,9 +203,12 @@ namespace HDRImageViewerCS
             {
                 var tm = (EffectOption)RenderEffectCombo.SelectedItem;
 
+                var dispcll = enableExperimentalTools ? (float)DispMaxCLLOverrideSlider.Value : 0.0f;
+
                 renderer.SetRenderOptions(
                     tm.Kind,
                     (float)SdrBrightnessFormatter.SliderToBrightness(BrightnessAdjustSlider.Value),
+                    dispcll, // Display MaxCLL override
                     dispInfo
                     );
             }
@@ -273,37 +275,40 @@ namespace HDRImageViewerCS
             }
         }
 
-        // Other event handlers.
+        // Keyboard accelerators.
 
-        private void OnKeyUp(CoreWindow sender, KeyEventArgs args)
+        private void ToggleUIInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            if (VirtualKey.H == args.VirtualKey)
+            if (Windows.UI.Xaml.Visibility.Collapsed == ControlsPanel.Visibility)
             {
-                if (Windows.UI.Xaml.Visibility.Collapsed == ControlsPanel.Visibility)
-                {
-                    SetUIHidden(false);
-                }
-                else
-                {
-                    SetUIHidden(true);
-                }
+                SetUIHidden(false);
             }
-            else if (VirtualKey.F == args.VirtualKey ||
-                     VirtualKey.F11 == args.VirtualKey)
+            else
             {
-                if (ApplicationView.GetForCurrentView().IsFullScreenMode)
-                {
-                    SetUIFullscreen(false);
-                }
-                else
-                {
-                    SetUIFullscreen(true);
-                }
+                SetUIHidden(true);
             }
-            else if (VirtualKey.Escape == args.VirtualKey)
+        }
+
+        private void ToggleFullscreenInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            if (ApplicationView.GetForCurrentView().IsFullScreenMode)
             {
                 SetUIFullscreen(false);
             }
+            else
+            {
+                SetUIFullscreen(true);
+            }
+        }
+
+        private void EscapeFullscreenInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            SetUIFullscreen(false);
+        }
+
+        private void ToggleExperimentalToolsInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            SetExperimentalTools(!enableExperimentalTools);
         }
 
         /// <summary>
@@ -482,6 +487,24 @@ namespace HDRImageViewerCS
             }
         }
 
+        private void SetExperimentalTools(bool value)
+        {
+            if (value == false)
+            {
+                enableExperimentalTools = false;
+                ExperimentalTools.Visibility = Visibility.Collapsed;
+
+            }
+            else
+            {
+                enableExperimentalTools = true;
+                ExperimentalTools.Visibility = Visibility.Visible;
+            }
+
+            // Right now this will both remove or apply the experimental tools.
+            UpdateRenderOptions();
+        }
+
         // Saves the current state of the app for suspend and terminate events.
         public void SaveInternalState(IPropertySet state)
         {
@@ -595,6 +618,11 @@ namespace HDRImageViewerCS
 
         private void OnManipulationCompleted(GestureRecognizer sender, ManipulationCompletedEventArgs args)
         {
+        }
+
+        private void DispMaxCLLOverrideSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            UpdateRenderOptions();
         }
     }
 }
