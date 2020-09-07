@@ -7,7 +7,16 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    >
+    <!-- Keyboard accelerators -->
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="H" Invoked="ToggleUIInvoked" />
+        <KeyboardAccelerator Key="F" Invoked="ToggleFullscreenInvoked" />
+        <KeyboardAccelerator Key="F11" Invoked="ToggleFullscreenInvoked" />
+        <KeyboardAccelerator Key="Escape" Invoked="EscapeFullscreenInvoked" />
+        <KeyboardAccelerator Key="F1" Modifiers="Control" Invoked="ToggleExperimentalToolsInvoked" />
+    </Page.KeyboardAccelerators>
 
     <Grid>
         <Grid.Resources>
@@ -55,14 +64,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <!-- Keyboard accelerators -->
-        <Grid.KeyboardAccelerators>
-            <KeyboardAccelerator Key="H" Invoked="ToggleUIInvoked" />
-            <KeyboardAccelerator Key="F" Invoked="ToggleFullscreenInvoked" />
-            <KeyboardAccelerator Key="F11" Invoked="ToggleFullscreenInvoked" />
-            <KeyboardAccelerator Key="Escape" Invoked="EscapeFullscreenInvoked" />
-            <KeyboardAccelerator Key="F1" Modifiers="Control" Invoked="ToggleExperimentalToolsInvoked" />
-        </Grid.KeyboardAccelerators>
         <!-- Image renderer -->
         <SwapChainPanel x:Name="swapChainPanel" Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"/>
         <!-- UI -->

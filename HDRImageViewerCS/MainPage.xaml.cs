@@ -51,6 +51,11 @@ namespace HDRImageViewerCS
         {
             this.InitializeComponent();
 
+            // Suppress the tooltip created by keyboard accelerators.
+            var tooltip = new ToolTip();
+            tooltip.Visibility = Visibility.Collapsed;
+            ToolTipService.SetToolTip(this, tooltip);
+
             isWindowVisible = true;
             isImageValid = false;
             imageCLL.maxNits = imageCLL.medNits = -1.0f;
