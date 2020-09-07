@@ -11,6 +11,7 @@
     >
     <!-- Keyboard accelerators -->
     <Page.KeyboardAccelerators>
+        <!-- NOTE: All toggle-style accelerators need WorkaroundShouldIgnoreAccelerator -->
         <KeyboardAccelerator Key="H" Invoked="ToggleUIInvoked" />
         <KeyboardAccelerator Key="F" Invoked="ToggleFullscreenInvoked" />
         <KeyboardAccelerator Key="F11" Invoked="ToggleFullscreenInvoked" />

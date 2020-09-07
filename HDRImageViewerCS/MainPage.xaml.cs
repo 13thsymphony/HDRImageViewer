@@ -1,5 +1,6 @@
 ﻿using DXRenderer;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
@@ -284,6 +285,8 @@ namespace HDRImageViewerCS
 
         private void ToggleUIInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
             if (Windows.UI.Xaml.Visibility.Collapsed == ControlsPanel.Visibility)
             {
                 SetUIHidden(false);
@@ -296,6 +299,8 @@ namespace HDRImageViewerCS
 
         private void ToggleFullscreenInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
             if (ApplicationView.GetForCurrentView().IsFullScreenMode)
             {
                 SetUIFullscreen(false);
@@ -313,6 +318,8 @@ namespace HDRImageViewerCS
 
         private void ToggleExperimentalToolsInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
             SetExperimentalTools(!enableExperimentalTools);
         }
 
@@ -509,6 +516,32 @@ namespace HDRImageViewerCS
             // Right now this will both remove or apply the experimental tools.
             UpdateRenderOptions();
         }
+
+        /// <summary>
+        /// Works around an issue where keyboard accelerators sometimes trigger two back-to-back events.
+        /// Checks if the previous accelerator event was within a timeout period, i.e. "debounce".
+        /// </summary>
+        /// <returns>Whether to ignore the last keyboard accelerator event.</returns>
+        private bool WorkaroundShouldIgnoreAccelerator()
+        {
+            if (workaroundDebounceTimer.IsRunning == false)
+            {
+                workaroundDebounceTimer.Restart();
+            }
+            else
+            {
+                workaroundDebounceTimer.Stop();
+
+                // Arbitrarily chosen threshold.
+                if (workaroundDebounceTimer.ElapsedMilliseconds < 100)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        private Stopwatch workaroundDebounceTimer = new Stopwatch();
 
         // Saves the current state of the app for suspend and terminate events.
         public void SaveInternalState(IPropertySet state)
