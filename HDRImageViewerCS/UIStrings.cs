@@ -24,6 +24,7 @@ namespace HDRImageViewerCS
         public const string LABEL_MEDCLL               = "Estimated MedianCLL: ";
 
         public const string ERROR_DEFAULTTITLE         = "Unable to load image";
+        public const string ERROR_INVALIDCMDARGS       = "Command line usage";
 
         public const string DIALOG_SAVECOMMIT          = "Export image to SDR";
 

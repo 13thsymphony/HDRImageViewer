@@ -11,20 +11,21 @@ namespace HDRImageViewerCS
     [Flags]
     public enum ErrorDialogType
     {
-        // Do not include a " = 0" to force callers to select an error type.
+        DefaultValue = 0,
         InvalidFile = 1,
         Need19H1 = 2,
         NeedHevc = 4,
-        NeedAv1 = 8
+        NeedAv1 = 8,
+        InvalidCmdArgs = 16
     }
 
     public sealed partial class ErrorContentDialog : ContentDialog
     {
-        public ErrorContentDialog(ErrorDialogType type, String title = UIStrings.ERROR_DEFAULTTITLE)
+        public ErrorContentDialog(ErrorDialogType type, String customTitle = UIStrings.ERROR_DEFAULTTITLE)
         {
             this.InitializeComponent();
 
-            this.Title = title;
+            this.Title = customTitle;
 
             if (type.HasFlag(ErrorDialogType.InvalidFile))
             {
@@ -44,6 +45,12 @@ namespace HDRImageViewerCS
             if (type.HasFlag(ErrorDialogType.NeedAv1))
             {
                 NeedAv1Text.Visibility = Visibility.Visible;
+            }
+
+            if (type.HasFlag(ErrorDialogType.InvalidCmdArgs))
+            {
+                CmdArgsText.Visibility = Visibility.Visible;
+                this.Title = UIStrings.ERROR_INVALIDCMDARGS;
             }
         }
     }

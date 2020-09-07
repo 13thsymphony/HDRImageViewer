@@ -20,13 +20,15 @@ using Windows.UI.Xaml.Navigation;
 namespace HDRImageViewerCS
 {
     /// <summary>
-    /// Passed by the app to a new DXViewerPage. Note the defaults need to be sensible.
+    /// Passed by the app to a new DXViewerPage. Note: the defaults need to be sensible.
     /// </summary>
     public struct DXViewerLaunchArgs
     {
         public bool useFullscreen;
         public bool hideUI;
         public string initialFileToken; // StorageItemAccessList token
+        public ErrorDialogType errorType; // If this is not DefaultValue, triggers the error dialog.
+        public string errorFilename; // Only use this if ErrorDialogType is InvalidFile.
     }
 
     /// <summary>
@@ -125,6 +127,18 @@ namespace HDRImageViewerCS
                 {
                     var file = await StorageApplicationPermissions.FutureAccessList.GetFileAsync(args.initialFileToken);
                     await LoadImageAsync(file);
+                }
+
+                if (args.errorType != ErrorDialogType.DefaultValue)
+                {
+                    var error = new ErrorContentDialog(args.errorType);
+
+                    if (args.errorType.HasFlag(ErrorDialogType.InvalidFile))
+                    {
+                        error.Title = args.errorFilename;
+                    }
+
+                    await error.ShowAsync();
                 }
             }
         }

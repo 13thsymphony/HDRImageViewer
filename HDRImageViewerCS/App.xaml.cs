@@ -62,22 +62,26 @@ namespace HDRImageViewerCS
                 var cmd = (CommandLineActivatedEventArgs)activatedArgs;
                 var cmdArgs = cmd.Operation.Arguments.Split(' ');
 
-                // The first argument is always the "executable" name.
+                var inputArgString = "-input:";
+
+                // Ignore the first argument which is always the "executable" name.
+                // This also ensures that just invoking the executable without arguments succeeds.
                 for (int i = 1; i < cmdArgs.Length; i++)
                 {
-                    // The second argument is always "" for some reason.
+                    // Ignore zero-length arguments.
                     if (cmdArgs[i].Length == 0) { continue; }
 
                     if (cmdArgs[i].Equals("-f", StringComparison.InvariantCultureIgnoreCase))
-                    { launchArgs.useFullscreen = true; }
-
-                    if (cmdArgs[i].Equals("-h", StringComparison.InvariantCultureIgnoreCase))
-                    { launchArgs.hideUI = true; }
-
-                    var inputArg = "-input:";
-                    if (cmdArgs[i].StartsWith(inputArg, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var fullPath = cmd.Operation.CurrentDirectoryPath + "\\" + cmdArgs[i].Substring(inputArg.Length);
+                        launchArgs.useFullscreen = true;
+                    }
+                    else if (cmdArgs[i].Equals("-h", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        launchArgs.hideUI = true;
+                    }
+                    else if (cmdArgs[i].StartsWith(inputArgString, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var fullPath = cmd.Operation.CurrentDirectoryPath + "\\" + cmdArgs[i].Substring(inputArgString.Length);
                         try
                         {
                             var file = await StorageFile.GetFileFromPathAsync(fullPath);
@@ -85,14 +89,14 @@ namespace HDRImageViewerCS
                         }
                         catch
                         {
+                            launchArgs.errorType |= ErrorDialogType.InvalidFile;
                             launchArgs.initialFileToken = null;
-                            var error = new ErrorContentDialog(ErrorDialogType.InvalidFile)
-                            {
-                                Title = fullPath
-                            };
-
-                            await error.ShowAsync();
+                            launchArgs.errorFilename = fullPath;
                         }
+                    }
+                    else // All other tokens are invalid.
+                    {
+                        launchArgs.errorType |= ErrorDialogType.InvalidCmdArgs;
                     }
                 }
             }
