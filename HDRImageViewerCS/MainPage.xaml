@@ -130,6 +130,10 @@
                     Value="600"
                     ValueChanged="DispMaxCLLOverrideSlider_ValueChanged"
                     IsEnabled="True"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource InfoLine}">Enable pixel color inspector:</TextBlock>
+                    <CheckBox x:Name="PixelColorCheckbox" Click="PixelColorCheckbox_Click"></CheckBox>
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </Grid>

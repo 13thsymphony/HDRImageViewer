@@ -107,7 +107,7 @@ void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT
 }
 
 /// <summary>
-/// Copies D2D target bitmap (typically same as swap chain) data into CPU accessible memory. Primarily for debug/test purposes.
+/// Copies D2D target bitmap (typically same as swap chain) data into CPU accessible memory.
 /// </summary>
 /// <remarks>
 /// For simplicity, relies on IWICImageEncoder to convert to FP16. Caller should get pixel dimensions

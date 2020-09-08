@@ -33,7 +33,8 @@ HDRImageViewerRenderer::HDRImageViewerRenderer(
     m_brightnessAdjust(1.0f),
     m_dispMaxCLLOverride(0.0f),
     m_imageInfo{},
-    m_isComputeSupported(false)
+    m_isComputeSupported(false),
+    m_enableTargetCpuReadback(false)
 {
     // DeviceResources must be initialized first.
     // TODO: Current architecture does not allow multiple Renderers to share DeviceResources.
@@ -88,12 +89,19 @@ void HDRImageViewerRenderer::CreateWindowSizeDependentResources()
     FitImageToWindow(false);
 }
 
-// White level scale is used to multiply the color values in the image; allows the user to
-// adjust the brightness of the image on an HDR display.
+/// <summary>
+/// Updates rendering parameters, and draws. If CPU readback is enabled, updates the CPU-side render target cache.
+/// </summary>
+/// <param name="effect"></param>
+/// <param name="brightnessAdjustment">
+/// Multiplication factor for color values; allows the user to
+/// adjust the brightness of the image on an HDR display.</param>
+/// <param name="dispMaxCllOverride">0 indicates no override (use the display's actual MaxCLL).</param>
+/// <param name="acInfo"></param>
 void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
     float brightnessAdjustment,
-    float dispMaxCllOverride, // 0 indicates no override (use the display's actual MaxCLL).
+    float dispMaxCllOverride,
     AdvancedColorInfo^ acInfo
     )
 {
@@ -190,6 +198,15 @@ void HDRImageViewerRenderer::SetRenderOptions(
     }
 
     Draw();
+
+    if (m_enableTargetCpuReadback)
+    {
+        m_renderTargetCpuPixels = ImageExporter::DumpD2DTarget(m_deviceResources.get());
+    }
+    else
+    {
+        m_renderTargetCpuPixels.clear();
+    }
 }
 
 ImageInfo HDRImageViewerRenderer::LoadImageFromWic(_In_ IRandomAccessStream^ imageStream)
@@ -418,6 +435,19 @@ void HDRImageViewerRenderer::ReleaseImageDependentResources()
     m_histogramPrescale.Reset();
     m_histogramEffect.Reset();
     m_finalOutput.Reset();
+}
+
+/// <summary>
+/// Sets whether to enable features that are dependent on having a CPU-cached copy of the render target.
+/// Currently mainly used to analyze color values of the rendered output. CPU-cached copy is updated
+/// with each call to SetRenderOptions().
+/// </summary>
+/// <param name="value">Whether support should be enabled or disabled.</param>
+void HDRImageViewerRenderer::SetTargetCpuReadbackSupport(bool value)
+{
+    m_enableTargetCpuReadback = value;
+
+    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, 0.0f, m_dispInfo);
 }
 
 void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEventArgs^ args)

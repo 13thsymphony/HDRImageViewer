@@ -672,9 +672,23 @@ namespace HDRImageViewerCS
         {
         }
 
+        // Experimental options UI.
+
         private void DispMaxCLLOverrideSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
             UpdateRenderOptions();
+        }
+
+        private void PixelColorCheckbox_Click(object sender, RoutedEventArgs e)
+        {
+            if (PixelColorCheckbox.IsChecked == true)
+            {
+                renderer.SetTargetCpuReadbackSupport(true);
+            }
+            else
+            {
+                renderer.SetTargetCpuReadbackSupport(false);
+            }
         }
     }
 }
