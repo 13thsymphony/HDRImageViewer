@@ -46,12 +46,8 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStre
     IFT(ctx->CreateColorContextFromDxgiColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, &destCtx));
     IFT(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT, destCtx.Get()));
 
-    GUID tmGuid = {};
-    if (CheckPlatformSupport(DXRenderer::Win1809)) tmGuid = CLSID_D2D1HdrToneMap;
-    else tmGuid = CLSID_CustomSimpleTonemapEffect;
-
     ComPtr<ID2D1Effect> tonemap;
-    IFT(ctx->CreateEffect(tmGuid, &tonemap));
+    IFT(ctx->CreateEffect(CLSID_D2D1HdrToneMap, &tonemap));
     tonemap->SetInputEffect(0, colorManage.Get());
     IFT(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits));
     IFT(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
@@ -125,7 +121,7 @@ std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DeviceResources* res
     auto d2dSize = d2dBitmap->GetPixelSize();
     auto size = Windows::Foundation::Size(static_cast<float>(d2dSize.width), static_cast<float>(d2dSize.height));
 
-    ExportToWic(d2dBitmap, size, res, stream.Get(), GUID_ContainerFormatWmp);
+    ImageExporter::ExportToWic(d2dBitmap, size, res, stream.Get(), GUID_ContainerFormatWmp);
 
     // WIC decoders require stream to be at position 0.
     LARGE_INTEGER zero = {};
@@ -174,10 +170,14 @@ void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size,
     IFT(encoder->CreateNewFrame(&frame, nullptr));
     IFT(frame->Initialize(nullptr));
 
+    // Workaround for JPEG-XR which does not support FP16 premultiplied alpha; we just don't support PM alpha correctly for now.
+    // Need to investigate explicit alpha format conversion.
+    D2D1_ALPHA_MODE alpha = (wicFormat == GUID_ContainerFormatWmp) ? D2D1_ALPHA_MODE_STRAIGHT : D2D1_ALPHA_MODE_PREMULTIPLIED;
+
     // IWICImageEncoder's internal pixel format conversion from float to uint does not perform gamma correction.
     // For simplicity, rely on the IWICBitmapFrameEncode's format converter which does perform gamma correction.
     WICImageParameters params = {
-        D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED),
+        D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, alpha),
         96.0f,                             // DpiX
         96.0f,                             // DpiY
         0,                                 // OffsetX
