@@ -201,7 +201,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
 
     if (m_enableTargetCpuReadback)
     {
-        m_renderTargetCpuPixels = ImageExporter::DumpD2DTarget(m_deviceResources.get());
+        m_renderTargetCpuPixels = ImageExporter::DumpTargetToRGBFloat(m_deviceResources.get());
     }
     else
     {
@@ -462,10 +462,12 @@ Windows::Foundation::Numerics::float4 HDRImageViewerRenderer::GetPixelColorValue
     if (m_enableTargetCpuReadback)
     {
         auto targetSize = m_deviceResources->GetOutputSize();
-        int offset = targetSize.Width * point.Y + point.X;
+        int offset = targetSize.Width * point.Y + point.X * 3; // Channels per pixel.
 
-        auto xmColor = m_renderTargetCpuPixels.at(offset);
-        XMStoreFloat4(&color, XMLoadFloat4(&xmColor));
+        color.x = m_renderTargetCpuPixels.at(offset);
+        color.y = m_renderTargetCpuPixels.at(offset + 1);
+        color.z = m_renderTargetCpuPixels.at(offset + 2);
+        color.w = 1.0f;
     }
 
     return color;

@@ -105,7 +105,7 @@ namespace DXRenderer
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_histogramEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_finalOutput;
 
-        std::vector<DirectX::XMFLOAT4>                          m_renderTargetCpuPixels;
+        std::vector<float>                                      m_renderTargetCpuPixels;
 
         // Other renderer members.
         RenderEffectKind                                        m_renderEffectKind;

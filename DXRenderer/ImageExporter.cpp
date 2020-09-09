@@ -104,12 +104,12 @@ void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT
 
 /// <summary>
 /// Copies D2D target bitmap (typically same as swap chain) data into CPU accessible memory.
+/// Converts to 3 channel RGB FP32 values in scRGB colorspace.
 /// </summary>
 /// <remarks>
-/// For simplicity, relies on IWICImageEncoder to convert to FP16. Caller should get pixel dimensions
-/// from the target bitmap.
+/// Caller should get pixel dimensions from DeviceResources->GetOutputSize().
 /// </remarks>
-std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DeviceResources* res)
+std::vector<float> ImageExporter::DumpTargetToRGBFloat(DeviceResources* res)
 {
     auto wic = res->GetWicImagingFactory();
 
@@ -135,17 +135,23 @@ std::vector<DirectX::XMFLOAT4> ImageExporter::DumpD2DTarget(DeviceResources* res
     IFT(decode->GetFrame(0, &frame));
     GUID fmt = {};
     IFT(frame->GetPixelFormat(&fmt));
-    IFT(fmt == GUID_WICPixelFormat64bppRGBAHalf ? S_OK : WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT); // FP16
+    IFT(fmt == GUID_WICPixelFormat64bppRGBAHalf ? S_OK : WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT);
+
+    // It is unwieldy to directly access FP16 values, so compromise by getting RGB FP32 values.
+    ComPtr<IWICFormatConverter> convert;
+    IFT(wic->CreateFormatConverter(&convert));
+    IFT(convert->Initialize(frame.Get(), GUID_WICPixelFormat96bppRGBFloat, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
 
     auto width = static_cast<uint32_t>(size.Width);
     auto height = static_cast<uint32_t>(size.Height);
 
-    std::vector<DirectX::XMFLOAT4> pixels = std::vector<DirectX::XMFLOAT4>(width * height);
-    IFT(frame->CopyPixels(
-        nullptr,                                                            // Rect
-        width * sizeof(DirectX::XMFLOAT4),                                  // Stride (bytes)
-        static_cast<uint32_t>(pixels.size() * sizeof(DirectX::XMFLOAT4)),   // Total size (bytes)
-        reinterpret_cast<byte *>(pixels.data())));                          // Buffer
+    const int CHANNELS_PER_PIXEL = 3;
+    std::vector<float> pixels = std::vector<float>(width * height * CHANNELS_PER_PIXEL);
+    IFT(convert->CopyPixels(
+        nullptr,                                                // Rect
+        width * sizeof(float) * CHANNELS_PER_PIXEL,             // Stride (bytes)
+        static_cast<uint32_t>(pixels.size() * sizeof(float)),   // Total size (bytes)
+        reinterpret_cast<byte *>(pixels.data())));              // Buffer
 
     return pixels;
 }
