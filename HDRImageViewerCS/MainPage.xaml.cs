@@ -47,6 +47,7 @@ namespace HDRImageViewerCS
         bool isWindowVisible;
         bool enableExperimentalTools;
 
+        ToolTip tooltip;
         RenderOptionsViewModel viewModel;
         public RenderOptionsViewModel ViewModel { get { return viewModel; } }
 
@@ -55,7 +56,7 @@ namespace HDRImageViewerCS
             this.InitializeComponent();
 
             // Suppress the tooltip created by keyboard accelerators.
-            var tooltip = new ToolTip();
+            tooltip = new ToolTip();
             tooltip.Visibility = Visibility.Collapsed;
             ToolTipService.SetToolTip(this, tooltip);
 
@@ -373,6 +374,8 @@ namespace HDRImageViewerCS
             isImageValid = false;
             BrightnessAdjustSlider.IsEnabled = false;
             RenderEffectCombo.IsEnabled = false;
+            PixelColorCheckbox.IsEnabled = false;
+            DispMaxCLLOverrideSlider.IsEnabled = false;
 
             bool useDirectXTex = false;
 
@@ -458,6 +461,8 @@ namespace HDRImageViewerCS
             isImageValid = true;
             BrightnessAdjustSlider.IsEnabled = true;
             RenderEffectCombo.IsEnabled = true;
+            PixelColorCheckbox.IsEnabled = true;
+            DispMaxCLLOverrideSlider.IsEnabled = true;
 
             if (imageInfo.imageKind == AdvancedColorKind.HighDynamicRange)
             {
@@ -640,6 +645,12 @@ namespace HDRImageViewerCS
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
             gestureRecognizer.ProcessMoveEvents(e.GetIntermediatePoints(swapChainPanel));
+
+            if (PixelColorCheckbox.IsChecked == true)
+            {
+                var color = renderer.GetPixelColorValue(e.GetCurrentPoint(swapChainPanel).Position);
+                PixelColor.Text = "scRGB color: " + color.X.ToString("F2") + "," + color.Y.ToString("F2") + "," + color.Z.ToString("F2") + "," + color.W.ToString("F2");
+            }
         }
 
         private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -684,10 +695,12 @@ namespace HDRImageViewerCS
             if (PixelColorCheckbox.IsChecked == true)
             {
                 renderer.SetTargetCpuReadbackSupport(true);
+                tooltip.Visibility = Visibility.Visible;
             }
             else
             {
                 renderer.SetTargetCpuReadbackSupport(false);
+                tooltip.Visibility = Visibility.Collapsed;
             }
         }
     }

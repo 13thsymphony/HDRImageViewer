@@ -129,11 +129,12 @@
                     SnapsTo="StepValues"
                     Value="600"
                     ValueChanged="DispMaxCLLOverrideSlider_ValueChanged"
-                    IsEnabled="True"/>
+                    IsEnabled="False"/>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Style="{StaticResource InfoLine}">Enable pixel color inspector:</TextBlock>
-                    <CheckBox x:Name="PixelColorCheckbox" Click="PixelColorCheckbox_Click"></CheckBox>
+                    <CheckBox x:Name="PixelColorCheckbox" Click="PixelColorCheckbox_Click"  IsEnabled="False"></CheckBox>
                 </StackPanel>
+                <TextBlock Style="{StaticResource InfoLine}" x:Name="PixelColor">scRGB color:</TextBlock>
             </StackPanel>
         </StackPanel>
     </Grid>

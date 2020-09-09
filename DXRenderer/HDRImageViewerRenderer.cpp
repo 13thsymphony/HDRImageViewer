@@ -450,6 +450,27 @@ void HDRImageViewerRenderer::SetTargetCpuReadbackSupport(bool value)
     SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, 0.0f, m_dispInfo);
 }
 
+/// <summary>
+/// Returns the scRGB color value at the position in the render target.
+/// </summary>
+/// <param name="point">Position in the render target in DIPs (device independent pixels).</param>
+/// <returns>If unsupported, all values are set to -1.0f.</returns>
+Windows::Foundation::Numerics::float4 HDRImageViewerRenderer::GetPixelColorValue(Point point)
+{
+    auto color = Windows::Foundation::Numerics::float4(-1.0f);
+
+    if (m_enableTargetCpuReadback)
+    {
+        auto targetSize = m_deviceResources->GetOutputSize();
+        int offset = targetSize.Width * point.Y + point.X;
+
+        auto xmColor = m_renderTargetCpuPixels.at(offset);
+        XMStoreFloat4(&color, XMLoadFloat4(&xmColor));
+    }
+
+    return color;
+}
+
 void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEventArgs^ args)
 {
     Point position = args->Position;

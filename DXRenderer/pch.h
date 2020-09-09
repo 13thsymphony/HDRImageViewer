@@ -23,3 +23,4 @@
 #include <dwrite_3.h>
 #include <wincodec.h>
 #include <DirectXMath.h>
+#include <windowsnumerics.h>

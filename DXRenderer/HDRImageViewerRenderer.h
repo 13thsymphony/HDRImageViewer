@@ -45,6 +45,7 @@ namespace DXRenderer
         void CreateImageDependentResources();
         void ReleaseImageDependentResources();
         void SetTargetCpuReadbackSupport(bool value);
+        Windows::Foundation::Numerics::float4 GetPixelColorValue(Windows::Foundation::Point point);
 
         void UpdateManipulationState(_In_ Windows::UI::Input::ManipulationUpdatedEventArgs^ args);
 
