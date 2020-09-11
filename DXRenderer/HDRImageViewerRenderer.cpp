@@ -332,7 +332,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // SphereMap needs to know the pixel size of the image.
     IFT(m_sphereMapEffect->SetValue(
             SPHEREMAP_PROP_SCENESIZE,
-            D2D1::SizeF(m_imageInfo.size.Width, m_imageInfo.size.Height)));
+            D2D1::SizeF(m_imageInfo.pixelSize.Width, m_imageInfo.pixelSize.Height)));
 
     // For the following effects, we want white level scale to be applied after
     // tonemapping (otherwise brightness adjustments will affect numerical values).
@@ -521,8 +521,8 @@ void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEve
 
         // Step 4: Clamp the translation to the window bounds.
         Size panelSize = m_deviceResources->GetLogicalSize();
-        m_imageOffset.x = Clamp(m_imageOffset.x, panelSize.Width - m_imageInfo.size.Width * m_zoom, 0);
-        m_imageOffset.y = Clamp(m_imageOffset.y, panelSize.Height - m_imageInfo.size.Height * m_zoom, 0);
+        m_imageOffset.x = Clamp(m_imageOffset.x, panelSize.Width - m_imageInfo.pixelSize.Width * m_zoom, 0);
+        m_imageOffset.y = Clamp(m_imageOffset.y, panelSize.Height - m_imageInfo.pixelSize.Height * m_zoom, 0);
 
         UpdateImageTransformState();
     }
@@ -543,20 +543,20 @@ ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
 
         // Set image to be letterboxed in the window, up to the max allowed scale factor.
         float letterboxZoom = min(
-            panelSize.Width / m_imageInfo.size.Width,
-            panelSize.Height / m_imageInfo.size.Height);
+            panelSize.Width / m_imageInfo.pixelSize.Width,
+            panelSize.Height / m_imageInfo.pixelSize.Height);
 
         m_zoom = min(sc_MaxZoom, letterboxZoom);
 
         // SphereMap needs to know the pixel size of the image.
         IFT(m_sphereMapEffect->SetValue(
                 SPHEREMAP_PROP_SCENESIZE,
-                D2D1::SizeF(m_imageInfo.size.Width * m_zoom, m_imageInfo.size.Height * m_zoom)));
+                D2D1::SizeF(m_imageInfo.pixelSize.Width * m_zoom, m_imageInfo.pixelSize.Height * m_zoom)));
 
         // Center the image.
         m_imageOffset = D2D1::Point2F(
-            (panelSize.Width - (m_imageInfo.size.Width * m_zoom)) / 2.0f,
-            (panelSize.Height - (m_imageInfo.size.Height * m_zoom)) / 2.0f
+            (panelSize.Width - (m_imageInfo.pixelSize.Width * m_zoom)) / 2.0f,
+            (panelSize.Height - (m_imageInfo.pixelSize.Height * m_zoom)) / 2.0f
         );
 
         UpdateImageTransformState();

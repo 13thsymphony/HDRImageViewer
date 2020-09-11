@@ -111,47 +111,43 @@ void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT
 /// </remarks>
 std::vector<float> ImageExporter::DumpTargetToRGBFloat(DeviceResources* res)
 {
+    auto ctx = res->GetD2DDeviceContext();
+
+    // Create staging surface.
+    D2D1_BITMAP_PROPERTIES1 props = {};
+    props.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED);
+    props.bitmapOptions = D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_CPU_READ;
+
+    auto size = res->GetD2DTargetBitmap()->GetPixelSize();
+    ComPtr<ID2D1Bitmap1> staging;
+    IFT(ctx->CreateBitmap(size, nullptr, 0, &props, &staging));
+
+    auto rect = D2D1::RectU(0, 0, size.width, size.height);
+    IFT(staging->CopyFromBitmap(&D2D1::Point2U(), res->GetD2DTargetBitmap(), &rect));
+
+    D2D1_MAPPED_RECT mapped = {};
+    IFT(staging->Map(D2D1_MAP_OPTIONS_READ, &mapped));
+    unsigned int mappedSize = mapped.pitch * size.height;
+
+    // Note WIC assumes straight alpha, this currently doesn't correctly handle premultiplied alpha.
     auto wic = res->GetWicImagingFactory();
+    ComPtr<IWICBitmap> wicBitmap;
+    IFT(wic->CreateBitmapFromMemory(size.width, size.height, GUID_WICPixelFormat64bppRGBAHalf, mapped.pitch, mappedSize, mapped.bits, &wicBitmap));
 
-    auto ras = ref new Windows::Storage::Streams::InMemoryRandomAccessStream();
-    ComPtr<IStream> stream;
-    IFT(CreateStreamOverRandomAccessStream(ras, IID_PPV_ARGS(&stream)));
-
-    auto d2dBitmap = res->GetD2DTargetBitmap();
-    auto d2dSize = d2dBitmap->GetPixelSize();
-    auto size = Windows::Foundation::Size(static_cast<float>(d2dSize.width), static_cast<float>(d2dSize.height));
-
-    ImageExporter::ExportToWic(d2dBitmap, size, res, stream.Get(), GUID_ContainerFormatWmp);
-
-    // WIC decoders require stream to be at position 0.
-    LARGE_INTEGER zero = {};
-    ULARGE_INTEGER ignore = {};
-    IFT(stream->Seek(zero, 0, &ignore));
-
-    ComPtr<IWICBitmapDecoder> decode;
-    IFT(wic->CreateDecoderFromStream(stream.Get(), nullptr, WICDecodeMetadataCacheOnDemand, &decode));
-    
-    ComPtr<IWICBitmapFrameDecode> frame;
-    IFT(decode->GetFrame(0, &frame));
-    GUID fmt = {};
-    IFT(frame->GetPixelFormat(&fmt));
-    IFT(fmt == GUID_WICPixelFormat64bppRGBAHalf ? S_OK : WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT);
-
-    // It is unwieldy to directly access FP16 values, so compromise by getting RGB FP32 values.
+    // 3 channel FP32.
     ComPtr<IWICFormatConverter> convert;
     IFT(wic->CreateFormatConverter(&convert));
-    IFT(convert->Initialize(frame.Get(), GUID_WICPixelFormat96bppRGBFloat, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
-
-    auto width = static_cast<uint32_t>(size.Width);
-    auto height = static_cast<uint32_t>(size.Height);
+    IFT(convert->Initialize(wicBitmap.Get(), GUID_WICPixelFormat96bppRGBFloat, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
 
     const int CHANNELS_PER_PIXEL = 3;
-    std::vector<float> pixels = std::vector<float>(width * height * CHANNELS_PER_PIXEL);
+    std::vector<float> pixels = std::vector<float>(size.width * size.height * CHANNELS_PER_PIXEL);
     IFT(convert->CopyPixels(
         nullptr,                                                // Rect
-        width * sizeof(float) * CHANNELS_PER_PIXEL,             // Stride (bytes)
+        mapped.pitch,                                           // Stride (bytes)
         static_cast<uint32_t>(pixels.size() * sizeof(float)),   // Total size (bytes)
         reinterpret_cast<byte *>(pixels.data())));              // Buffer
+
+    IFT(staging->Unmap());
 
     return pixels;
 }

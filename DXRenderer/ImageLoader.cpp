@@ -206,7 +206,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     UINT width;
     UINT height;
     IFRIMG(source->GetSize(&width, &height));
-    m_imageInfo.size = Size(static_cast<float>(width), static_cast<float>(height));
+    m_imageInfo.pixelSize = Size(static_cast<float>(width), static_cast<float>(height));
 
     if (m_imageInfo.isHeif == true &&
         m_imageInfo.forceBT2100ColorSpace == true)
@@ -350,8 +350,8 @@ void ImageLoader::CreateHeifHdr10GpuResources()
     initData.SysMemPitch = lockStride;
 
     D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = static_cast<unsigned int>(m_imageInfo.size.Width);
-    desc.Height = static_cast<unsigned int>(m_imageInfo.size.Height);
+    desc.Width = static_cast<unsigned int>(m_imageInfo.pixelSize.Width);
+    desc.Height = static_cast<unsigned int>(m_imageInfo.pixelSize.Height);
     desc.MipLevels = desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
         // BT.2100 colorspace is represented in a D2D color context.
