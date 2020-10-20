@@ -260,6 +260,13 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     auto d2dFactory = m_deviceResources->GetD2DFactory();
     auto context = m_deviceResources->GetD2DDeviceContext();
 
+    D2D1_RENDERING_CONTROLS control = { };
+    context->GetRenderingControls(&control);
+
+    // Ensure that no implicit clipping of extended range content occurs.
+    control.bufferPrecision = D2D1_BUFFER_PRECISION_16BPC_FLOAT;
+    context->SetRenderingControls(&control);
+
     // Next, configure the app's effect pipeline, consisting of a color management effect
     // followed by a tone mapping effect.
 

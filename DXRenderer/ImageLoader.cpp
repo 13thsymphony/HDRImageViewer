@@ -354,7 +354,6 @@ void ImageLoader::CreateHeifHdr10GpuResources()
     desc.Height = static_cast<unsigned int>(m_imageInfo.pixelSize.Height);
     desc.MipLevels = desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-        // BT.2100 colorspace is represented in a D2D color context.
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -372,6 +371,8 @@ void ImageLoader::CreateHeifHdr10GpuResources()
     IFRIMG(context->CreateImageSourceFromDxgi(
         arrSurfaces,
         ARRAYSIZE(arrSurfaces),
+        // Image source doesn't support assigning to the BT.2100 color space.
+        // Instead, we must do this ourselves in GetImageColorContext().
         DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709,
         D2D1_IMAGE_SOURCE_FROM_DXGI_OPTIONS_NONE,
         &m_imageSource));
