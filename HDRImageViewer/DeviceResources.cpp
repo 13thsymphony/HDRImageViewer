@@ -27,7 +27,7 @@ using namespace Platform;
 // 16 bits-per-channel, floating-point format. This format should be used for swap chains
 // and intermediate surfaces that will be representing content in the scRGB color space.
 // Direct3D and Direct2D natively support rendering to this pixel format.
-static const DXGI_FORMAT sc_swapChainFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+static const bool sc_dxAdvancedColorSupport = true;
 
 // Constants used to calculate screen rotations
 namespace ScreenRotation
@@ -218,6 +218,17 @@ void DX::DeviceResources::CreateDeviceResources()
             &m_d2dContext
             )
         );
+
+    if (sc_dxAdvancedColorSupport)
+    {
+        // Ensure that no implicit clipping of extended range content occurs. Otherwise,
+        // Direct2D will default to UINT for some internal intermediate surfaces.
+        D2D1_RENDERING_CONTROLS control = { };
+
+        m_d2dContext->GetRenderingControls(&control);
+        control.bufferPrecision = D2D1_BUFFER_PRECISION_16BPC_FLOAT;
+        m_d2dContext->SetRenderingControls(&control);
+    }
 }
 
 // These resources need to be recreated every time the window size is changed.
@@ -249,6 +260,8 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
     m_d3dRenderTargetSize.Width = swapDimensions ? m_outputSize.Height : m_outputSize.Width;
     m_d3dRenderTargetSize.Height = swapDimensions ? m_outputSize.Width : m_outputSize.Height;
 
+    DXGI_FORMAT fmt = sc_dxAdvancedColorSupport ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
+
     if (m_swapChain != nullptr)
     {
         // If the swap chain already exists, resize it.
@@ -256,7 +269,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
             2, // Double-buffered swap chain.
             lround(m_d3dRenderTargetSize.Width),
             lround(m_d3dRenderTargetSize.Height),
-            sc_swapChainFormat,
+            fmt,
             0
             );
 
@@ -281,7 +294,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
         swapChainDesc.Width = lround(m_d3dRenderTargetSize.Width); // Match the size of the window.
         swapChainDesc.Height = lround(m_d3dRenderTargetSize.Height);
-        swapChainDesc.Format = sc_swapChainFormat;
+        swapChainDesc.Format = fmt;
         swapChainDesc.Stereo = false;
         swapChainDesc.SampleDesc.Count = 1; // Don't use multi-sampling.
         swapChainDesc.SampleDesc.Quality = 0;
@@ -477,7 +490,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
     D2D1_BITMAP_PROPERTIES1 bitmapProperties = 
         D2D1::BitmapProperties1(
             D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-            D2D1::PixelFormat(sc_swapChainFormat, D2D1_ALPHA_MODE_PREMULTIPLIED),
+            D2D1::PixelFormat(fmt, D2D1_ALPHA_MODE_PREMULTIPLIED),
             m_dpi,
             m_dpi
             );
