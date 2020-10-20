@@ -69,7 +69,7 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStre
     ComPtr<ID2D1Image> d2dImage;
     whiteScale->GetOutput(&d2dImage);
 
-    ImageExporter::ExportToWic(d2dImage.Get(), loader->GetImageInfo().size, res, stream, wicFormat);
+    ImageExporter::ExportToWic(d2dImage.Get(), loader->GetImageInfo().pixelSize, res, stream, wicFormat);
 }
 
 /// <summary>
