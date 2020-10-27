@@ -201,7 +201,12 @@ void HDRImageViewerRenderer::SetRenderOptions(
 
     if (m_enableTargetCpuReadback)
     {
-        m_renderTargetCpuPixels = ImageExporter::DumpTargetToRGBFloat(m_deviceResources.get());
+        // Draw the final rendered output.
+        ComPtr<ID2D1Image> image;
+        IFT(m_finalOutput.As(&image));
+
+        D2D1_SIZE_U size = m_deviceResources->GetD2DTargetBitmap()->GetPixelSize();
+        m_renderTargetCpuPixels = ImageExporter::DumpImageToRGBFloat(m_deviceResources.get(), image.Get(), size);
     }
     else
     {

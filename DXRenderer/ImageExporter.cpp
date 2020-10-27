@@ -103,27 +103,52 @@ void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT
 }
 
 /// <summary>
-/// Copies D2D target bitmap (typically same as swap chain) data into CPU accessible memory.
+/// Copies a Direct2D Image into CPU accessible memory.
 /// Converts to 3 channel RGB FP32 values in scRGB colorspace.
 /// </summary>
 /// <remarks>
-/// Caller should get pixel dimensions from DeviceResources->GetOutputSize().
+/// Performs rendering on the ID2D1DeviceContext.
 /// </remarks>
-std::vector<float> ImageExporter::DumpTargetToRGBFloat(DeviceResources* res)
+std::vector<float> ImageExporter::DumpImageToRGBFloat(_In_ DeviceResources* res, _In_ ID2D1Image* image, D2D1_SIZE_U size)
 {
     auto ctx = res->GetD2DDeviceContext();
+
+    // Render to intermediate bitmap.
+    D2D1_BITMAP_PROPERTIES1 intermediateProps = {};
+    intermediateProps.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED);
+    intermediateProps.bitmapOptions = D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET;
+
+    ComPtr<ID2D1Bitmap1> intermediate;
+    IFT(ctx->CreateBitmap(size, nullptr, 0, &intermediateProps, &intermediate));
+
+    ComPtr<ID2D1Image> origTarget;
+    ctx->GetTarget(&origTarget);
+    ctx->SetTarget(intermediate.Get());
+
+    ctx->BeginDraw();
+
+    ctx->DrawImage(image);
+
+    // We ignore D2DERR_RECREATE_TARGET here. This error indicates that the device
+    // is lost. It will be handled during the next call to Present.
+    HRESULT hr = ctx->EndDraw();
+    if (hr != D2DERR_RECREATE_TARGET)
+    {
+        IFT(hr);
+    }
+
+    ctx->SetTarget(origTarget.Get());
 
     // Create staging surface.
     D2D1_BITMAP_PROPERTIES1 props = {};
     props.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_R16G16B16A16_FLOAT, D2D1_ALPHA_MODE_PREMULTIPLIED);
     props.bitmapOptions = D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_CPU_READ;
 
-    auto size = res->GetD2DTargetBitmap()->GetPixelSize();
     ComPtr<ID2D1Bitmap1> staging;
     IFT(ctx->CreateBitmap(size, nullptr, 0, &props, &staging));
 
     auto rect = D2D1::RectU(0, 0, size.width, size.height);
-    IFT(staging->CopyFromBitmap(&D2D1::Point2U(), res->GetD2DTargetBitmap(), &rect));
+    IFT(staging->CopyFromBitmap(&D2D1::Point2U(), intermediate.Get(), &rect));
 
     D2D1_MAPPED_RECT mapped = {};
     IFT(staging->Map(D2D1_MAP_OPTIONS_READ, &mapped));
@@ -135,17 +160,29 @@ std::vector<float> ImageExporter::DumpTargetToRGBFloat(DeviceResources* res)
     IFT(wic->CreateBitmapFromMemory(size.width, size.height, GUID_WICPixelFormat64bppRGBAHalf, mapped.pitch, mappedSize, mapped.bits, &wicBitmap));
 
     // 3 channel FP32.
+    GUID outFmt = GUID_WICPixelFormat96bppRGBFloat;
     ComPtr<IWICFormatConverter> convert;
     IFT(wic->CreateFormatConverter(&convert));
-    IFT(convert->Initialize(wicBitmap.Get(), GUID_WICPixelFormat96bppRGBFloat, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
+    IFT(convert->Initialize(wicBitmap.Get(), outFmt, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
 
-    const int CHANNELS_PER_PIXEL = 3;
-    std::vector<float> pixels = std::vector<float>(size.width * size.height * CHANNELS_PER_PIXEL);
+    ComPtr<IWICComponentInfo> compInfo;
+    IFT(wic->CreateComponentInfo(outFmt, &compInfo));
+
+    ComPtr<IWICPixelFormatInfo2> pixelInfo;
+    IFT(compInfo.As(&pixelInfo));
+
+    unsigned int bitsPerPixel = 0;
+    IFT(pixelInfo->GetBitsPerPixel(&bitsPerPixel));
+
+    unsigned int channelsPerPixel = 0;
+    IFT(pixelInfo->GetChannelCount(&channelsPerPixel));
+
+    std::vector<float> pixels = std::vector<float>(size.width * size.height * channelsPerPixel);
     IFT(convert->CopyPixels(
         nullptr,                                                // Rect
-        mapped.pitch,                                           // Stride (bytes)
+        size.width * bitsPerPixel / 8,                          // Stride (bytes)
         static_cast<uint32_t>(pixels.size() * sizeof(float)),   // Total size (bytes)
-        reinterpret_cast<byte *>(pixels.data())));              // Buffer
+        reinterpret_cast<byte*>(pixels.data())));              // Buffer
 
     IFT(staging->Unmap());
 
