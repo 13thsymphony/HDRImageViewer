@@ -46,17 +46,31 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStre
     IFT(ctx->CreateColorContextFromDxgiColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709, &destCtx));
     IFT(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT, destCtx.Get()));
 
+    ComPtr<ID2D1Effect> whiteScalePre;
+    IFT(ctx->CreateEffect(CLSID_D2D1ColorMatrix, &whiteScalePre));
+    whiteScalePre->SetInputEffect(0, colorManage.Get());
+
+    float scalePre = 5.0f;
+    D2D1_MATRIX_5X4_F matrixPre = D2D1::Matrix5x4F(
+        scalePre, 0, 0, 0,  // [R] Multiply each color channel
+        0, scalePre, 0, 0,  // [G] by the scale factor in 
+        0, 0, scalePre, 0,  // [B] linear gamma space.
+        0, 0, 0, 1,      // [A] Preserve alpha values.
+        0, 0, 0, 0);     //     No offset.
+
+    IFT(whiteScalePre->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrixPre));
+
     ComPtr<ID2D1Effect> tonemap;
     IFT(ctx->CreateEffect(CLSID_D2D1HdrToneMap, &tonemap));
-    tonemap->SetInputEffect(0, colorManage.Get());
-    IFT(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits));
+    tonemap->SetInputEffect(0, whiteScalePre.Get());
+    IFT(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, sc_DefaultSdrDispMaxNits / 1));
     IFT(tonemap->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_SDR));
 
     ComPtr<ID2D1Effect> whiteScale;
     IFT(ctx->CreateEffect(CLSID_D2D1ColorMatrix, &whiteScale));
     whiteScale->SetInputEffect(0, tonemap.Get());
 
-    float scale = D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL / sc_DefaultSdrDispMaxNits;
+    float scale = D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL / (sc_DefaultSdrDispMaxNits / 1);
     D2D1_MATRIX_5X4_F matrix = D2D1::Matrix5x4F(
         scale, 0, 0, 0,  // [R] Multiply each color channel
         0, scale, 0, 0,  // [G] by the scale factor in 

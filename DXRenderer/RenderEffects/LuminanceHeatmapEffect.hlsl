@@ -34,12 +34,12 @@
 // Define constants based on above behavior: 9 "stops" for a piecewise linear gradient in scRGB space.
 #define STOP0_NITS 0.00f
 #define STOP1_NITS 80.0f // Colors below 80 nits are grayscale, so start blue (STOP1) at 80 nits.
-#define STOP2_NITS 107.f // STOP1 - STOP6 allocate colors using 2.2 gamma
-#define STOP3_NITS 203.f
-#define STOP4_NITS 379.f
-#define STOP5_NITS 643.f
-#define STOP6_NITS 1000.f // Inputs are not expected to go above 1000 nits, and we are not going to use
-#define STOP7_NITS 5000.f // magenta and white for the heatmap colors. So STOP7 and STOP8 are basically not used.
+#define STOP2_NITS 98.f // STOP1 - STOP6 allocate colors using 2.2 gamma
+#define STOP3_NITS 162.f
+#define STOP4_NITS 280.f
+#define STOP5_NITS 457.f
+#define STOP6_NITS 696.f // Inputs are not expected to go above 1000 nits
+#define STOP7_NITS 1000.f
 #define STOP8_NITS 10000.f
 
 #define STOP0_COLOR float4(0.0f, 0.0f, 0.0f, 1.0f) // Black
