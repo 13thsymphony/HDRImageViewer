@@ -9,6 +9,9 @@
 // 
 //*********************************************************
 
+// Special demo version that renders all SDR colors [0 to 80 nits] as grayscale and optimizes
+// the luminance heatmap colors for [80 to 1000 nits] range.
+
 // Custom effects using pixel shaders should use HLSL helper functions defined in
 // d2d1effecthelpers.hlsli to make use of effect shader linking.
 #define D2D_INPUT_COUNT 1           // The pixel shader takes exactly 1 input.
@@ -30,13 +33,13 @@
 
 // Define constants based on above behavior: 9 "stops" for a piecewise linear gradient in scRGB space.
 #define STOP0_NITS 0.00f
-#define STOP1_NITS 3.16f
-#define STOP2_NITS 10.0f
-#define STOP3_NITS 31.6f
-#define STOP4_NITS 100.f
-#define STOP5_NITS 316.f
-#define STOP6_NITS 1000.f
-#define STOP7_NITS 3160.f
+#define STOP1_NITS 80.0f // Colors below 80 nits are grayscale, so start blue (STOP1) at 80 nits.
+#define STOP2_NITS 107.f // STOP1 - STOP6 allocate colors using 2.2 gamma
+#define STOP3_NITS 203.f
+#define STOP4_NITS 379.f
+#define STOP5_NITS 643.f
+#define STOP6_NITS 1000.f // Inputs are not expected to go above 1000 nits, and we are not going to use
+#define STOP7_NITS 5000.f // magenta and white for the heatmap colors. So STOP7 and STOP8 are basically not used.
 #define STOP8_NITS 10000.f
 
 #define STOP0_COLOR float4(0.0f, 0.0f, 0.0f, 1.0f) // Black
@@ -59,6 +62,15 @@ cbuffer constants : register(b0)
 D2D_PS_ENTRY(main)
 {
     float4 input = D2DGetInput(0);
+
+    // Detect if any color component is outside of [0, 1] SDR numeric range.
+    float4 isOutsideSdrVec = abs(sign(input - saturate(input)));
+    float isOutsideSdr = max(max(isOutsideSdrVec.r, isOutsideSdrVec.g), isOutsideSdrVec.b); // 1 = out, 0 = in
+    float isInsideSdr = 1 - isOutsideSdr;                                                   // 0 = out, 1 = in
+
+    // Convert all sRGB/SDR colors to grayscale.
+    float lum = dot(float3(0.3f, 0.59f, 0.11f), input.rgb);
+    float4 insideSdrColor = float4(lum, lum, lum, 1.0f);
 
     // Implement the heatmap with a piecewise linear gradient that maps [0, 10000] nits to scRGB colors.
     // This shader is optimized for readability, not performance.
@@ -89,7 +101,7 @@ D2D_PS_ENTRY(main)
     float lerpSegment7 = (nits - STOP7_NITS) / (STOP8_NITS - STOP7_NITS);
 
     //  Only the "active" gradient segment contributes to the output color.
-    float4 output =
+    float4 outsideSdrColor =
         lerp(STOP0_COLOR, STOP1_COLOR, lerpSegment0) * useSegment0 +
         lerp(STOP1_COLOR, STOP2_COLOR, lerpSegment1) * useSegment1 +
         lerp(STOP2_COLOR, STOP3_COLOR, lerpSegment2) * useSegment2 +
@@ -99,5 +111,5 @@ D2D_PS_ENTRY(main)
         lerp(STOP6_COLOR, STOP7_COLOR, lerpSegment6) * useSegment6 +
         lerp(STOP7_COLOR, STOP8_COLOR, lerpSegment7) * useSegment7;
 
-    return output;
+    return insideSdrColor * isInsideSdr + outsideSdrColor * isOutsideSdr;
 }
