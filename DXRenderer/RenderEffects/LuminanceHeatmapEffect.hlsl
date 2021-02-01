@@ -33,26 +33,18 @@
 
 // Define constants based on above behavior: 9 "stops" for a piecewise linear gradient in scRGB space.
 #define STOP0_NITS 0.00f
-#define STOP1_NITS 100.f // Colors below 80 nits are grayscale, so start blue (STOP1) at 80 nits.
-#define STOP2_NITS 117.f // STOP1 - STOP6 allocate colors using 2.2 gamma
-#define STOP3_NITS 180.f
-#define STOP4_NITS 296.f
-#define STOP5_NITS 469.f
-#define STOP6_NITS 703.f // Inputs are not expected to go above 1000 nits
-#define STOP7_NITS 1000.f
-#define STOP8_NITS 10000.f
+#define STOP1_NITS 100.f // Max SDR. HDR400/600/1000. Max PQ.
+#define STOP2_NITS 400.f
+#define STOP3_NITS 600.f
+#define STOP4_NITS 1000.f
+#define STOP5_NITS 10000.f
 
 #define STOP0_COLOR float4(0.0f, 0.0f, 0.0f, 1.0f) // Black
 #define STOP1_COLOR float4(0.0f, 0.0f, 1.0f, 1.0f) // Blue
-#define STOP2_COLOR float4(0.0f, 1.0f, 1.0f, 1.0f) // Cyan
-#define STOP3_COLOR float4(0.0f, 1.0f, 0.0f, 1.0f) // Green
-#define STOP4_COLOR float4(1.0f, 1.0f, 0.0f, 1.0f) // Yellow
-#define STOP5_COLOR float4(1.0f, 0.2f, 0.0f, 1.0f) // Orange
-// Orange isn't a simple combination of primary colors but allows us to have 8 gradient segments,
-// which gives us cleaner definitions for the nits --> color mappings.
-#define STOP6_COLOR float4(1.0f, 0.0f, 0.0f, 1.0f) // Red
-#define STOP7_COLOR float4(1.0f, 0.0f, 1.0f, 1.0f) // Magenta
-#define STOP8_COLOR float4(1.0f, 1.0f, 1.0f, 1.0f) // White
+#define STOP2_COLOR float4(0.0f, 1.0f, 0.0f, 1.0f) // Green
+#define STOP3_COLOR float4(1.0f, 1.0f, 0.0f, 1.0f) // Yellow
+#define STOP4_COLOR float4(1.0f, 0.0f, 0.0f, 1.0f) // Red
+#define STOP5_COLOR float4(1.0f, 1.0f, 1.0f, 1.0f) // White
 
 cbuffer constants : register(b0)
 {
@@ -86,9 +78,6 @@ D2D_PS_ENTRY(main)
     float useSegment2 = sign(nits - STOP2_NITS) - sign(nits - STOP3_NITS);
     float useSegment3 = sign(nits - STOP3_NITS) - sign(nits - STOP4_NITS);
     float useSegment4 = sign(nits - STOP4_NITS) - sign(nits - STOP5_NITS);
-    float useSegment5 = sign(nits - STOP5_NITS) - sign(nits - STOP6_NITS);
-    float useSegment6 = sign(nits - STOP6_NITS) - sign(nits - STOP7_NITS);
-    float useSegment7 = sign(nits - STOP7_NITS) - sign(nits - STOP8_NITS);
 
     // 3: Calculate the interpolated color.
     float lerpSegment0 = (nits - STOP0_NITS) / (STOP1_NITS - STOP0_NITS);
@@ -96,9 +85,6 @@ D2D_PS_ENTRY(main)
     float lerpSegment2 = (nits - STOP2_NITS) / (STOP3_NITS - STOP2_NITS);
     float lerpSegment3 = (nits - STOP3_NITS) / (STOP4_NITS - STOP3_NITS);
     float lerpSegment4 = (nits - STOP4_NITS) / (STOP5_NITS - STOP4_NITS);
-    float lerpSegment5 = (nits - STOP5_NITS) / (STOP6_NITS - STOP5_NITS);
-    float lerpSegment6 = (nits - STOP6_NITS) / (STOP7_NITS - STOP6_NITS);
-    float lerpSegment7 = (nits - STOP7_NITS) / (STOP8_NITS - STOP7_NITS);
 
     //  Only the "active" gradient segment contributes to the output color.
     float4 outsideSdrColor =
@@ -106,10 +92,7 @@ D2D_PS_ENTRY(main)
         lerp(STOP1_COLOR, STOP2_COLOR, lerpSegment1) * useSegment1 +
         lerp(STOP2_COLOR, STOP3_COLOR, lerpSegment2) * useSegment2 +
         lerp(STOP3_COLOR, STOP4_COLOR, lerpSegment3) * useSegment3 +
-        lerp(STOP4_COLOR, STOP5_COLOR, lerpSegment4) * useSegment4 +
-        lerp(STOP5_COLOR, STOP6_COLOR, lerpSegment5) * useSegment5 +
-        lerp(STOP6_COLOR, STOP7_COLOR, lerpSegment6) * useSegment6 +
-        lerp(STOP7_COLOR, STOP8_COLOR, lerpSegment7) * useSegment7;
+        lerp(STOP4_COLOR, STOP5_COLOR, lerpSegment4) * useSegment4;
 
     return insideSdrColor * isInsideSdr + outsideSdrColor * isOutsideSdr;
 }
