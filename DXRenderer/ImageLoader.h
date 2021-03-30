@@ -41,10 +41,16 @@ namespace DXRenderer
         NeedDeviceResources // Device resources must be (re)created but otherwise image data is valid.
     };
 
+    [Windows::Foundation::Metadata::WebHostHidden]
+    public value struct ImageLoaderOptions
+    {
+        bool ForceBT2100;
+    };
+
     class ImageLoader
     {
     public:
-        ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources);
+        ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources, ImageLoaderOptions options);
         ~ImageLoader();
 
         ImageLoaderState GetState() const { return m_state; };
@@ -117,6 +123,7 @@ namespace DXRenderer
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
+        ImageLoaderOptions                                      m_options;
 
         // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
         Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;

@@ -61,8 +61,8 @@ namespace DXRenderer
             Windows::Graphics::Display::AdvancedColorInfo^ acInfo
             );
 
-        ImageInfo LoadImageFromWic(_In_ Windows::Storage::Streams::IRandomAccessStream^ imageStream);
-        ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
+        ImageInfo LoadImageFromWic(_In_ Windows::Storage::Streams::IRandomAccessStream^ imageStream, ImageLoaderOptions options);
+        ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension, ImageLoaderOptions options);
         void      ExportImageToSdr(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream, Platform::Guid wicFormat);
         void      ExportAsDdsTest(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream);
 

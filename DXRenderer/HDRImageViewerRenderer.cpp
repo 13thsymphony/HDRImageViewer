@@ -60,7 +60,7 @@ void HDRImageViewerRenderer::CreateDeviceIndependentResources()
     auto fact = m_deviceResources->GetD2DFactory();
 
     // TODO: This instance never does anything as it gets overwritten upon image load.
-    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
+    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources, ImageLoaderOptions{});
 
     // Register the custom render effects.
     IFT(SimpleTonemapEffect::Register(fact));
@@ -214,19 +214,19 @@ void HDRImageViewerRenderer::SetRenderOptions(
     }
 }
 
-ImageInfo HDRImageViewerRenderer::LoadImageFromWic(_In_ IRandomAccessStream^ imageStream)
+ImageInfo HDRImageViewerRenderer::LoadImageFromWic(_In_ IRandomAccessStream^ imageStream, ImageLoaderOptions options)
 {
     ComPtr<IStream> iStream;
     IFT(CreateStreamOverRandomAccessStream(imageStream, IID_PPV_ARGS(&iStream)));
 
-    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
+    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources, options);
     m_imageInfo = m_imageLoader->LoadImageFromWic(iStream.Get());
     return m_imageInfo;
 }
 
-ImageInfo HDRImageViewerRenderer::LoadImageFromDirectXTex(String ^ filename, String ^ extension)
+ImageInfo HDRImageViewerRenderer::LoadImageFromDirectXTex(String ^ filename, String ^ extension, ImageLoaderOptions options)
 {
-    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources);
+    m_imageLoader = std::make_unique<ImageLoader>(m_deviceResources, options);
     m_imageInfo = m_imageLoader->LoadImageFromDirectXTex(filename, extension);
     return m_imageInfo;
 }
@@ -467,7 +467,7 @@ Windows::Foundation::Numerics::float4 HDRImageViewerRenderer::GetPixelColorValue
     if (m_enableTargetCpuReadback)
     {
         auto targetSize = m_deviceResources->GetOutputSize();
-        int offset = targetSize.Width * point.Y + point.X * 3; // Channels per pixel.
+        int offset = static_cast<int>(targetSize.Width) * static_cast<int>(point.Y) + static_cast<int>(point.X) * 3; // Channels per pixel.
 
         color.x = m_renderTargetCpuPixels.at(offset);
         color.y = m_renderTargetCpuPixels.at(offset + 1);

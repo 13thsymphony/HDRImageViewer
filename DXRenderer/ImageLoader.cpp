@@ -15,10 +15,11 @@ using namespace Windows::Graphics::Display;
 
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats (128bpp).
 
-ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources) :
+ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources, ImageLoaderOptions options) :
     m_deviceResources(deviceResources),
     m_state(ImageLoaderState::NotInitialized),
-    m_imageInfo{}
+    m_imageInfo{},
+    m_options(options)
 {
 }
 
@@ -90,6 +91,12 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         {
             m_imageInfo.forceBT2100ColorSpace = true;
         }
+    }
+
+    // Overrides always apply
+    if (m_options.ForceBT2100 == true)
+    {
+        m_imageInfo.forceBT2100ColorSpace = true;
     }
 
     LoadImageCommon(frame.Get());

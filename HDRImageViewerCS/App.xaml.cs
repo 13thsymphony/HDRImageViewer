@@ -79,6 +79,10 @@ namespace HDRImageViewerCS
                     {
                         launchArgs.hideUI = true;
                     }
+                    else if (cmdArgs[i].Equals("-forcebt2100", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        launchArgs.forceBT2100 = true;
+                    }
                     else if (cmdArgs[i].StartsWith(inputArgString, StringComparison.InvariantCultureIgnoreCase))
                     {
                         var fullPath = cmd.Operation.CurrentDirectoryPath + "\\" + cmdArgs[i].Substring(inputArgString.Length);

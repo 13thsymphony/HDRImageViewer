@@ -26,6 +26,7 @@ namespace HDRImageViewerCS
     {
         public bool useFullscreen;
         public bool hideUI;
+        public bool forceBT2100;
         public string initialFileToken; // StorageItemAccessList token
         public ErrorDialogType errorType; // If this is not DefaultValue, triggers the error dialog.
         public string errorFilename; // Only use this if ErrorDialogType is InvalidFile.
@@ -46,6 +47,7 @@ namespace HDRImageViewerCS
         bool isImageValid;
         bool isWindowVisible;
         bool enableExperimentalTools;
+        ImageLoaderOptions loaderOptions;
 
         ToolTip tooltip;
         RenderOptionsViewModel viewModel;
@@ -113,6 +115,11 @@ namespace HDRImageViewerCS
             if (e.Parameter.GetType() == typeof(DXViewerLaunchArgs))
             {
                 var args = (DXViewerLaunchArgs)e.Parameter;
+
+                if (args.forceBT2100)
+                {
+                    loaderOptions.ForceBT2100 = true;
+                }
 
                 if (args.hideUI)
                 {
@@ -397,11 +404,11 @@ namespace HDRImageViewerCS
                         imageFile.Name,
                         NameCollisionOption.ReplaceExisting);
 
-                info = renderer.LoadImageFromDirectXTex(imageFile.Path, type);
+                info = renderer.LoadImageFromDirectXTex(imageFile.Path, type, loaderOptions);
             }
             else
             {
-                info = renderer.LoadImageFromWic(await imageFile.OpenAsync(FileAccessMode.Read));
+                info = renderer.LoadImageFromWic(await imageFile.OpenAsync(FileAccessMode.Read), loaderOptions);
             }
 
             if (info.isValid == false)
