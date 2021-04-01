@@ -128,5 +128,9 @@ namespace DXRenderer
         // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
         Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;
         Microsoft::WRL::ComPtr<ID2D1ColorContext>               m_colorContext;
+
+        // 128 byte ICC profile header for Xbox console HDR screen captures.
+        const unsigned char                                     m_xboxHdrIccHeaderBytes[128];
+        const unsigned int                                      m_xboxHdrIccSize;
     };
 }

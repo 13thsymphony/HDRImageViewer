@@ -19,7 +19,22 @@ ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources
     m_deviceResources(deviceResources),
     m_state(ImageLoaderState::NotInitialized),
     m_imageInfo{},
-    m_options(options)
+    m_options(options),
+    // Data extracted from Xbox console HDR screen capture image
+    m_xboxHdrIccSize(2676),
+    m_xboxHdrIccHeaderBytes {
+        0x00, 0x00, 0x0A, 0x74, 0x00, 0x00, 0x00, 0x00, 0x02, 0x40, 0x00, 0x00,
+        0x6D, 0x6E, 0x74, 0x72, 0x52, 0x47, 0x42, 0x20, 0x58, 0x59, 0x5A, 0x20,
+        0x07, 0xE1, 0x00, 0x08, 0x00, 0x1E, 0x00, 0x0C, 0x00, 0x06, 0x00, 0x34,
+        0x61, 0x63, 0x73, 0x70, 0x4D, 0x53, 0x46, 0x54, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF6, 0xD6,
+        0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0x2D, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    }
 {
 }
 
@@ -91,12 +106,6 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         {
             m_imageInfo.forceBT2100ColorSpace = true;
         }
-    }
-
-    // Overrides always apply
-    if (m_options.ForceBT2100 == true)
-    {
-        m_imageInfo.forceBT2100ColorSpace = true;
     }
 
     LoadImageCommon(frame.Get());
@@ -193,6 +202,12 @@ void ImageLoader::LoadImageFromDirectXTexInt(String^ filename, String^ extension
 void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 {
     EnforceStates(1, ImageLoaderState::NotInitialized);
+
+    // Overrides apply to all images
+    if (m_options.ForceBT2100 == true)
+    {
+        m_imageInfo.forceBT2100ColorSpace = true;
+    }
 
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
 
@@ -652,11 +667,11 @@ void ImageLoader::PopulatePixelFormatInfo(ImageInfo& info, WICPixelFormatGUID fo
 }
 
 /// <summary>
-/// Detects if the image is an Xbox One HDR screenshot.
+/// Detects if the image is an Xbox console HDR screenshot.
 /// </summary>
 /// <remarks>
-/// Xbox One HDR screenshots use JPEG XR with 10-bit precision and the HDR10 colorspace, however they are
-/// indistinguishable from SDR/sRGB 10-bit JPEG XRs except for custom XMP metadata embedded in them.
+/// Xbox console HDR screenshots use JPEG XR with 10-bit precision and a specially
+/// crafted ICC profile and/or EXIF color space to designate that they use BT.2100 PQ.
 /// Relies on caller to ensure the container is JPEG XR (IWICBitmapDecoder).
 /// </remarks>
 bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapFrameDecode* frame)
@@ -668,26 +683,45 @@ bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapFrameDecode* frame)
         return false;
     }
 
-    ComPtr<IWICMetadataQueryReader> metadata;
-    if (FAILED(frame->GetMetadataQueryReader(&metadata)))
+    ComPtr<IWICColorContext> color;
+    m_deviceResources->GetWicImagingFactory()->CreateColorContext(&color);
+
+    unsigned int actual = 0;
+    IFT(frame->GetColorContexts(1, color.GetAddressOf(), &actual));
+    if (actual != 1)
     {
-        // If metadata is not supported, this returns WINCODEC_ERR_UNSUPPORTEDOPERATION.
         return false;
     }
 
-    // TODO: RAII wrapper for PROPVARIANT.
-    PROPVARIANT prop;
-    PropVariantInit(&prop);
-    if (FAILED(metadata->GetMetadataByName(L"/ifd/xmp/{wstr=http://ns.microsoft.com/gamedvr/1.0/}:Extended", &prop)))
+    WICColorContextType type = WICColorContextType::WICColorContextUninitialized;
+    IFT(color->GetType(&type));
+
+    if (type == WICColorContextType::WICColorContextExifColorSpace)
     {
-        // If the Xbox-specific metadata is not found, this returns WINCODEC_ERR_PROPERTYNOTFOUND.
-        PropVariantClear(&prop);
-        return false;
+        unsigned int exif = 0;
+        IFT(color->GetExifColorSpace(&exif));
+        return (exif == 2084); // This is not a standard EXIF color space.
+    }
+    else if (type == WICColorContextType::WICColorContextProfile)
+    {
+        // Compare the profile size and header bytes instead of a full binary or functional check.
+        unsigned int profSize = 0;
+        IFT(color->GetProfileBytes(0, nullptr, &profSize));
+        if (profSize != m_xboxHdrIccSize)
+        {
+            return false;
+        }
+
+        unsigned int ignored = 0;
+        std::vector<byte> profBytes;
+        profBytes.resize(profSize);
+        IFT(color->GetProfileBytes(profBytes.size(), profBytes.data(), &ignored));
+
+        return (0 == memcmp(m_xboxHdrIccHeaderBytes, profBytes.data(), ARRAYSIZE(m_xboxHdrIccHeaderBytes)));
     }
     else
     {
-        PropVariantClear(&prop);
-        return true;
+        return false;
     }
 }
 
