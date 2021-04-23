@@ -14,6 +14,7 @@
 #include "RenderEffects\SphereMapEffect.h"
 #include "RenderOptions.h"
 #include "ImageLoader.h"
+#include "Matrix.h"
 
 namespace DXRenderer
 {
@@ -58,7 +59,8 @@ namespace DXRenderer
             RenderEffectKind effect,
             float brightnessAdjustment,
             float dispMaxCllOverride,
-            Windows::Graphics::Display::AdvancedColorInfo^ acInfo
+            Windows::Graphics::Display::AdvancedColorInfo^ acInfo,
+            bool constrainGamut
             );
 
         ImageInfo LoadImageFromWic(_In_ Windows::Storage::Streams::IRandomAccessStream^ imageStream, ImageLoaderOptions options);
@@ -85,6 +87,7 @@ namespace DXRenderer
         void UpdateImageTransformState();
         void ComputeHdrMetadata();
         void EmitHdrMetadata();
+        void UpdateGamutTransforms();
 
         float GetBestDispMaxLuminance();
 
@@ -103,6 +106,8 @@ namespace DXRenderer
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sphereMapEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_histogramPrescale;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_histogramEffect;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_mapGamutToPanel;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_mapGamutToScRGB;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_finalOutput;
 
         std::vector<float>                                      m_renderTargetCpuPixels;
@@ -120,5 +125,7 @@ namespace DXRenderer
         bool                                                    m_isComputeSupported;
         float                                                   m_dispMaxCLLOverride;
         bool                                                    m_enableTargetCpuReadback;
+
+        bool                                                    m_constrainGamut;
     };
 }

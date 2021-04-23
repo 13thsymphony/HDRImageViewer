@@ -22,6 +22,8 @@ namespace HDRImageViewerCS
         public const string LABEL_MAXCLL               = "Estimated MaxCLL: ";
         public const string LABEL_NA                   = "N/A";
         public const string LABEL_MEDCLL               = "Estimated MedianCLL: ";
+        public const string LABEL_GAMUTMAP             = "Constrain image gamut: ";
+        public const string LABEL_PROFILEOVERRIDE      = "Override display colorimetry: ";
 
         public const string ERROR_DEFAULTTITLE         = "Unable to load image";
         public const string ERROR_INVALIDCMDARGS       = "Command line usage";

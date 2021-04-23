@@ -47,6 +47,8 @@ namespace HDRImageViewerCS
         bool isImageValid;
         bool isWindowVisible;
         bool enableExperimentalTools;
+        bool enableGamutMap = true;
+        bool profileColorimetryOverride = true;
         ImageLoaderOptions loaderOptions;
 
         ToolTip tooltip;
@@ -80,6 +82,8 @@ namespace HDRImageViewerCS
 
             currDispInfo.AdvancedColorInfoChanged += OnAdvancedColorInfoChanged;
             var acInfo = currDispInfo.GetAdvancedColorInfo();
+
+            currDispInfo.ColorProfileChanged += OnColorProfileChanged;
 
             swapChainPanel.CompositionScaleChanged += OnCompositionScaleChanged;
             swapChainPanel.SizeChanged += OnSwapChainPanelSizeChanged;
@@ -237,7 +241,8 @@ namespace HDRImageViewerCS
                     tm.Kind,
                     (float)SdrBrightnessFormatter.SliderToBrightness(BrightnessAdjustSlider.Value),
                     dispcll, // Display MaxCLL override
-                    dispInfo
+                    dispInfo,
+                    enableGamutMap
                     );
             }
         }
@@ -259,6 +264,10 @@ namespace HDRImageViewerCS
         }
 
         // Display state event handlers.
+        private void OnColorProfileChanged(DisplayInformation sender, object args)
+        {
+            UpdateDisplayACState(sender.GetAdvancedColorInfo());
+        }
 
         private void OnAdvancedColorInfoChanged(DisplayInformation sender, object args)
         {
@@ -343,6 +352,31 @@ namespace HDRImageViewerCS
             if (WorkaroundShouldIgnoreAccelerator()) return;
 
             SetExperimentalTools(!enableExperimentalTools);
+        }
+
+        private void ToggleGamutMap(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            enableGamutMap = !enableGamutMap;
+
+            UpdateRenderOptions();
+
+            Gamutmap.Text = UIStrings.LABEL_GAMUTMAP + (enableGamutMap ? "on" : "off");
+        }
+
+        private void ToggleProfileOverride(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            profileColorimetryOverride = !profileColorimetryOverride;
+
+            ProfileOverride.Text = UIStrings.LABEL_PROFILEOVERRIDE + (profileColorimetryOverride ? "on (SDR only)" : "off");
+
+            ScrapeColorProfile();
+
+            UpdateRenderOptions();
+        }
+
+        private void ScrapeColorProfile()
+        {
+
         }
 
         /// <summary>

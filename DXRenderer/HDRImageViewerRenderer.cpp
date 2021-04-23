@@ -34,7 +34,8 @@ HDRImageViewerRenderer::HDRImageViewerRenderer(
     m_dispMaxCLLOverride(0.0f),
     m_imageInfo{},
     m_isComputeSupported(false),
-    m_enableTargetCpuReadback(false)
+    m_enableTargetCpuReadback(false),
+    m_constrainGamut(true)
 {
     // DeviceResources must be initialized first.
     // TODO: Current architecture does not allow multiple Renderers to share DeviceResources.
@@ -102,13 +103,32 @@ void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
     float brightnessAdjustment,
     float dispMaxCllOverride,
-    AdvancedColorInfo^ acInfo
+    AdvancedColorInfo^ acInfo,
+    bool constrainGamut
     )
 {
     m_dispInfo = acInfo;
     m_renderEffectKind = effect;
     m_brightnessAdjust = brightnessAdjustment;
     m_dispMaxCLLOverride = dispMaxCllOverride;
+    m_constrainGamut = constrainGamut;
+
+    struct _colors
+    {
+        float redx, redy, greenx, greeny, bluex, bluey, whitex, whitey;
+    };
+
+    _colors color
+    {
+        m_dispInfo->RedPrimary.X, m_dispInfo->RedPrimary.Y,
+        m_dispInfo->GreenPrimary.X, m_dispInfo->GreenPrimary.Y,
+        m_dispInfo->BluePrimary.X, m_dispInfo->BluePrimary.Y,
+        m_dispInfo->WhitePoint.X, m_dispInfo->WhitePoint.Y
+    };
+
+    UpdateGamutTransforms();
+
+    printf("%f", color.bluex);
 
     auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
@@ -195,6 +215,17 @@ void HDRImageViewerRenderer::SetRenderOptions(
         // output, we must reinterpret the scene-referred input content (80 nits) as display-referred (targetMaxNits).
         IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
         IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, targetMaxNits));
+    }
+
+    // If the gamut map conversion is enabled, insert the 2 color matrix effects needed to perform that operation.
+    // What we're doing here is transforming the colors from scRGB colors to panel-relative colors, and clamping 
+    // that output to 0-1, then a second effect converts back to rec 709 colorimetry without clipping.
+    if (m_constrainGamut)
+    {
+        m_mapGamutToPanel->SetInputEffect(0, m_finalOutput.Get());
+        m_mapGamutToScRGB->SetInputEffect(0, m_mapGamutToPanel.Get());
+
+        m_finalOutput = m_mapGamutToScRGB.Get();
     }
 
     Draw();
@@ -322,6 +353,9 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     IFT(context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect));
     IFT(context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect));
 
+    IFT(context->CreateEffect(CLSID_D2D1ColorMatrix, &m_mapGamutToPanel));
+    IFT(context->CreateEffect(CLSID_D2D1ColorMatrix, &m_mapGamutToScRGB));
+
     // TEST: border effect to remove seam at the boundary of the image (subpixel sampling)
     // Unclear if we can force D2D_BORDER_MODE_HARD somewhere to avoid the seam.
     ComPtr<ID2D1Effect> border;
@@ -439,6 +473,9 @@ void HDRImageViewerRenderer::ReleaseImageDependentResources()
     m_heatmapEffect.Reset();
     m_histogramPrescale.Reset();
     m_histogramEffect.Reset();
+    m_sphereMapEffect.Reset();
+    m_mapGamutToPanel.Reset();
+    m_mapGamutToScRGB.Reset();
     m_finalOutput.Reset();
 }
 
@@ -452,7 +489,7 @@ void HDRImageViewerRenderer::SetTargetCpuReadbackSupport(bool value)
 {
     m_enableTargetCpuReadback = value;
 
-    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, 0.0f, m_dispInfo);
+    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, 0.0f, m_dispInfo, m_constrainGamut);
 }
 
 /// <summary>
@@ -614,6 +651,70 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
         0, 0, 0    , 0); //     No offset.
 
     IFT(m_whiteScaleEffect->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
+}
+
+D2D1_MATRIX_5X4_F MatrixToD2D(Matrix m)
+{
+    return D2D1::Matrix5x4F(
+        m.M[0], m.M[1], m.M[2], 0,
+        m.M[3], m.M[4], m.M[5], 0,
+        m.M[6], m.M[7], m.M[8], 0,
+             0,      0,      0, 1,
+             0,      0,      0, 0 );
+
+}
+
+// If we need to constrain the gamut of the output to specified colorimetry, calculate and set the matrices
+void HDRImageViewerRenderer::UpdateGamutTransforms()
+{
+    // Clamping the colors in panel space should have the effect of a colorimetric clip
+    IFT(m_mapGamutToPanel->SetValue(D2D1_COLORMATRIX_PROP_CLAMP_OUTPUT, TRUE));
+    IFT(m_mapGamutToScRGB->SetValue(D2D1_COLORMATRIX_PROP_CLAMP_OUTPUT, FALSE));
+
+    auto M709 = Matrix(3, 3);
+    auto XYZDisplay = Matrix(3, 3);
+    auto WhiteDisplay = Matrix(1, 3);
+    auto MDisplay = Matrix(3, 3);
+
+    M709.M = {
+        0.4124564, 0.3575761, 0.1804375,
+        0.2126729, 0.7151522, 0.0721750,
+        0.0193339, 0.1191920, 0.9503041
+    };
+
+    XYZDisplay.M[0] = m_dispInfo->RedPrimary.X / m_dispInfo->RedPrimary.Y;
+    XYZDisplay.M[1] = m_dispInfo->GreenPrimary.X / m_dispInfo->GreenPrimary.Y;
+    XYZDisplay.M[2] = m_dispInfo->BluePrimary.X / m_dispInfo->BluePrimary.Y;
+    XYZDisplay.M[3] = 1.f;
+    XYZDisplay.M[4] = 1.f;
+    XYZDisplay.M[5] = 1.f;
+    XYZDisplay.M[6] = (1.f - m_dispInfo->RedPrimary.X   - m_dispInfo->RedPrimary.Y)   / m_dispInfo->RedPrimary.Y;
+    XYZDisplay.M[7] = (1.f - m_dispInfo->GreenPrimary.X - m_dispInfo->GreenPrimary.Y) / m_dispInfo->GreenPrimary.Y;
+    XYZDisplay.M[8] = (1.f - m_dispInfo->BluePrimary.X  - m_dispInfo->BluePrimary.Y)  / m_dispInfo->BluePrimary.Y;
+
+    WhiteDisplay.M[0] = m_dispInfo->WhitePoint.X / m_dispInfo->WhitePoint.Y;
+    WhiteDisplay.M[1] = 1.f;
+    WhiteDisplay.M[2] = (1.f - m_dispInfo->WhitePoint.X - m_dispInfo->WhitePoint.Y) / m_dispInfo->WhitePoint.Y;
+
+    auto S = XYZDisplay.Invert() * WhiteDisplay;
+
+    MDisplay.M[0] = S.M[0] * XYZDisplay.M[0];
+    MDisplay.M[1] = S.M[1] * XYZDisplay.M[1];
+    MDisplay.M[2] = S.M[2] * XYZDisplay.M[2];
+    MDisplay.M[3] = S.M[0] * XYZDisplay.M[3];
+    MDisplay.M[4] = S.M[1] * XYZDisplay.M[4];
+    MDisplay.M[5] = S.M[2] * XYZDisplay.M[5];
+    MDisplay.M[6] = S.M[0] * XYZDisplay.M[6];
+    MDisplay.M[7] = S.M[1] * XYZDisplay.M[7];
+    MDisplay.M[8] = S.M[2] * XYZDisplay.M[8];
+
+    auto transform = MDisplay.Invert() * M709;
+
+    auto gamutToPanel = MatrixToD2D(transform);
+    m_mapGamutToPanel->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, gamutToPanel);
+
+    auto panelToScRGB = MatrixToD2D(transform.Invert());
+    m_mapGamutToScRGB->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, panelToScRGB);
 }
 
 // Call this after updating any spatial transform state to regenerate the effect graph.
@@ -831,7 +932,7 @@ void HDRImageViewerRenderer::OnDeviceRestored()
     CreateImageDependentResources();
     CreateWindowSizeDependentResources();
 
-    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, m_dispMaxCLLOverride, m_dispInfo);
+    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, m_dispMaxCLLOverride, m_dispInfo, m_constrainGamut);
 
     Draw();
 }

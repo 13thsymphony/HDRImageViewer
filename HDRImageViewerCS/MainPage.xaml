@@ -17,6 +17,8 @@
         <KeyboardAccelerator Key="F11" Invoked="ToggleFullscreenInvoked" />
         <KeyboardAccelerator Key="Escape" Invoked="EscapeFullscreenInvoked" />
         <KeyboardAccelerator Key="F1" Modifiers="Control" Invoked="ToggleExperimentalToolsInvoked" />
+        <KeyboardAccelerator Key="G" Invoked="ToggleGamutMap" />
+        <KeyboardAccelerator Key="P" Invoked="ToggleProfileOverride" />
     </Page.KeyboardAccelerators>
 
     <Grid>
@@ -110,10 +112,16 @@
             <TextBlock Style="{StaticResource InfoLine}" x:Name="DisplayACState">Kind:</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}" x:Name="DisplayPeakLuminance">Peak luminance:</TextBlock>
             <MenuFlyoutSeparator />
+            <TextBlock Style="{StaticResource SectionTitle}">Current Options</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}" x:Name="Gamutmap">Constrain image gamut: on</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}" x:Name="ProfileOverride">Use display color profile: on (SDR-only)</TextBlock>
+            <MenuFlyoutSeparator />
             <TextBlock Style="{StaticResource SectionTitle}">Keyboard shortcuts</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}"><Bold>H:</Bold> Toggle UI</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}"><Bold>F, F11:</Bold> Toggle fullscreen</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}"><Bold>Esc:</Bold> Exit fullscreen</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}"><Bold>G:</Bold> Toggle gamut constraints</TextBlock>
+            <TextBlock Style="{StaticResource InfoLine}"><Bold>P:</Bold> Toggle display profile override (SDR-only)</TextBlock>
             <StackPanel x:Name="ExperimentalTools" Visibility="Collapsed">
                 <MenuFlyoutSeparator />
                 <TextBlock Style="{StaticResource SectionTitle}">Experimental tools</TextBlock>

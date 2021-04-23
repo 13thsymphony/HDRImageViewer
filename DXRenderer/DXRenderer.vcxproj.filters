@@ -74,6 +74,7 @@
       <Filter>RenderEffects</Filter>
     </ClInclude>
     <ClInclude Include="RenderOptions.h" />
+    <ClInclude Include="Matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="RenderEffects\LuminanceHeatmapEffect.hlsl">
