@@ -7,13 +7,17 @@ Releases/tags correspond to versions pushed to the Windows Store.
 
 ## Command line usage
 You should invoke HDRImageViewer from the directory containing the image you wish to load - UWP apps launched from a command line only have access to files within the working directory.
+
 ### Parameters
 `-f` Start in fullscreen mode
 
 `-h` Start with UI hidden
 
-`-input:[filename]` Load [filename]
+`-forcebt2100` Force images to use BT.2100 PQ
+
+`-input:filename` Load `filename`
 
 **Note: Filename must be relative to the current working directory as HDRImageViewer only has access to that directory.**
+
 ### Example
 `HDRImageViewer.exe -f -h -input:myimage.jxr`
