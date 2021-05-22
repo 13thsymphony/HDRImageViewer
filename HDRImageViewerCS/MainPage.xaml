@@ -120,12 +120,12 @@
             <TextBlock Style="{StaticResource InfoLine}"><Bold>H:</Bold> Toggle UI</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}"><Bold>F, F11:</Bold> Toggle fullscreen</TextBlock>
             <TextBlock Style="{StaticResource InfoLine}"><Bold>Esc:</Bold> Exit fullscreen</TextBlock>
-            <TextBlock Style="{StaticResource InfoLine}"><Bold>G:</Bold> Toggle gamut constraints</TextBlock>
-            <TextBlock Style="{StaticResource InfoLine}"><Bold>P:</Bold> Toggle display profile override (SDR-only)</TextBlock>
             <StackPanel x:Name="ExperimentalTools" Visibility="Collapsed">
                 <MenuFlyoutSeparator />
                 <TextBlock Style="{StaticResource SectionTitle}">Experimental tools</TextBlock>
                 <TextBlock Style="{StaticResource InfoLine}">Press CTRL+F1 to turn off</TextBlock>
+                <TextBlock Style="{StaticResource InfoLine}"><Bold>G:</Bold> Toggle gamut constraints</TextBlock>
+                <TextBlock Style="{StaticResource InfoLine}"><Bold>P:</Bold> Toggle display profile override (SDR-only)</TextBlock>
                 <TextBlock>Override display MaxCLL:</TextBlock>
                 <Slider
                     x:Name="DispMaxCLLOverrideSlider"
