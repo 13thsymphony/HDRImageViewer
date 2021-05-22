@@ -356,6 +356,10 @@ namespace HDRImageViewerCS
 
         private void ToggleGamutMap(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
+            if (!enableExperimentalTools) return;
+
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
             enableGamutMap = !enableGamutMap;
 
             UpdateRenderOptions();
@@ -365,6 +369,10 @@ namespace HDRImageViewerCS
 
         private void ToggleProfileOverride(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
+            if (!enableExperimentalTools) return;
+
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
             profileColorimetryOverride = !profileColorimetryOverride;
 
             ProfileOverride.Text = UIStrings.LABEL_PROFILEOVERRIDE + (profileColorimetryOverride ? "on (SDR only)" : "off");
