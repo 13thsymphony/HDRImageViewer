@@ -24,3 +24,5 @@
 #include <wincodec.h>
 #include <DirectXMath.h>
 #include <windowsnumerics.h>
+
+#include <libheif/heif_cxx.h>
