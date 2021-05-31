@@ -458,7 +458,7 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
 /// Gets the Direct2D image representing decoded image data.
 /// </summary>
 /// <remarks>Call this every time a new zoom factor is desired.</remarks>
-ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom)
+ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom, bool applyAppleHdrGainMap)
 {
     EnforceStates(1, ImageLoaderState::LoadingSucceeded);
 

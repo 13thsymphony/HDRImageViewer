@@ -13,6 +13,7 @@ namespace DXRenderer
         bool                                            forceBT2100ColorSpace;
         bool                                            isValid;
         bool                                            isHeif;
+        bool                                            hasAppleHdrGainMap;
     };
 
     public value struct ImageCLL

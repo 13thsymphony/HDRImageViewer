@@ -58,7 +58,8 @@ namespace DXRenderer
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
 
-        ID2D1TransformedImageSource* GetLoadedImage(float zoom);
+        ID2D1TransformedImageSource* GetLoadedImage(float zoom, bool applyAppleHdrGainMap = false);
+
         ID2D1ColorContext* GetImageColorContext();
         ImageInfo GetImageInfo();
         IWICBitmapSource* GetWicSourceTest();
@@ -114,6 +115,7 @@ namespace DXRenderer
         bool CheckCanDecode(_In_ IWICBitmapFrameDecode* frame);
         void CreateHeifHdr10CpuResources(_In_ IWICBitmapSource* source);
         void CreateHeifHdr10GpuResources();
+        bool HasAppleHdrGainMap(_In_ IWICBitmapFrameDecode* frame, _In_ IStream* imageStream);
 
         std::shared_ptr<DeviceResources>                        m_deviceResources;
 
