@@ -98,6 +98,8 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         {
             m_imageInfo.forceBT2100ColorSpace = true;
         }
+
+        HasAppleHdrGainMap(frame.Get(), imageStream);
     }
     else if (fmt == GUID_ContainerFormatWmp)
     {
@@ -398,6 +400,30 @@ void ImageLoader::CreateHeifHdr10GpuResources()
         DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709,
         D2D1_IMAGE_SOURCE_FROM_DXGI_OPTIONS_NONE,
         &m_imageSource));
+}
+
+bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imageStream)
+{
+    STATSTG stats = {};
+    IFRIMG(imageStream->Stat(&stats, STATFLAG_NONAME));
+
+    unsigned int sizeBytes = static_cast<unsigned int>(stats.cbSize.QuadPart);
+
+    if (sizeBytes != stats.cbSize.QuadPart)
+    {
+        // Image is too large, give up.
+        return false;
+    }
+
+    std::vector<byte> fileBuf(sizeBytes);
+    // fileBuf.resize(sizeBytes);
+
+    ULONG cbRead = 0;
+    IFRIMG(imageStream->Read(fileBuf.data(), fileBuf.size(), &cbRead));
+
+    heif::Context ctx;
+    ctx.read_from_memory_without_copy(fileBuf.data(), fileBuf.size());
+    
 }
 
 /// <summary>
