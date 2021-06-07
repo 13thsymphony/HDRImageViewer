@@ -402,28 +402,57 @@ void ImageLoader::CreateHeifHdr10GpuResources()
         &m_imageSource));
 }
 
+/// <summary>
+/// Treats any failures as soft - just returns false and doesn't block further image loading.
+/// </summary>
+/// <param name="frame"></param>
+/// <param name="imageStream"></param>
+/// <returns></returns>
 bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imageStream)
 {
+    HRESULT hr = S_OK;
+    heif_error herr = {};
+    bool result = false;
+
+    heif_context* ctx;
+    heif_image_handle* handle;
+    heif_image* img;
+
+    ComPtr<IWICMetadataQueryReader> query;
+    IFC(frame->GetMetadataQueryReader(&query));
+    CPropVariant prop;
+    hr = query->GetMetadataByName(L"System.Photo.CameraManufacturer", &prop); // TODO check
+
     STATSTG stats = {};
-    IFRIMG(imageStream->Stat(&stats, STATFLAG_NONAME));
+    hr = imageStream->Stat(&stats, STATFLAG_NONAME);
 
     unsigned int sizeBytes = static_cast<unsigned int>(stats.cbSize.QuadPart);
 
-    if (sizeBytes != stats.cbSize.QuadPart)
-    {
-        // Image is too large, give up.
-        return false;
-    }
+    // Image is too large, give up.
+    IFC(sizeBytes != stats.cbSize.QuadPart ? E_FAIL : S_OK);
 
     std::vector<byte> fileBuf(sizeBytes);
-    // fileBuf.resize(sizeBytes);
+
+    ULARGE_INTEGER seeked = {};
+    imageStream->Seek({}, STREAM_SEEK_SET, &seeked);
 
     ULONG cbRead = 0;
-    IFRIMG(imageStream->Read(fileBuf.data(), fileBuf.size(), &cbRead));
+    hr = imageStream->Read(fileBuf.data(), static_cast<ULONG>(fileBuf.size()), &cbRead);
 
-    heif::Context ctx;
-    ctx.read_from_memory_without_copy(fileBuf.data(), fileBuf.size());
-    
+    ctx = heif_context_alloc();
+    IFC(ctx == nullptr ? E_FAIL : S_OK);
+
+    herr = heif_context_get_primary_image_handle(ctx, &handle);
+
+    result = true;
+
+    // TODO: Remove this once we have RAII wrappers for libheif
+cleanup:
+    if (ctx) heif_context_free(ctx);
+    if (handle) heif_image_handle_release(handle);
+    if (img) heif_image_release(img);
+
+    return result;
 }
 
 /// <summary>
@@ -741,7 +770,7 @@ bool ImageLoader::IsImageXboxHdrScreenshot(IWICBitmapFrameDecode* frame)
         unsigned int ignored = 0;
         std::vector<byte> profBytes;
         profBytes.resize(profSize);
-        IFT(color->GetProfileBytes(profBytes.size(), profBytes.data(), &ignored));
+        IFT(color->GetProfileBytes(static_cast<UINT>(profBytes.size()), profBytes.data(), &ignored));
 
         return (0 == memcmp(m_xboxHdrIccHeaderBytes, profBytes.data(), ARRAYSIZE(m_xboxHdrIccHeaderBytes)));
     }

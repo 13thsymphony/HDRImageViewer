@@ -41,6 +41,15 @@ namespace DXRenderer
         NeedDeviceResources // Device resources must be (re)created but otherwise image data is valid.
     };
 
+    /// <summary>
+    /// RAII wrapper for PROPVARIANT
+    /// </summary>
+    class CPropVariant : public PROPVARIANT {
+    public:
+        CPropVariant() { PropVariantInit(this); }
+        ~CPropVariant() { PropVariantClear(this); }
+    };
+
     [Windows::Foundation::Metadata::WebHostHidden]
     public value struct ImageLoaderOptions
     {
@@ -95,13 +104,19 @@ namespace DXRenderer
         }
 
         /// <summary>
-        /// Only use in image load routines where errors from malformed files are not exceptional, and we want to
+        /// "If failed return [ImageLoader variant]"
+        /// Only use when errors from malformed files are not exceptional, and we want to
         /// inform the caller this failed.
         /// </summary>
 #define IFRIMG(hr) if (FAILED(hr)) { \
                 m_imageInfo.isValid = false; \
                 m_state = ImageLoaderState::LoadingFailed; \
                 return; }
+
+        /// <summary>
+        /// "If failed goto cleanup". TODO: Replace once we have RAII for libheif APIs.
+        /// </summary>
+#define IFC(hr) if (FAILED(hr)) { goto cleanup; }
 
         void LoadImageFromWicInt(_In_ IStream* imageStream);
         void LoadImageFromDirectXTexInt(_In_ Platform::String^ filename, _In_ Platform::String^ extension);

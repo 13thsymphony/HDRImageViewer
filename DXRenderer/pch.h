@@ -6,6 +6,7 @@
 #include <collection.h>
 #include <concrt.h>
 #include <memory>
+#include <iostream>
 #include <PathCch.h>
 #include <ppltasks.h>
 #include <shcore.h>
@@ -25,4 +26,4 @@
 #include <DirectXMath.h>
 #include <windowsnumerics.h>
 
-#include <libheif/heif_cxx.h>
+#include <libheif/heif.h>
