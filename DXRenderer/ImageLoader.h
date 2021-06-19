@@ -50,6 +50,44 @@ namespace DXRenderer
         ~CPropVariant() { PropVariantClear(this); }
     };
 
+    /// <summary>
+    /// RAII wrapper for heif_context
+    /// </summary>
+    class CHeifContext {
+    public:
+        CHeifContext() { ptr = heif_context_alloc(); if (!ptr) throw; }
+        ~CHeifContext() { if (ptr) heif_context_free(ptr); }
+        heif_context* ptr = nullptr;
+    };
+
+    /// <summary>
+    /// RAII wrapper for heif_image_handle
+    /// </summary>
+    class CHeifHandle {
+    public:
+        ~CHeifHandle() { if (ptr) heif_image_handle_release(ptr); }
+        heif_image_handle* ptr = nullptr;
+    };
+
+    /// <summary>
+    /// RAII wrapper for heif_image
+    /// </summary>
+    class CHeifImage {
+    public:
+        ~CHeifImage() { if (ptr) heif_image_release(ptr); }
+        heif_image* ptr = nullptr;
+    };
+
+    /// <summary>
+    /// RAII wrapper for string received from heif_image_handle_get_auxiliary_type
+    /// </summary>
+    class CHeifAuxType {
+    public:
+        ~CHeifAuxType() { if (ptr) free(&ptr); }
+        bool IsAppleHdrGainMap() { return false; } // TODO
+        const char* ptr = nullptr;
+    };
+
     [Windows::Foundation::Metadata::WebHostHidden]
     public value struct ImageLoaderOptions
     {
@@ -114,9 +152,11 @@ namespace DXRenderer
                 return; }
 
         /// <summary>
-        /// "If failed goto cleanup". TODO: Replace once we have RAII for libheif APIs.
+        /// "If failed return false"
         /// </summary>
-#define IFC(hr) if (FAILED(hr)) { goto cleanup; }
+#define IFRF(hr) if (FAILED(hr)) { return false; }
+
+        inline HRESULT HEIFHR(heif_error herr) { return herr.code == heif_error_code::heif_error_Ok ? S_OK : WINCODEC_ERR_GENERIC_ERROR; }
 
         void LoadImageFromWicInt(_In_ IStream* imageStream);
         void LoadImageFromDirectXTexInt(_In_ Platform::String^ filename, _In_ Platform::String^ extension);

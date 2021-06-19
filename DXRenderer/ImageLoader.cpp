@@ -414,14 +414,12 @@ bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imag
     heif_error herr = {};
     bool result = false;
 
-    heif_context* ctx;
-    heif_image_handle* handle;
-    heif_image* img;
-
     ComPtr<IWICMetadataQueryReader> query;
-    IFC(frame->GetMetadataQueryReader(&query));
+    IFRF(frame->GetMetadataQueryReader(&query));
     CPropVariant prop;
-    hr = query->GetMetadataByName(L"System.Photo.CameraManufacturer", &prop); // TODO check
+    hr = query->GetMetadataByName(L"System.Photo.CameraManufacturer", &prop);
+
+    // TODO check
 
     STATSTG stats = {};
     hr = imageStream->Stat(&stats, STATFLAG_NONAME);
@@ -429,7 +427,7 @@ bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imag
     unsigned int sizeBytes = static_cast<unsigned int>(stats.cbSize.QuadPart);
 
     // Image is too large, give up.
-    IFC(sizeBytes != stats.cbSize.QuadPart ? E_FAIL : S_OK);
+    IFRF(sizeBytes != stats.cbSize.QuadPart ? E_FAIL : S_OK);
 
     std::vector<byte> fileBuf(sizeBytes);
 
@@ -439,20 +437,12 @@ bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imag
     ULONG cbRead = 0;
     hr = imageStream->Read(fileBuf.data(), static_cast<ULONG>(fileBuf.size()), &cbRead);
 
-    ctx = heif_context_alloc();
-    IFC(ctx == nullptr ? E_FAIL : S_OK);
+    CHeifContext ctx;
+    CHeifHandle handle;
+    IFRF(HEIFHR(heif_context_get_primary_image_handle(ctx.ptr, &handle.ptr)));
+    int countAux = heif_image_handle_get_number_of_auxiliary_images(handle.ptr, 0);
 
-    herr = heif_context_get_primary_image_handle(ctx, &handle);
-
-    result = true;
-
-    // TODO: Remove this once we have RAII wrappers for libheif
-cleanup:
-    if (ctx) heif_context_free(ctx);
-    if (handle) heif_image_handle_release(handle);
-    if (img) heif_image_release(img);
-
-    return result;
+    return true;
 }
 
 /// <summary>
