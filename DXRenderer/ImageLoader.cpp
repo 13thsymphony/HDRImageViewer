@@ -411,7 +411,6 @@ void ImageLoader::CreateHeifHdr10GpuResources()
 bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imageStream)
 {
     HRESULT hr = S_OK;
-    heif_error herr = {};
     bool result = false;
 
     ComPtr<IWICMetadataQueryReader> query;
@@ -438,9 +437,33 @@ bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imag
     hr = imageStream->Read(fileBuf.data(), static_cast<ULONG>(fileBuf.size()), &cbRead);
 
     CHeifContext ctx;
-    CHeifHandle handle;
-    IFRF(HEIFHR(heif_context_get_primary_image_handle(ctx.ptr, &handle.ptr)));
-    int countAux = heif_image_handle_get_number_of_auxiliary_images(handle.ptr, 0);
+    IFRF(HEIFHR(heif_context_read_from_memory_without_copy(ctx.ptr, fileBuf.data(), fileBuf.size(), nullptr)));
+
+    CHeifHandle mainHandle;
+    IFRF(HEIFHR(heif_context_get_primary_image_handle(ctx.ptr, &mainHandle.ptr)));
+
+    int countAux = heif_image_handle_get_number_of_auxiliary_images(mainHandle.ptr, 0);
+    std::vector<heif_item_id> auxIds(countAux);
+    heif_image_handle_get_list_of_auxiliary_image_IDs(mainHandle.ptr, 0, auxIds.data(), auxIds.size());
+
+    for (auto i : auxIds)
+    {
+        CHeifHandle auxHandle;
+        IFRF(HEIFHR(heif_image_handle_get_auxiliary_image_handle(mainHandle.ptr, i, &auxHandle.ptr)));
+
+        CHeifAuxType type;
+        IFRF(HEIFHR(heif_image_handle_get_auxiliary_type(auxHandle.ptr, &type.ptr)));
+
+        if (type.IsAppleHdrGainMap())
+        {
+            CHeifImage img;
+            IFRF(HEIFHR(heif_decode_image(auxHandle.ptr, &img.ptr, heif_colorspace_monochrome, heif_chroma_monochrome, 0)));
+
+            int width = heif_image_get_primary_width(img.ptr);
+            int height = heif_image_get_primary_height(img.ptr);
+            int bitdepth = heif_image_get_bits_per_pixel_range(img.ptr, heif_channel_Y);
+        }
+    }
 
     return true;
 }

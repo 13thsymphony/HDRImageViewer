@@ -84,7 +84,7 @@ namespace DXRenderer
     class CHeifAuxType {
     public:
         ~CHeifAuxType() { if (ptr) free(&ptr); }
-        bool IsAppleHdrGainMap() { return false; } // TODO
+        bool IsAppleHdrGainMap() { return strcmp(ptr, "urn:com:apple:photo:2020:aux:hdrgainmap") == 0; }
         const char* ptr = nullptr;
     };
 
