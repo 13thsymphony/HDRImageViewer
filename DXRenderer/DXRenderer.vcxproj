@@ -288,6 +288,7 @@
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="ImageInfo.h" />
     <ClInclude Include="ImageLoader.h" />
+    <ClInclude Include="LibHeifHelpers.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="RenderEffects\LuminanceHeatmapEffect.h" />
     <ClInclude Include="MagicConstants.h" />
