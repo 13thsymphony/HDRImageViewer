@@ -103,6 +103,32 @@ void ImageExporter::ExportToDds(IWICBitmap* bitmap, IStream* stream, DXGI_FORMAT
 }
 
 /// <summary>
+/// Encodes a buffer of pixels to a PNG in the target stream.
+/// </summary>
+/// <param name="buffer">Caller is responsible for ownership of memory.</param>
+/// <param name="stride"></param>
+/// <param name="countBytes"></param>
+/// <param name="fmt"></param>
+/// <param name="stream"></param>
+void ImageExporter::ExportPixels(IWICImagingFactory* fact, unsigned int pixelWidth, unsigned int pixelHeight, byte* buffer, unsigned int stride, unsigned int countBytes, WICPixelFormatGUID fmt, IStream* stream)
+{
+    ComPtr<IWICBitmap> bitmap;
+    IFT(fact->CreateBitmapFromMemory(pixelWidth, pixelHeight, fmt, stride, countBytes, buffer, &bitmap));
+
+    ComPtr<IWICBitmapEncoder> encoder;
+    IFT(fact->CreateEncoder(GUID_ContainerFormatPng, nullptr, &encoder));
+
+    ComPtr<IWICBitmapFrameEncode> frame;
+    IFT(encoder->CreateNewFrame(&frame, nullptr));
+    IFT(frame->Initialize(nullptr));
+    IFT(frame->WriteSource(bitmap.Get(), nullptr));
+
+    IFT(frame->Commit());
+    IFT(encoder->Commit());
+    IFT(stream->Commit(STGC_DEFAULT));
+}
+
+/// <summary>
 /// Copies a Direct2D Image into CPU accessible memory.
 /// Converts to 3 channel RGB FP32 values in scRGB colorspace.
 /// </summary>

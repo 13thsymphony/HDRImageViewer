@@ -177,6 +177,7 @@ namespace DXRenderer
         // Device-independent
         Microsoft::WRL::ComPtr<IWICBitmapSource>                m_wicCachedSource;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
+        CHeifImage                                              m_appleHdrGainMap;
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;

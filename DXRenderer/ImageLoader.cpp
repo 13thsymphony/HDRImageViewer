@@ -456,16 +456,21 @@ bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imag
 
         if (type.IsAppleHdrGainMap())
         {
-            CHeifImage img;
-            IFRF(HEIFHR(heif_decode_image(auxHandle.ptr, &img.ptr, heif_colorspace_monochrome, heif_chroma_monochrome, 0)));
+            IFRF(HEIFHR(heif_decode_image(auxHandle.ptr, &m_appleHdrGainMap.ptr, heif_colorspace_monochrome, heif_chroma_monochrome, 0)));
 
-            int width = heif_image_get_primary_width(img.ptr);
-            int height = heif_image_get_primary_height(img.ptr);
-            int bitdepth = heif_image_get_bits_per_pixel_range(img.ptr, heif_channel_Y);
+            int width = heif_image_get_primary_width(m_appleHdrGainMap.ptr);
+            int height = heif_image_get_primary_height(m_appleHdrGainMap.ptr);
+            int bitdepth = heif_image_get_bits_per_pixel_range(m_appleHdrGainMap.ptr, heif_channel_Y);
+
+            int stride = 0;
+            const uint8_t* data = heif_image_get_plane_readonly(m_appleHdrGainMap.ptr, heif_channel_Y, &stride);
+
+            // Immediately return once we have a gain map.
+            return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 /// <summary>

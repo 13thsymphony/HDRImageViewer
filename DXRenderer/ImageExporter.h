@@ -23,6 +23,8 @@ namespace DXRenderer
 
         static void ExportToDds(_In_ IWICBitmap* bitmap, _In_ IStream* stream, DXGI_FORMAT outputFmt);
 
+        static void ExportPixels(_In_ IWICImagingFactory* fact, unsigned int pixelWidth, unsigned int pixelHeight, _In_ byte* buffer, unsigned int stride, unsigned int countBytes, WICPixelFormatGUID fmt, _In_ IStream* stream);
+
         static std::vector<float> DumpImageToRGBFloat(_In_ DeviceResources* res, _In_ ID2D1Image* image, D2D1_SIZE_U size);
 
     private:
