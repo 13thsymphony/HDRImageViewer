@@ -30,13 +30,21 @@ namespace DXRenderer
         ~CHeifImage() { if (ptr) heif_image_release(ptr); }
         heif_image* ptr = nullptr;
     };
+    
+    /// <summary>
+    /// Links the lifetime of a memory-backed IWICBitmap with its underlying CHeifImage.
+    /// </summary>
+    class CHeifImageWithWicBitmap : public CHeifImage {
+    public:
+        Microsoft::WRL::ComPtr<IWICBitmap> bitmap;
+    };
 
     /// <summary>
     /// RAII wrapper for string received from heif_image_handle_get_auxiliary_type
     /// </summary>
     class CHeifAuxType {
     public:
-        ~CHeifAuxType() { if (ptr) free(&ptr); }
+        ~CHeifAuxType() { if (ptr) free((void*)ptr); }
         bool IsAppleHdrGainMap() { return strcmp(ptr, "urn:com:apple:photo:2020:aux:hdrgainmap") == 0; }
         const char* ptr = nullptr;
     };

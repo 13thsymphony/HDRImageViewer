@@ -99,7 +99,8 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
             m_imageInfo.forceBT2100ColorSpace = true;
         }
 
-        HasAppleHdrGainMap(frame.Get(), imageStream);
+        // NOTE: Pixel resolution check can't be done until the main image has been decoded (LoadImageCommon).
+        m_imageInfo.hasAppleHdrGainMap = TryLoadAppleHdrGainMap(imageStream);
     }
     else if (fmt == GUID_ContainerFormatWmp)
     {
@@ -227,10 +228,17 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     PopulatePixelFormatInfo(m_imageInfo, imageFmt);
     PopulateImageInfoACKind(m_imageInfo, source);
 
-    UINT width;
-    UINT height;
+    UINT width = 0, height = 0;
     IFRIMG(source->GetSize(&width, &height));
     m_imageInfo.pixelSize = Size(static_cast<float>(width), static_cast<float>(height));
+
+    // Require that valid HDR gainmaps be 1/2 the pixel dimension of the main image.
+    if (m_imageInfo.hasAppleHdrGainMap == true)
+    {
+        UINT mapwidth = 0, mapheight = 0;
+        IFRIMG(m_appleHdrGainMap.bitmap->GetSize(&mapwidth, &mapheight));
+        if (mapwidth * 2 != width || mapheight * 2 != height) m_imageInfo.hasAppleHdrGainMap = false;
+    }
 
     if (m_imageInfo.isHeif == true &&
         m_imageInfo.forceBT2100ColorSpace == true)
@@ -403,25 +411,14 @@ void ImageLoader::CreateHeifHdr10GpuResources()
 }
 
 /// <summary>
-/// Treats any failures as soft - just returns false and doesn't block further image loading.
+/// Checks if the image contains an Apple HDR gainmap. If true, initializes the gainmap bitmap.
 /// </summary>
-/// <param name="frame"></param>
 /// <param name="imageStream"></param>
 /// <returns></returns>
-bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imageStream)
+bool ImageLoader::TryLoadAppleHdrGainMap(IStream* imageStream)
 {
-    HRESULT hr = S_OK;
-    bool result = false;
-
-    ComPtr<IWICMetadataQueryReader> query;
-    IFRF(frame->GetMetadataQueryReader(&query));
-    CPropVariant prop;
-    hr = query->GetMetadataByName(L"System.Photo.CameraManufacturer", &prop);
-
-    // TODO check
-
     STATSTG stats = {};
-    hr = imageStream->Stat(&stats, STATFLAG_NONAME);
+    HRESULT hr = imageStream->Stat(&stats, STATFLAG_NONAME);
 
     unsigned int sizeBytes = static_cast<unsigned int>(stats.cbSize.QuadPart);
 
@@ -462,8 +459,24 @@ bool ImageLoader::HasAppleHdrGainMap(IWICBitmapFrameDecode* frame, IStream* imag
             int height = heif_image_get_primary_height(m_appleHdrGainMap.ptr);
             int bitdepth = heif_image_get_bits_per_pixel_range(m_appleHdrGainMap.ptr, heif_channel_Y);
 
+            if ((width * 2 != static_cast<int>(m_imageInfo.pixelSize.Width)) ||
+                (height * 2 != static_cast<int>(m_imageInfo.pixelSize.Height)) ||
+                (bitdepth != 8))
+            {
+                return false;
+            }
+
             int stride = 0;
-            const uint8_t* data = heif_image_get_plane_readonly(m_appleHdrGainMap.ptr, heif_channel_Y, &stride);
+            uint8_t* data = heif_image_get_plane(m_appleHdrGainMap.ptr, heif_channel_Y, &stride);
+
+            IFRF(m_deviceResources->GetWicImagingFactory()->CreateBitmapFromMemory(
+                width,
+                height,
+                GUID_WICPixelFormat8bppGray,
+                stride,
+                stride * height,
+                static_cast<BYTE *>(data),
+                &m_appleHdrGainMap.bitmap));
 
             // Immediately return once we have a gain map.
             return true;
@@ -494,6 +507,13 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
         ComPtr<ID2D1ImageSourceFromWic> wicImageSource;
         IFRIMG(context->CreateImageSourceFromWic(m_wicCachedSource.Get(), &wicImageSource));
         IFRIMG(wicImageSource.As(&m_imageSource));
+    }
+
+    if (m_imageInfo.hasAppleHdrGainMap)
+    {
+        ComPtr<ID2D1ImageSourceFromWic> wicImageSource;
+        IFRIMG(context->CreateImageSourceFromWic(m_appleHdrGainMap.bitmap.Get(), &wicImageSource));
+        IFRIMG(wicImageSource.As(&m_hdrGainMapSource));
     }
 
     // Xbox One HDR screenshots and HEIF HDR images use the HDR10/BT.2100 colorspace, but this is not represented
@@ -636,6 +656,7 @@ void ImageLoader::ReleaseDeviceDependentResources()
 
         m_imageSource.Reset();
         m_colorContext.Reset();
+        m_hdrGainMapSource.Reset();
         break;
 
     case ImageLoaderState::NeedDeviceResources:
@@ -680,6 +701,11 @@ void ImageLoader::PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource
     // represent BT.2100, so all supported BT.2100 images have the force flag set.
     // This includes Xbox One JPEG XR screenshots and HEIF HDR images.
     if (m_imageInfo.forceBT2100ColorSpace == true)
+    {
+        m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
+    }
+
+    if (m_imageInfo.hasAppleHdrGainMap == true)
     {
         m_imageInfo.imageKind = AdvancedColorKind::HighDynamicRange;
     }

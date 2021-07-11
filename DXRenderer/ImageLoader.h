@@ -133,14 +133,14 @@ namespace DXRenderer
         bool CheckCanDecode(_In_ IWICBitmapFrameDecode* frame);
         void CreateHeifHdr10CpuResources(_In_ IWICBitmapSource* source);
         void CreateHeifHdr10GpuResources();
-        bool HasAppleHdrGainMap(_In_ IWICBitmapFrameDecode* frame, _In_ IStream* imageStream);
+        bool TryLoadAppleHdrGainMap(_In_ IStream* imageStream);
 
         std::shared_ptr<DeviceResources>                        m_deviceResources;
 
         // Device-independent
         Microsoft::WRL::ComPtr<IWICBitmapSource>                m_wicCachedSource;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
-        CHeifImage                                              m_appleHdrGainMap;
+        CHeifImageWithWicBitmap                                 m_appleHdrGainMap;
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
@@ -148,6 +148,7 @@ namespace DXRenderer
 
         // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
         Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;
+        Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_hdrGainMapSource;
         Microsoft::WRL::ComPtr<ID2D1ColorContext>               m_colorContext;
 
         // 128 byte ICC profile header for Xbox console HDR screen captures.
