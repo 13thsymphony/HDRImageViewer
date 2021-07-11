@@ -33,10 +33,11 @@ namespace DXRenderer
     
     /// <summary>
     /// Links the lifetime of a memory-backed IWICBitmap with its underlying CHeifImage.
+    /// Member is IWICBitmapSource so we can chain additional transforms after the Bitmap.
     /// </summary>
-    class CHeifImageWithWicBitmap : public CHeifImage {
+    class CHeifImageWithWicSource : public CHeifImage {
     public:
-        Microsoft::WRL::ComPtr<IWICBitmap> bitmap;
+        Microsoft::WRL::ComPtr<IWICBitmapSource> wicSource;
     };
 
     /// <summary>

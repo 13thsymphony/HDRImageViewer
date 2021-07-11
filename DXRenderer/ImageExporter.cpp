@@ -30,8 +30,9 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStre
     // Effect graph: ImageSource > ColorManagement  > HDRTonemap > WhiteScale
     // This graph is derived from, but not identical to RenderEffectKind::HdrTonemap.
     // TODO: Is there any way to keep this better in sync with the main render pipeline?
+    // Purposely don't try to do anything special with Apple HDR gainmaps because the main image already is SDR.
 
-    ComPtr<ID2D1TransformedImageSource> source = loader->GetLoadedImage(1.0f);
+    ComPtr<ID2D1TransformedImageSource> source = loader->GetLoadedImage(1.0f, false);
 
     ComPtr<ID2D1Effect> colorManage;
     IFT(ctx->CreateEffect(CLSID_D2D1ColorManagement, &colorManage));

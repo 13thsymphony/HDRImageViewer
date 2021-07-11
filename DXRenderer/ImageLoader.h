@@ -68,7 +68,7 @@ namespace DXRenderer
         ImageInfo LoadImageFromWic(_In_ IStream* imageStream);
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension);
 
-        ID2D1TransformedImageSource* GetLoadedImage(float zoom, bool applyAppleHdrGainMap = false);
+        ID2D1TransformedImageSource* GetLoadedImage(float zoom, bool selectAppleHdrGainMap);
 
         ID2D1ColorContext* GetImageColorContext();
         ImageInfo GetImageInfo();
@@ -140,7 +140,7 @@ namespace DXRenderer
         // Device-independent
         Microsoft::WRL::ComPtr<IWICBitmapSource>                m_wicCachedSource;
         Microsoft::WRL::ComPtr<IWICColorContext>                m_wicColorContext;
-        CHeifImageWithWicBitmap                                 m_appleHdrGainMap;
+        CHeifImageWithWicSource                                 m_appleHdrGainMap;
 
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;

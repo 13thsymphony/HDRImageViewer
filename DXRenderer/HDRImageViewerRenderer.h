@@ -97,6 +97,9 @@ namespace DXRenderer
 
         // WIC and Direct2D resources.
         Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_loadedImage;
+        Microsoft::WRL::ComPtr<ID2D1TransformedImageSource>     m_loadedGainMap;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_gainmapLinearEffect;
+        Microsoft::WRL::ComPtr<ID2D1Effect>                     m_gainMapMergeEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_colorManagementEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_whiteScaleEffect;
         Microsoft::WRL::ComPtr<ID2D1Effect>                     m_sdrWhiteScaleEffect;

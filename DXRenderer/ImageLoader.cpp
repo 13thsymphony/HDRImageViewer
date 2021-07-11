@@ -236,7 +236,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     if (m_imageInfo.hasAppleHdrGainMap == true)
     {
         UINT mapwidth = 0, mapheight = 0;
-        IFRIMG(m_appleHdrGainMap.bitmap->GetSize(&mapwidth, &mapheight));
+        IFRIMG(m_appleHdrGainMap.wicSource->GetSize(&mapwidth, &mapheight));
         if (mapwidth * 2 != width || mapheight * 2 != height) m_imageInfo.hasAppleHdrGainMap = false;
     }
 
@@ -441,7 +441,7 @@ bool ImageLoader::TryLoadAppleHdrGainMap(IStream* imageStream)
 
     int countAux = heif_image_handle_get_number_of_auxiliary_images(mainHandle.ptr, 0);
     std::vector<heif_item_id> auxIds(countAux);
-    heif_image_handle_get_list_of_auxiliary_image_IDs(mainHandle.ptr, 0, auxIds.data(), auxIds.size());
+    heif_image_handle_get_list_of_auxiliary_image_IDs(mainHandle.ptr, 0, auxIds.data(), static_cast<int>(auxIds.size()));
 
     for (auto i : auxIds)
     {
@@ -459,24 +459,30 @@ bool ImageLoader::TryLoadAppleHdrGainMap(IStream* imageStream)
             int height = heif_image_get_primary_height(m_appleHdrGainMap.ptr);
             int bitdepth = heif_image_get_bits_per_pixel_range(m_appleHdrGainMap.ptr, heif_channel_Y);
 
-            if ((width * 2 != static_cast<int>(m_imageInfo.pixelSize.Width)) ||
-                (height * 2 != static_cast<int>(m_imageInfo.pixelSize.Height)) ||
-                (bitdepth != 8))
-            {
-                return false;
-            }
+            if (bitdepth != 8) return false; // Defer checking main image resolution until it is available later in decode process.
 
             int stride = 0;
             uint8_t* data = heif_image_get_plane(m_appleHdrGainMap.ptr, heif_channel_Y, &stride);
 
-            IFRF(m_deviceResources->GetWicImagingFactory()->CreateBitmapFromMemory(
+            auto fact = m_deviceResources->GetWicImagingFactory();
+
+            // Memory and object lifetime is synchronized with CHeifImageWithWicBitmap.
+            ComPtr<IWICBitmap> bitmap;
+
+            IFRF(fact->CreateBitmapFromMemory(
                 width,
                 height,
                 GUID_WICPixelFormat8bppGray,
                 stride,
                 stride * height,
                 static_cast<BYTE *>(data),
-                &m_appleHdrGainMap.bitmap));
+                &bitmap));
+
+            ComPtr<IWICFormatConverter> fmt;
+            IFRF(fact->CreateFormatConverter(&fmt));
+            IFRF(fmt->Initialize(bitmap.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
+
+            IFRF(fmt.As(&m_appleHdrGainMap.wicSource));
 
             // Immediately return once we have a gain map.
             return true;
@@ -511,9 +517,9 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
 
     if (m_imageInfo.hasAppleHdrGainMap)
     {
-        ComPtr<ID2D1ImageSourceFromWic> wicImageSource;
-        IFRIMG(context->CreateImageSourceFromWic(m_appleHdrGainMap.bitmap.Get(), &wicImageSource));
-        IFRIMG(wicImageSource.As(&m_hdrGainMapSource));
+        ComPtr<ID2D1ImageSourceFromWic> wicGainMapSource;
+        IFRIMG(context->CreateImageSourceFromWic(m_appleHdrGainMap.wicSource.Get(), &wicGainMapSource));
+        IFRIMG(wicGainMapSource.As(&m_hdrGainMapSource));
     }
 
     // Xbox One HDR screenshots and HEIF HDR images use the HDR10/BT.2100 colorspace, but this is not represented
@@ -550,10 +556,21 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
 /// <summary>
 /// Gets the Direct2D image representing decoded image data.
 /// </summary>
-/// <remarks>Call this every time a new zoom factor is desired.</remarks>
-ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom, bool applyAppleHdrGainMap)
+/// <param name="selectAppleHdrGainMap">If true, provides the gainmap aux image instead of the main image.</param>
+/// <remarks>Call this every time a new zoom factor is desired
+/// If the gainmap is returned, it is pre-scaled to match the resolution of the main image.</remarks>
+ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom, bool selectAppleHdrGainMap)
 {
     EnforceStates(1, ImageLoaderState::LoadingSucceeded);
+
+    ID2D1ImageSource* source = m_imageSource.Get();
+
+    if (selectAppleHdrGainMap == true)
+    {
+        if (m_imageInfo.hasAppleHdrGainMap == false) return nullptr;
+        zoom *= 2.0f; // Assuming that gainmaps are natively 1/2 of the main image resolution.
+        source = m_hdrGainMapSource.Get();
+    }
 
     // When using ID2D1ImageSource, the recommend method of scaling is to use
     // ID2D1TransformedImageSource. It is inexpensive to recreate this object.
@@ -566,14 +583,14 @@ ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom, bool applyA
         D2D1_TRANSFORMED_IMAGE_SOURCE_OPTIONS_NONE
     };
 
-    ComPtr<ID2D1TransformedImageSource> source;
+    ComPtr<ID2D1TransformedImageSource> output;
 
     IFT(m_deviceResources->GetD2DDeviceContext()->CreateTransformedImageSource(
-        m_imageSource.Get(),
+        source,
         &props,
-        &source));
+        &output));
 
-    return source.Detach();
+    return output.Detach();
 }
 
 /// <summary>

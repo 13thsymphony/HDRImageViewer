@@ -139,7 +139,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     // after the effect as their numerical output is affected by any luminance boost.
     switch (m_renderEffectKind)
     {
-    // Effect graph: ImageSource > ColorManagement > WhiteScale > HDRTonemap > WhiteScale2*
+    // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > WhiteScale > HDRTonemap > WhiteScale2*
     case RenderEffectKind::HdrTonemap:
         if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
         {
@@ -153,31 +153,31 @@ void HDRImageViewerRenderer::SetRenderOptions(
         }
 
         m_sdrWhiteScaleEffect->SetInputEffect(0, m_hdrTonemapEffect.Get());
-        m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+        m_whiteScaleEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
         break;
 
-    // Effect graph: ImageSource > ColorManagement > WhiteScale
+    // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > WhiteScale
     case RenderEffectKind::None:
         m_finalOutput = m_whiteScaleEffect.Get();
-        m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+        m_whiteScaleEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
         break;
 
-    // Effect graph: ImageSource > ColorManagement > Heatmap > WhiteScale
+    // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > Heatmap > WhiteScale
     case RenderEffectKind::LuminanceHeatmap:
         m_finalOutput = m_whiteScaleEffect.Get();
         m_whiteScaleEffect->SetInputEffect(0, m_heatmapEffect.Get());
         break;
 
-    // Effect graph: ImageSource > ColorManagement > SdrOverlay > WhiteScale
+    // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > SdrOverlay > WhiteScale
     case RenderEffectKind::SdrOverlay:
         m_finalOutput = m_whiteScaleEffect.Get();
         m_whiteScaleEffect->SetInputEffect(0, m_sdrOverlayEffect.Get());
         break;
 
-    // Effect graph: ImageSource > ColorManagement > WhiteScale > SphereMap
+    // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > WhiteScale > SphereMap
     case RenderEffectKind::SphereMap:
         m_finalOutput = m_sphereMapEffect.Get();
-        m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+        m_whiteScaleEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
         break;
 
     default:
@@ -296,10 +296,11 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     auto d2dFactory = m_deviceResources->GetD2DFactory();
     auto context = m_deviceResources->GetD2DDeviceContext();
 
-    // Next, configure the app's effect pipeline, consisting of a color management effect
+    // Configure the app's effect pipeline, consisting of a color management effect
     // followed by a tone mapping effect.
 
     IFT(context->CreateEffect(CLSID_D2D1ColorManagement, &m_colorManagementEffect));
+    // The pipeline input is set in UpdateImageTransformState().
 
     IFT(m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_QUALITY,
@@ -322,12 +323,45 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
             D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT,
             destColorContext.Get()));
 
+    // Next, merge the Apple HDR gainmap with the main image to recover HDR highlights.
+    // This occurs after color management to scRGB but before any further stages which rely on HDR pixel data.
+    // The parameters of the gainmap are empirically determined:
+    // * 50% of the main image resolution
+    // * 8-bit grayscale linear gamma luminance data, but is not calibrated to any absolute scale
+    // * A value of 0.5f (or 128) is approximately equal to diffuse white in the scene
+    // * Naively multiplying the gainmap by the main image in linear RGB approximates the visual effect
+    //   in the iOS Photos app.
+
+    if (m_imageInfo.hasAppleHdrGainMap == true)
+    {
+        IFT(context->CreateEffect(CLSID_D2D1GammaTransfer, &m_gainmapLinearEffect));
+
+        // Approximate the linearization step by applying gamma of 1/2.2.
+        m_gainmapLinearEffect->SetValue(D2D1_GAMMATRANSFER_PROP_RED_EXPONENT, 1.f / 2.2f);
+        m_gainmapLinearEffect->SetValue(D2D1_GAMMATRANSFER_PROP_GREEN_EXPONENT, 1.f / 2.2f);
+        m_gainmapLinearEffect->SetValue(D2D1_GAMMATRANSFER_PROP_BLUE_EXPONENT, 1.f / 2.2f);
+
+        // Gain map input is set in UpdateImageTransformState().
+
+        IFT(context->CreateEffect(CLSID_D2D1ArithmeticComposite, &m_gainMapMergeEffect));
+
+        m_gainMapMergeEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+        m_gainMapMergeEffect->SetInputEffect(1, m_gainmapLinearEffect.Get());
+
+        // Coefficients A, B, C, D: Output = A*source*dest + B*source + C*dest + D.
+        m_gainMapMergeEffect->SetValue(D2D1_ARITHMETICCOMPOSITE_PROP_COEFFICIENTS, D2D1::Vector4F(1.0f, 0.5f, 0.0f, 0.0f));
+    }
+    else
+    {
+        IFT(m_colorManagementEffect.CopyTo(&m_gainMapMergeEffect)); // Pass-through.
+    }
+
     // White level scale is used to multiply the color values in the image; this allows the user
     // to adjust the brightness of the image on an HDR display.
     IFT(context->CreateEffect(CLSID_D2D1ColorMatrix, &m_whiteScaleEffect));
 
     // Input to white level scale may be modified in SetRenderOptions.
-    m_whiteScaleEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+    m_whiteScaleEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
 
     // Set the actual matrix in SetRenderOptions.
 
@@ -375,8 +409,8 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
 
     // For the following effects, we want white level scale to be applied after
     // tonemapping (otherwise brightness adjustments will affect numerical values).
-    m_heatmapEffect->SetInputEffect(0, m_colorManagementEffect.Get());
-    m_sdrOverlayEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+    m_heatmapEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
+    m_sdrOverlayEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
 
     // The remainder of the Direct2D effect graph is constructed in SetRenderOptions based on the
     // selected RenderEffectKind.
@@ -398,7 +432,7 @@ void HDRImageViewerRenderer::CreateHistogramResources()
 
     // The right place to compute HDR metadata is after color management to the
     // image's native colorspace but before any tonemapping or adjustments for the display.
-    m_histogramPrescale->SetInputEffect(0, m_colorManagementEffect.Get());
+    m_histogramPrescale->SetInputEffect(0, m_gainMapMergeEffect.Get());
 
     // 2. Convert scRGB data into luminance (nits).
     // 3. Normalize color values. Histogram operates on [0-1] numeric range,
@@ -465,6 +499,9 @@ void HDRImageViewerRenderer::ReleaseImageDependentResources()
     // m_imageLoader should not be reset. Confirm this is the only case we want to call this.
 
     m_loadedImage.Reset();
+    m_loadedGainMap.Reset();
+    m_gainmapLinearEffect.Reset();
+    m_gainMapMergeEffect.Reset();
     m_colorManagementEffect.Reset();
     m_whiteScaleEffect.Reset();
     m_sdrWhiteScaleEffect.Reset();
@@ -723,8 +760,14 @@ void HDRImageViewerRenderer::UpdateImageTransformState()
     if (m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
         // Set the new image as the new source to the effect pipeline.
-        m_loadedImage = m_imageLoader->GetLoadedImage(m_zoom);
+        m_loadedImage = m_imageLoader->GetLoadedImage(m_zoom, false);
         m_colorManagementEffect->SetInput(0, m_loadedImage.Get());
+
+        if (m_imageInfo.hasAppleHdrGainMap == true)
+        {
+            m_loadedGainMap = m_imageLoader->GetLoadedImage(m_zoom, true);
+            m_gainmapLinearEffect->SetInput(0, m_loadedGainMap.Get());
+        }
     }
 }
 
