@@ -47,8 +47,8 @@ namespace HDRImageViewerCS
         bool isImageValid;
         bool isWindowVisible;
         bool enableExperimentalTools;
-        bool enableGamutMap = true;
-        bool profileColorimetryOverride = true;
+        bool enableGamutMap;
+        bool profileColorimetryOverride;
         ImageLoaderOptions loaderOptions;
 
         ToolTip tooltip;
