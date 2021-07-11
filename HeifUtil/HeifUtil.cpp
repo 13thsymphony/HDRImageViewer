@@ -33,13 +33,46 @@ int main(int argc, WCHAR* argv[])
         }
     }
 
-
+    CComPtr<IWICImagingFactory> fact;
+    hr = CoCreateInstance(
+        CLSID_WICImagingFactory2,
+        nullptr,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&fact));
 
     DXRenderer::CHeifContext ctx;
     herr = heif_context_read_from_file(ctx.ptr, "input.heic", nullptr);
 
     DXRenderer::CHeifHandle mainHandle;
     herr = heif_context_get_primary_image_handle(ctx.ptr, &mainHandle.ptr);
+
+    // Decode the main image into WIC. This code is currently not used.
+
+    DXRenderer::CHeifImage mainImg;
+    herr = heif_decode_image(mainHandle.ptr, &mainImg.ptr, heif_colorspace_RGB, heif_chroma_interleaved_RGB, 0);
+
+    int mainWidth = heif_image_get_primary_width(mainImg.ptr);
+    int mainHeight = heif_image_get_primary_height(mainImg.ptr);
+    // Assuming 8bpc.
+
+    int mainStride = 0;
+    uint8_t* mainData = heif_image_get_plane(mainImg.ptr, heif_channel_interleaved, &mainStride);
+
+    CComPtr<IWICBitmap> mainBmpRaw;
+    hr = fact->CreateBitmapFromMemory(mainWidth, mainHeight, GUID_WICPixelFormat8bppGray, mainStride, mainStride * mainHeight, mainData, &mainBmpRaw);
+
+    CComPtr<IWICBitmapScaler> scaler;
+    hr = fact->CreateBitmapScaler(&scaler);
+    hr = scaler->Initialize(mainBmpRaw, mainWidth / 2, mainHeight / 2, WICBitmapInterpolationModeLinear); // Filtering is good enough for exact 2x2 downscale.
+
+    CComPtr<IWICFormatConverter> format;
+    hr = fact->CreateFormatConverter(&format);
+    hr = format->Initialize(scaler.p, GUID_WICPixelFormat8bppGray, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom);
+
+    CComPtr<IWICBitmap> mainBitmap;
+    hr = fact->CreateBitmapFromSource(format.p, WICBitmapCacheOnDemand, &mainBitmap);
+
+    // Get all of the auxiliary images.
 
     int countAux = heif_image_handle_get_number_of_auxiliary_images(mainHandle.ptr, 0);
     std::vector<heif_item_id> auxIds(countAux);
@@ -65,13 +98,6 @@ int main(int argc, WCHAR* argv[])
             int stride = 0;
             uint8_t* data = heif_image_get_plane(img.ptr, heif_channel_Y, &stride);
 
-            CComPtr<IWICImagingFactory> fact;
-            hr = CoCreateInstance(
-                CLSID_WICImagingFactory2,
-                nullptr,
-                CLSCTX_INPROC_SERVER,
-                IID_PPV_ARGS(&fact));
-
             CComPtr<IWICStream> stream;
             hr = fact->CreateStream(&stream);
             hr = stream->InitializeFromFilename(L"output.png", GENERIC_WRITE);
@@ -91,6 +117,18 @@ int main(int argc, WCHAR* argv[])
             hr = frame->Commit();
             hr = encoder->Commit();
             hr = stream->Commit(STGC_DEFAULT);
+
+            // Get main image pixels.. This code is currently unused.
+
+            CComPtr<IWICBitmapLock> scaleLock;
+            hr = mainBitmap->Lock(nullptr, GENERIC_READ, &scaleLock);
+            UINT mainWidth = 0, mainHeight = 0, mainStride = 0;
+            hr = scaleLock->GetSize(&mainWidth, &mainHeight);
+            if ((mainWidth != width) || (mainHeight != height)) return -1; // Assert.
+
+            hr = scaleLock->GetStride(&mainStride);
+            
+            std::vector<uint8_t> mainPixels(mainStride * mainHeight);
 
             // Immediately return once we have a gain map.
             return 0;
