@@ -343,13 +343,21 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
 
         // Gain map input is set in UpdateImageTransformState().
 
+        // This is treated as an HDR image, so we must use scene-referred luminance and read the system SDR white level.
+        IFT(context->CreateEffect(CLSID_D2D1WhiteLevelAdjustment, &m_gainmapRefWhiteEffect));
+        m_gainmapRefWhiteEffect->SetInputEffect(0, m_gainmapLinearEffect.Get());
+
+        auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
+        IFT(m_gainmapRefWhiteEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, sdrWhite));
+        IFT(m_gainmapRefWhiteEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
+
         IFT(context->CreateEffect(CLSID_D2D1ArithmeticComposite, &m_gainMapMergeEffect));
 
         m_gainMapMergeEffect->SetInputEffect(0, m_colorManagementEffect.Get());
-        m_gainMapMergeEffect->SetInputEffect(1, m_gainmapLinearEffect.Get());
+        m_gainMapMergeEffect->SetInputEffect(1, m_gainmapRefWhiteEffect.Get());
 
         // Coefficients A, B, C, D: Output = A*source*dest + B*source + C*dest + D.
-        m_gainMapMergeEffect->SetValue(D2D1_ARITHMETICCOMPOSITE_PROP_COEFFICIENTS, D2D1::Vector4F(1.0f, 0.5f, 0.0f, 0.0f));
+        m_gainMapMergeEffect->SetValue(D2D1_ARITHMETICCOMPOSITE_PROP_COEFFICIENTS, D2D1::Vector4F(2.f, 0.0f, 0.0f, 0.0f));
     }
     else
     {
@@ -501,6 +509,7 @@ void HDRImageViewerRenderer::ReleaseImageDependentResources()
     m_loadedImage.Reset();
     m_loadedGainMap.Reset();
     m_gainmapLinearEffect.Reset();
+    m_gainmapRefWhiteEffect.Reset();
     m_gainMapMergeEffect.Reset();
     m_colorManagementEffect.Reset();
     m_whiteScaleEffect.Reset();
@@ -664,6 +673,13 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
     case AdvancedColorKind::HighDynamicRange:
         // HDR content should not be compensated by the SdrWhiteLevel parameter.
         scale = 1.0f;
+
+        // HDR gainmaps DO need to be adjusted to the SDR white level, but we use a special purpose effect
+        // rather than using the generic white level scale below.
+        if (m_imageInfo.hasAppleHdrGainMap)
+        {
+            IFT(m_gainmapRefWhiteEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, sdrWhiteLevel));
+        }
         break;
 
     case AdvancedColorKind::StandardDynamicRange:
