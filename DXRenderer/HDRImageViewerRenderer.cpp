@@ -29,7 +29,7 @@ HDRImageViewerRenderer::HDRImageViewerRenderer(
     m_minZoom(1.0f), // Dynamically calculated on window size.
     m_imageOffset(),
     m_pointerPos(),
-    m_imageCLL{ -1.0f, -1.0f },
+    m_imageCLL{ -1.0f, -1.0f, false },
     m_brightnessAdjust(1.0f),
     m_dispMaxCLLOverride(0.0f),
     m_imageInfo{},
@@ -196,16 +196,12 @@ void HDRImageViewerRenderer::SetRenderOptions(
 
     // Very low input max luminance can produce unexpected rendering behavior. Restrict to
     // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
-    maxCLL = max(maxCLL, 0.5f * targetMaxNits);
+    maxCLL = max(maxCLL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL);
 
     IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
 
-    // The Direct2D tonemapper optimizes for HDR or SDR displays; the custom tonemapper ignores this hint.
-    D2D1_HDRTONEMAP_DISPLAY_MODE mode =
-        m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange ?
-        D2D1_HDRTONEMAP_DISPLAY_MODE_HDR : D2D1_HDRTONEMAP_DISPLAY_MODE_SDR;
-
-    IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, mode));
+    // Don't use the SDR display tone mapper mode as it raises midtones a lot.
+    IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_HDR));
 
     // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
     if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
@@ -213,8 +209,9 @@ void HDRImageViewerRenderer::SetRenderOptions(
         // Both the D2D and custom HDR tonemappers output values in scRGB using scene-referred luminance - a typical SDR display will
         // be around numeric range [0.0, 3.0] corresponding to [0, 240 nits]. To encode correctly for an SDR/WCG display
         // output, we must reinterpret the scene-referred input content (80 nits) as display-referred (targetMaxNits).
+        // Some HDR images are dimmer than targetMaxNits, in those cases the tonemapper basically passes through.
         IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL));
-        IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, targetMaxNits));
+        IFT(m_sdrWhiteScaleEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_OUTPUT_WHITE_LEVEL, min(targetMaxNits, maxCLL)));
     }
 
     // If the gamut map conversion is enabled, insert the 2 color matrix effects needed to perform that operation.
@@ -331,7 +328,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // * A value of 0.5f (or 128) is approximately equal to diffuse white in the scene
     // * Naively multiplying the gainmap by the main image in linear RGB approximates the visual effect
     //   in the iOS Photos app.
-
+    
     if (m_imageInfo.hasAppleHdrGainMap == true)
     {
         IFT(context->CreateEffect(CLSID_D2D1GammaTransfer, &m_gainmapLinearEffect));
@@ -671,14 +668,16 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
     switch (m_imageInfo.imageKind)
     {
     case AdvancedColorKind::HighDynamicRange:
-        // HDR content should not be compensated by the SdrWhiteLevel parameter.
-        scale = 1.0f;
-
-        // HDR gainmaps DO need to be adjusted to the SDR white level, but we use a special purpose effect
-        // rather than using the generic white level scale below.
-        if (m_imageInfo.hasAppleHdrGainMap)
+        // HDR gainmaps are output-referred and do need to be compensated by SdrWhiteLevel.
+        if (m_imageInfo.hasAppleHdrGainMap == true)
         {
-            IFT(m_gainmapRefWhiteEffect->SetValue(D2D1_WHITELEVELADJUSTMENT_PROP_INPUT_WHITE_LEVEL, sdrWhiteLevel));
+            scale = sdrWhiteLevel / D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
+        }
+        else
+        {
+            // Scene-referred luminance content should not be compensated by the SdrWhiteLevel parameter.
+            // Most HDR images fall into this category.
+            scale = 1.0f;
         }
         break;
 
@@ -709,11 +708,11 @@ void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, f
 D2D1_MATRIX_5X4_F MatrixToD2D(Matrix m)
 {
     return D2D1::Matrix5x4F(
-        m.M[0], m.M[1], m.M[2], 0,
-        m.M[3], m.M[4], m.M[5], 0,
-        m.M[6], m.M[7], m.M[8], 0,
-             0,      0,      0, 1,
-             0,      0,      0, 0 );
+        (float)m.M[0], (float)m.M[1], (float)m.M[2], 0,
+        (float)m.M[3], (float)m.M[4], (float)m.M[5], 0,
+        (float)m.M[6], (float)m.M[7], (float)m.M[8], 0,
+                    0,             0,             0, 1,
+                    0,             0,             0, 0 );
 
 }
 
@@ -793,7 +792,7 @@ void HDRImageViewerRenderer::UpdateImageTransformState()
 void HDRImageViewerRenderer::ComputeHdrMetadata()
 {
     // Initialize with a sentinel value.
-    m_imageCLL = { -1.0f, -1.0f };
+    m_imageCLL = { -1.0f, -1.0f, false };
 
     // HDR metadata is not meaningful for SDR or WCG images.
     if ((!m_isComputeSupported) ||
@@ -853,13 +852,25 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
     m_imageCLL.maxNits = powf(binNormMax, 1 / sc_histGamma) * sc_histMaxNits;
 
     float binNormAvg = static_cast<float>(avgCLLbin) / static_cast<float>(sc_histNumBins);
-    m_imageCLL.medNits = powf(binNormAvg, 1 / sc_histGamma) * sc_histMaxNits;
+    m_imageCLL.medianNits = powf(binNormAvg, 1 / sc_histGamma) * sc_histMaxNits;
 
     // Some drivers have a bug where histogram will always return 0. Or some images are pure black.
     // Treat these cases as unknown.
     if (m_imageCLL.maxNits == 0.0f)
     {
         m_imageCLL = { -1.0f, -1.0f };
+    }
+
+    // Certain HDR image types use recovered luminance and therefore are display/output-referred.
+    // You can't interpret the histogram for these images as physical nits; they are only useful
+    // to understand relative intensity.
+    if (m_imageInfo.hasAppleHdrGainMap == true)
+    {
+        m_imageCLL.isSceneReferred = false;
+    }
+    else
+    {
+        m_imageCLL.isSceneReferred = true;
     }
 
     // HDR metadata computation is completed before the app rendering options are known, so don't
@@ -869,54 +880,8 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
 // Set HDR10 metadata to allow HDR displays to optimize behavior based on our content.
 void HDRImageViewerRenderer::EmitHdrMetadata()
 {
-    auto acKind = m_dispInfo ? m_dispInfo->CurrentAdvancedColorKind : AdvancedColorKind::StandardDynamicRange;
-
-    if (acKind == AdvancedColorKind::HighDynamicRange)
-    {
-        DXGI_HDR_METADATA_HDR10 metadata = {};
-
-        // This sample doesn't do any chrominance (e.g. xy) gamut mapping, so just use default
-        // color primaries values; a more sophisticated app will explicitly set these.
-        // DXGI_HDR_METADATA_HDR10 defines primaries as 1/50000 of a unit in xy space.
-        metadata.RedPrimary[0]   = static_cast<UINT16>(m_dispInfo->RedPrimary.X   * 50000.0f);
-        metadata.RedPrimary[1]   = static_cast<UINT16>(m_dispInfo->RedPrimary.Y   * 50000.0f);
-        metadata.GreenPrimary[0] = static_cast<UINT16>(m_dispInfo->GreenPrimary.X * 50000.0f);
-        metadata.GreenPrimary[1] = static_cast<UINT16>(m_dispInfo->GreenPrimary.Y * 50000.0f);
-        metadata.BluePrimary[0]  = static_cast<UINT16>(m_dispInfo->BluePrimary.X  * 50000.0f);
-        metadata.BluePrimary[1]  = static_cast<UINT16>(m_dispInfo->BluePrimary.Y  * 50000.0f);
-        metadata.WhitePoint[0]   = static_cast<UINT16>(m_dispInfo->WhitePoint.X   * 50000.0f);
-        metadata.WhitePoint[1]   = static_cast<UINT16>(m_dispInfo->WhitePoint.Y   * 50000.0f);
-
-        float effectiveMaxCLL = 0;
-
-        switch (m_renderEffectKind)
-        {
-        case RenderEffectKind::None:
-            effectiveMaxCLL = max(m_imageCLL.maxNits, 0.0f) * m_brightnessAdjust;
-            break;
-
-        case RenderEffectKind::HdrTonemap:
-            effectiveMaxCLL = GetBestDispMaxLuminance() * m_brightnessAdjust;
-            break;
-
-        default:
-            effectiveMaxCLL = m_dispInfo->SdrWhiteLevelInNits * m_brightnessAdjust;
-            break;
-        }
-
-        // DXGI_HDR_METADATA_HDR10 defines MaxCLL in integer nits.
-        metadata.MaxContentLightLevel = static_cast<UINT16>(effectiveMaxCLL);
-
-        // The luminance analysis doesn't calculate MaxFrameAverageLightLevel. We also don't have mastering
-        // information (i.e. reference display in a studio), so Min/MaxMasteringLuminance is not relevant.
-        // Leave these values as 0.
-
-        auto sc = m_deviceResources->GetSwapChain();
-
-        ComPtr<IDXGISwapChain4> sc4;
-        IFT(sc->QueryInterface(IID_PPV_ARGS(&sc4)));
-        IFT(sc4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(metadata), &metadata));
-    }
+    // PC apps generally should not use HDR ST.2086 metadata.
+    return;
 }
 
 // If AdvancedColorInfo does not have valid data, picks an appropriate default value,

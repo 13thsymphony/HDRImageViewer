@@ -1,9 +1,9 @@
 #pragma once
 
-static const float sc_DefaultHdrDispMaxNits = 1499.0f; // Experimentally chosen for compatibility with 2018 TVs.
-static const float sc_DefaultSdrDispMaxNits = 270.0f; // Experimentally chosen based on typical SDR displays.
-static const float sc_DefaultImageMaxCLL = 1000.0f; // Needs more tuning based on real world content.
-static const float sc_DefaultImageMedCLL = 200.0f; // Needs more tuning based on real world content.
+static const float sc_DefaultHdrDispMaxNits = 600.0f; // Conservative default, prevents egregious behavior on low spec displays.
+static const float sc_DefaultSdrDispMaxNits = 203.0f; // Based on BT.2100 recommended SDR viewing conditions.
+static const float sc_DefaultImageMaxCLL = 600.0f; // Needs more tuning based on real world content.
+static const float sc_DefaultImageMedCLL = 80.0f; // Needs more tuning based on real world content.
 static const float sc_MaxZoom = 1.0f; // Restrict max zoom to 1:1 scale.
 static const float sc_MinZoomSphereMap = 0.25f;
 

@@ -19,6 +19,8 @@ namespace DXRenderer
     public value struct ImageCLL
     {
         float   maxNits;
-        float   medNits;
+        float   medianNits;
+        bool    isSceneReferred; // If False, the CLL values are not calibrated to actual nits
+                                 // should only be used to understand relative intensity of the image.
     };
 }

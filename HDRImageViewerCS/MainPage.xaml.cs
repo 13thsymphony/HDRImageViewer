@@ -66,7 +66,7 @@ namespace HDRImageViewerCS
 
             isWindowVisible = true;
             isImageValid = false;
-            imageCLL.maxNits = imageCLL.medNits = -1.0f;
+            imageCLL.maxNits = imageCLL.medianNits = -1.0f;
 
             // Register event handlers for page lifecycle.
             var window = Window.Current.CoreWindow;
@@ -354,34 +354,6 @@ namespace HDRImageViewerCS
             SetExperimentalTools(!enableExperimentalTools);
         }
 
-        private void ToggleGamutMap(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-        {
-            if (!enableExperimentalTools) return;
-
-            if (WorkaroundShouldIgnoreAccelerator()) return;
-
-            enableGamutMap = !enableGamutMap;
-
-            UpdateRenderOptions();
-
-            Gamutmap.Text = UIStrings.LABEL_GAMUTMAP + (enableGamutMap ? "on" : "off");
-        }
-
-        private void ToggleProfileOverride(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-        {
-            if (!enableExperimentalTools) return;
-
-            if (WorkaroundShouldIgnoreAccelerator()) return;
-
-            profileColorimetryOverride = !profileColorimetryOverride;
-
-            ProfileOverride.Text = UIStrings.LABEL_PROFILEOVERRIDE + (profileColorimetryOverride ? "on (SDR only)" : "off");
-
-            ScrapeColorProfile();
-
-            UpdateRenderOptions();
-        }
-
         private void ScrapeColorProfile()
         {
 
@@ -487,8 +459,7 @@ namespace HDRImageViewerCS
             ImageBitDepth.Text = UIStrings.LABEL_BITDEPTH + imageInfo.bitsPerChannel;
             ImageIsFloat.Text = UIStrings.LABEL_FLOAT + (imageInfo.isFloat ? UIStrings.LABEL_YES : UIStrings.LABEL_NO);
 
-            // TODO: Should we treat the 0 nit case as N/A as well? A fully black image would be known to have 0 CLL, which is valid...
-            if (imageCLL.maxNits < 0.0f)
+            if (imageCLL.maxNits < 0.0f || imageCLL.isSceneReferred == false)
             {
                 ImageMaxCLL.Text = UIStrings.LABEL_MAXCLL + UIStrings.LABEL_NA;
             }
@@ -497,13 +468,13 @@ namespace HDRImageViewerCS
                 ImageMaxCLL.Text = UIStrings.LABEL_MAXCLL + imageCLL.maxNits.ToString("N1") + UIStrings.LABEL_LUMINANCE_NITS;
             }
 
-            if (imageCLL.medNits < 0.0f)
+            if (imageCLL.medianNits < 0.0f || imageCLL.isSceneReferred == false)
             {
                 ImageMedianCLL.Text = UIStrings.LABEL_MEDCLL + UIStrings.LABEL_NA;
             }
             else
             {
-                ImageMedianCLL.Text = UIStrings.LABEL_MEDCLL + imageCLL.medNits.ToString("N1") + UIStrings.LABEL_LUMINANCE_NITS;
+                ImageMedianCLL.Text = UIStrings.LABEL_MEDCLL + imageCLL.medianNits.ToString("N1") + UIStrings.LABEL_LUMINANCE_NITS;
             }
 
             // Image loading is done at this point.
@@ -751,6 +722,30 @@ namespace HDRImageViewerCS
                 renderer.SetTargetCpuReadbackSupport(false);
                 tooltip.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void GamutMapCheckbox_Click(object sender, RoutedEventArgs e)
+        {
+            if (!enableExperimentalTools) return;
+
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
+            enableGamutMap = GamutMapCheckbox.IsChecked == true ? true : false;
+
+            UpdateRenderOptions();
+        }
+
+        private void DispProfileOverride_Click(object sender, RoutedEventArgs e)
+        {
+            if (!enableExperimentalTools) return;
+
+            if (WorkaroundShouldIgnoreAccelerator()) return;
+
+            profileColorimetryOverride = DispProfileOverride.IsChecked == true ? true : false;
+
+            ScrapeColorProfile();
+
+            UpdateRenderOptions();
         }
     }
 }
