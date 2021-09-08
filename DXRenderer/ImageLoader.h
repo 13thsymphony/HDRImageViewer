@@ -51,16 +51,43 @@ namespace DXRenderer
         ~CPropVariant() { PropVariantClear(this); }
     };
 
+    public enum class ImageLoaderOptionsType
+    {
+        NoOverrides,
+        ForceBT2100,
+        CustomSdrColorSpace
+    };
+
+    // Loosely corresponds to D2D1_GAMMA1
+    public enum class CustomGamma
+    {
+        Gamma22,
+        Gamma10,
+        // Gamma2084 // Not supported since we treat this as SDR anyway.
+    };
+
+    // Corresponds to D2D1_SIMPLE_COLOR_PROFILE
+    [Windows::Foundation::Metadata::WebHostHidden]
+    public value struct CustomSdrColorSpace
+    {
+        Windows::Foundation::Point red; // xy.
+        Windows::Foundation::Point green; // xy.
+        Windows::Foundation::Point blue; // xy.
+        Windows::Foundation::Point whitePt_XZ; // XZ normalized to Y.
+        CustomGamma Gamma;
+    };
+
     [Windows::Foundation::Metadata::WebHostHidden]
     public value struct ImageLoaderOptions
     {
-        bool ForceBT2100;
+        ImageLoaderOptionsType type;
+        CustomSdrColorSpace customColor;
     };
 
     class ImageLoader
     {
     public:
-        ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources, ImageLoaderOptions options);
+        ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources, ImageLoaderOptions& options);
         ~ImageLoader();
 
         ImageLoaderState GetState() const { return m_state; };
@@ -145,6 +172,7 @@ namespace DXRenderer
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
         ImageLoaderOptions                                      m_options;
+        D2D1_SIMPLE_COLOR_PROFILE                               m_customColorProfile;
 
         // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
         Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;

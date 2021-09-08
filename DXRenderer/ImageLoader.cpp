@@ -15,10 +15,11 @@ using namespace Windows::Graphics::Display;
 
 static const unsigned int sc_MaxBytesPerPixel = 16; // Covers all supported image formats (128bpp).
 
-ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources, ImageLoaderOptions options) :
+ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources, ImageLoaderOptions& options) :
     m_deviceResources(deviceResources),
     m_state(ImageLoaderState::NotInitialized),
     m_imageInfo{},
+    m_customColorProfile{},
     m_options(options),
     // Data extracted from Xbox console HDR screen capture image
     m_xboxHdrIccSize(2676),
@@ -206,10 +207,36 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 {
     EnforceStates(1, ImageLoaderState::NotInitialized);
 
-    // Overrides apply to all images
-    if (m_options.ForceBT2100 == true)
+    // Overrides apply to all images.
+    switch (m_options.type)
     {
+    case ImageLoaderOptionsType::ForceBT2100:
         m_imageInfo.forceBT2100ColorSpace = true;
+        break;
+
+    case ImageLoaderOptionsType::CustomSdrColorSpace:
+        m_imageInfo.overridenColorProfile = true;
+        m_customColorProfile.redPrimary = D2D1::Point2F(m_options.customColor.red.X, m_options.customColor.red.Y);
+        m_customColorProfile.greenPrimary = D2D1::Point2F(m_options.customColor.green.X, m_options.customColor.green.Y);
+        m_customColorProfile.bluePrimary = D2D1::Point2F(m_options.customColor.blue.X, m_options.customColor.blue.Y);
+        m_customColorProfile.whitePointXZ = D2D1::Point2F(m_options.customColor.whitePt_XZ.X, m_options.customColor.whitePt_XZ.Y);
+
+        switch (m_options.customColor.Gamma)
+        {
+        case CustomGamma::Gamma10:
+            m_customColorProfile.gamma = D2D1_GAMMA1_G10;
+            break;
+
+        case CustomGamma::Gamma22:
+        default:
+            m_customColorProfile.gamma = D2D1_GAMMA1_G22;
+            break;
+        }
+
+        break;
+
+    default:
+        break;
     }
 
     auto wicFactory = m_deviceResources->GetWicImagingFactory();
@@ -248,6 +275,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     else
     {
         // Attempt to read the embedded color profile from the image; only valid for WIC images.
+        // If CustomSdrColorSpace is set, any WIC profile is ignored.
         ComPtr<IWICBitmapFrameDecode> frame;
         if (SUCCEEDED(source->QueryInterface(IID_PPV_ARGS(&frame))))
         {
@@ -532,7 +560,12 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
 
         IFT(colorContext1.As(&m_colorContext));
     }
-    // If the image contains an embedded color profile, use it.
+    else if (m_imageInfo.overridenColorProfile)
+    {
+        ComPtr<ID2D1ColorContext1> color1;
+        IFT(context->CreateColorContextFromSimpleColorProfile(m_customColorProfile, &color1));
+        IFT(color1.As(&m_colorContext));
+    }
     else if (m_imageInfo.numProfiles >= 1)
     {
         IFT(context->CreateColorContextFromWicColorContext(
@@ -596,6 +629,7 @@ ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom, bool select
 /// <summary>
 /// Gets the color context of the image.
 /// </summary>
+/// <returns>Guaranteed to be a valid color context.</returns>
 ID2D1ColorContext* ImageLoader::GetImageColorContext()
 {
     EnforceStates(1, ImageLoaderState::LoadingSucceeded);

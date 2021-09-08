@@ -14,6 +14,7 @@ namespace DXRenderer
         bool                                            isValid;
         bool                                            isHeif;
         bool                                            hasAppleHdrGainMap;
+        bool                                            overridenColorProfile;
     };
 
     public value struct ImageCLL
