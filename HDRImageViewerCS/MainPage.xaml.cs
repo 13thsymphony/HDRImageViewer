@@ -32,6 +32,7 @@ namespace HDRImageViewerCS
         public string initialFileToken; // StorageItemAccessList token
         public ErrorDialogType errorType; // If this is not DefaultValue, triggers the error dialog.
         public string errorFilename; // Only use this if ErrorDialogType is InvalidFile.
+        public string rawCommandLine;
     }
 
     /// <summary>
@@ -52,6 +53,7 @@ namespace HDRImageViewerCS
         bool enableGamutMap;
         bool profileColorimetryOverride;
         ImageLoaderOptions loaderOptions;
+        string commandLine;
 
         ToolTip tooltip;
         RenderOptionsViewModel viewModel;
@@ -114,6 +116,20 @@ namespace HDRImageViewerCS
             UpdateDisplayACState(acInfo);
         }
 
+        private void SetWindowTitle(string message)
+        {
+            if (ApplicationView.GetForCurrentView() == null) return;
+
+            if (commandLine != null)
+            {
+                ApplicationView.GetForCurrentView().Title = message + " (" + commandLine + ")";
+            }
+            else
+            {
+                ApplicationView.GetForCurrentView().Title = message;
+            }
+        }
+
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -121,6 +137,10 @@ namespace HDRImageViewerCS
             if (e.Parameter.GetType() == typeof(DXViewerLaunchArgs))
             {
                 var args = (DXViewerLaunchArgs)e.Parameter;
+
+                commandLine = args.rawCommandLine;
+
+                SetWindowTitle("");
 
                 if (args.hasCustomColorSpace)
                 {
@@ -462,7 +482,7 @@ namespace HDRImageViewerCS
             renderer.CreateImageDependentResources();
             imageCLL = renderer.FitImageToWindow(true); // On first load of image, need to generate HDR metadata.
 
-            ApplicationView.GetForCurrentView().Title = imageFile.Name;
+            SetWindowTitle(imageFile.Name);
             ImageACKind.Text = UIStrings.LABEL_ACKIND + UIStrings.ConvertACKindToString(imageInfo.imageKind);
             ImageHasProfile.Text = UIStrings.LABEL_COLORPROFILE + (imageInfo.numProfiles > 0 ? UIStrings.LABEL_YES : UIStrings.LABEL_NO);
             ImageBitDepth.Text = UIStrings.LABEL_BITDEPTH + imageInfo.bitsPerChannel;

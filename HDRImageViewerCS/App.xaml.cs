@@ -60,6 +60,8 @@ namespace HDRImageViewerCS
             if (activatedArgs.Kind == ActivationKind.CommandLineLaunch)
             {
                 var cmd = (CommandLineActivatedEventArgs)activatedArgs;
+                launchArgs.rawCommandLine = cmd.Operation.Arguments;
+
                 var cmdArgs = cmd.Operation.Arguments.Split(' ');
 
                 var inputArgString = "-input:";
