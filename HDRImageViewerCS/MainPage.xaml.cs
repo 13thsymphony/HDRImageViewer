@@ -27,6 +27,8 @@ namespace HDRImageViewerCS
         public bool useFullscreen;
         public bool hideUI;
         public bool forceBT2100;
+        public bool hasCustomColorSpace;
+        public DXRenderer.CustomSdrColorSpace customColorSpace;
         public string initialFileToken; // StorageItemAccessList token
         public ErrorDialogType errorType; // If this is not DefaultValue, triggers the error dialog.
         public string errorFilename; // Only use this if ErrorDialogType is InvalidFile.
@@ -120,9 +122,16 @@ namespace HDRImageViewerCS
             {
                 var args = (DXViewerLaunchArgs)e.Parameter;
 
+                if (args.hasCustomColorSpace)
+                {
+                    loaderOptions.type = ImageLoaderOptionsType.CustomSdrColorSpace;
+                    loaderOptions.customColorSpace = args.customColorSpace;
+                }
+
+                // Force BT.2100 overrides any custom profile.
                 if (args.forceBT2100)
                 {
-                    loaderOptions.ForceBT2100 = true;
+                    loaderOptions.type = ImageLoaderOptionsType.ForceBT2100;
                 }
 
                 if (args.hideUI)

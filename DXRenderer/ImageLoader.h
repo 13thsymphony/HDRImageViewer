@@ -81,7 +81,7 @@ namespace DXRenderer
     public value struct ImageLoaderOptions
     {
         ImageLoaderOptionsType type;
-        CustomSdrColorSpace customColor;
+        CustomSdrColorSpace customColorSpace;
     };
 
     class ImageLoader

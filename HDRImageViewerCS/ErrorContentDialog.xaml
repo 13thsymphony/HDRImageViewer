@@ -14,12 +14,17 @@
         <TextBlock x:Name="NeedHevcText" TextWrapping="WrapWholeWords" Visibility="Collapsed">You need the HEVC codec to view this image.<LineBreak /><Hyperlink NavigateUri="ms-windows-store://pdp/?ProductId=9NMZLZ57R3T7">Obtain the codec on the Windows Store (requires a purchase).</Hyperlink></TextBlock>
         <TextBlock x:Name="NeedAv1Text" TextWrapping="WrapWholeWords" Visibility="Collapsed">You need the AV1 codec to view this image.<LineBreak /><Hyperlink NavigateUri="ms-windows-store://pdp/?ProductId=9MVZQVXJBQ9V">Obtain the codec on the Windows Store.</Hyperlink></TextBlock>
         <TextBlock x:Name="CmdArgsText" TextWrapping="NoWrap" Visibility="Collapsed">
-            <Italic>HDRImageViewer.exe -f -h -forcebt2100 -input:filename</Italic><LineBreak /><LineBreak />
+            <Italic>HDRImageViewer.exe -f -h -forcebt2100 -input:filename -colorprofile:data</Italic><LineBreak /><LineBreak />
             -f: Start in fullscreen mode<LineBreak />
             -h: Start with UI hidden<LineBreak />
             -forcebt2100: Force images to use BT.2100 PQ<LineBreak />
             -input:[filename] Open filename<LineBreak />
-            (path must be relative to working directory)
+              <Run Text="    (path must be relative to working directory)" /><LineBreak />
+            -colorprofile:[data] use custom color space<LineBreak />
+              <Italic><Run Text="    [data]=r_x,r_y,g_x,g_y,b_x,b_y,w_X,w_Z,gamma" /></Italic><LineBreak />
+              <Run Text="    red/green/blue primaries: x and y in CIExyY" /><LineBreak />
+              <Run Text="    white point: X and Z in CIEXYZ, normalized to Y = 1" /><LineBreak />
+              <Run Text="    gamma: 0 for 2.2/sRGB, 1 for 1.0/linear" />
         </TextBlock>
     </StackPanel>
 </ContentDialog>

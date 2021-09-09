@@ -63,6 +63,7 @@ namespace HDRImageViewerCS
                 var cmdArgs = cmd.Operation.Arguments.Split(' ');
 
                 var inputArgString = "-input:";
+                var customColorProfileString = "-colorprofile:";
 
                 // Ignore the first argument which is always the "executable" name.
                 // This also ensures that just invoking the executable without arguments succeeds.
@@ -97,6 +98,45 @@ namespace HDRImageViewerCS
                             launchArgs.initialFileToken = null;
                             launchArgs.errorFilename = fullPath;
                         }
+                    }
+                    else if (cmdArgs[i].StartsWith(customColorProfileString, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        char[] splitters = { ',', ':' };
+                        var rawValues = cmdArgs[i].Substring(inputArgString.Length).Split(splitters);
+
+                        try
+                        {
+                            launchArgs.customColorSpace.red.X        = double.Parse(rawValues[1]);
+                            launchArgs.customColorSpace.red.Y        = double.Parse(rawValues[2]);
+                            launchArgs.customColorSpace.green.X      = double.Parse(rawValues[3]);
+                            launchArgs.customColorSpace.green.Y      = double.Parse(rawValues[4]);
+                            launchArgs.customColorSpace.blue.X       = double.Parse(rawValues[5]);
+                            launchArgs.customColorSpace.blue.Y       = double.Parse(rawValues[6]);
+                            launchArgs.customColorSpace.whitePt_XZ.X = double.Parse(rawValues[7]);
+                            launchArgs.customColorSpace.whitePt_XZ.Y = double.Parse(rawValues[8]);
+
+                            switch (int.Parse(rawValues[9]))
+                            {
+                                case 0:
+                                    launchArgs.customColorSpace.Gamma = DXRenderer.CustomGamma.Gamma22;
+                                    break;
+
+                                case 1:
+                                    launchArgs.customColorSpace.Gamma = DXRenderer.CustomGamma.Gamma10;
+                                    break;
+
+                                default:
+                                    launchArgs.customColorSpace.Gamma = DXRenderer.CustomGamma.Gamma22;
+                                    break;
+                            }
+                        }
+                        catch
+                        {
+                            launchArgs.errorType |= ErrorDialogType.InvalidCmdArgs;
+                            return;
+                        }
+
+                        launchArgs.hasCustomColorSpace = true;
                     }
                     else // All other tokens are invalid.
                     {

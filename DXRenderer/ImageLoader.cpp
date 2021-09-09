@@ -216,12 +216,12 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
 
     case ImageLoaderOptionsType::CustomSdrColorSpace:
         m_imageInfo.overridenColorProfile = true;
-        m_customColorProfile.redPrimary = D2D1::Point2F(m_options.customColor.red.X, m_options.customColor.red.Y);
-        m_customColorProfile.greenPrimary = D2D1::Point2F(m_options.customColor.green.X, m_options.customColor.green.Y);
-        m_customColorProfile.bluePrimary = D2D1::Point2F(m_options.customColor.blue.X, m_options.customColor.blue.Y);
-        m_customColorProfile.whitePointXZ = D2D1::Point2F(m_options.customColor.whitePt_XZ.X, m_options.customColor.whitePt_XZ.Y);
+        m_customColorProfile.redPrimary = D2D1::Point2F(m_options.customColorSpace.red.X, m_options.customColorSpace.red.Y);
+        m_customColorProfile.greenPrimary = D2D1::Point2F(m_options.customColorSpace.green.X, m_options.customColorSpace.green.Y);
+        m_customColorProfile.bluePrimary = D2D1::Point2F(m_options.customColorSpace.blue.X, m_options.customColorSpace.blue.Y);
+        m_customColorProfile.whitePointXZ = D2D1::Point2F(m_options.customColorSpace.whitePt_XZ.X, m_options.customColorSpace.whitePt_XZ.Y);
 
-        switch (m_options.customColor.Gamma)
+        switch (m_options.customColorSpace.Gamma)
         {
         case CustomGamma::Gamma10:
             m_customColorProfile.gamma = D2D1_GAMMA1_G10;
