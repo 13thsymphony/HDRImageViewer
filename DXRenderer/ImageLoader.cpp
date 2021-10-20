@@ -575,14 +575,14 @@ bool ImageLoader::TryLoadAppleHdrGainMapJpegMpo(IStream* imageStream, IWICBitmap
     UINT count = 0;
     IFRF(blockReader->GetCount(&count));
 
-    LARGE_INTEGER secondImageStart = {};
+    ULARGE_INTEGER gainmapOffset = {};
 
+    // WIC doesn't natively understand the APP2 MPF block so we have to iterate and look for it ourselves.
     for (UINT i = 0; i < count; i++)
     {
         ComPtr<IWICMetadataReader> reader;
         IFRF(blockReader->GetReaderByIndex(i, &reader));
 
-        // WIC doesn't natively understand the APP2 block.
         // NOTE: From this point in the loop, any failures should just continue to the next block.
         GUID metaFmt = {};
         IFRF(reader->GetMetadataFormat(&metaFmt));
@@ -597,8 +597,8 @@ bool ImageLoader::TryLoadAppleHdrGainMapJpegMpo(IStream* imageStream, IWICBitmap
         assert(m_appleApp2MPBlockMagicOffset < value.blob.cbSize);
 
         // The known APP2 header specifies Big Endian.
-        LARGE_INTEGER temp = {};
-        temp.QuadPart =
+        ULARGE_INTEGER tempOffset = {};
+        tempOffset.QuadPart =
             value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 0] << 24 |
             value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 1] << 16 |
             value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 2] << 8  |
@@ -611,33 +611,53 @@ bool ImageLoader::TryLoadAppleHdrGainMapJpegMpo(IStream* imageStream, IWICBitmap
             value.blob.pBlobData[m_appleApp2MPBlockDynamicBytes[j]] = 0xFF;
         }
 
+        // A not so robust check against magic values since this is much simpler than a true parser.
         if (memcmp(value.blob.pBlobData, m_appleApp2MPBlock, sizeof(m_appleApp2MPBlock)) != 0) continue;
 
         // If we get here we've validated all of the data we can in the primary image and should move to the second image.
-        secondImageStart = temp;
+        gainmapOffset = tempOffset;
         break;
     }
 
-    if (secondImageStart.QuadPart == 0) return false;
+    if (gainmapOffset.QuadPart == 0) return false;
 
+    // Initialize the secondary image (HDR gainmap) and validate it.
     // TODO: Apple MPO images may have a gap between the primary image EOI and second image SOI.
     ULARGE_INTEGER ignore = {};
-    IFRF(imageStream->Seek(secondImageStart, STREAM_SEEK_SET, &ignore)); // TODO: Is it safe to have two decoders partying on the same stream?
+    STATSTG stats = {};
+    IFRF(imageStream->Stat(&stats, STATFLAG_NONAME));
 
-    ComPtr<IWICBitmapDecoder> gmDecoder;
-    IFRF(fact->CreateDecoderFromStream(imageStream, nullptr, WICDecodeMetadataCacheOnDemand, &gmDecoder));
-    ComPtr<IWICBitmapFrameDecode> gmFrame;
-    IFRF(gmDecoder->GetFrame(0, &gmFrame));
-    UINT w, h;
-    IFRF(gmFrame->GetSize(&w, &h));
-    WICPixelFormatGUID pix = {};
-    IFRF(gmFrame->GetPixelFormat(&pix));
-    ComPtr<IWICMetadataQueryReader> gmQuery;
-    IFRF(gmFrame->GetMetadataQueryReader(&gmQuery));
-    CPropVariant gmXmp;
-    HRESULT hr = gmQuery->GetMetadataByName(L"/xmp/AuxiliaryImageType", &gmXmp);
-    // L"/xmp/{wstr=http://ns.apple.com/pixeldatainfo/1.0/}:AuxiliaryImageType"
-    return false;
+    // Separate streams are needed because we have two live decoders.
+    ULARGE_INTEGER region = {};
+    region.QuadPart = stats.cbSize.QuadPart - gainmapOffset.QuadPart;
+    ComPtr<IWICStream> gainmapStream;
+    IFRF(fact->CreateStream(&gainmapStream));
+    IFRF(gainmapStream->InitializeFromIStreamRegion(imageStream, gainmapOffset, region));
+
+    ComPtr<IWICBitmapDecoder> gainmapDecoder;
+    IFRF(fact->CreateDecoderFromStream(gainmapStream.Get(), nullptr, WICDecodeMetadataCacheOnLoad, &gainmapDecoder));
+    ComPtr<IWICBitmapFrameDecode> gainmapFrame;
+    IFRF(gainmapDecoder->GetFrame(0, &gainmapFrame));
+    ComPtr<IWICMetadataQueryReader> gainmapQuery;
+    IFRF(gainmapFrame->GetMetadataQueryReader(&gainmapQuery));
+
+    CPropVariant gainmapAuxType;
+    IFRF(gainmapQuery->GetMetadataByName(L"/xmp/{wstr=http://ns.apple.com/pixeldatainfo/1.0/}:AuxiliaryImageType", &gainmapAuxType));
+    if (wcscmp(gainmapAuxType.pwszVal, L"urn:com:apple:photo:2020:aux:hdrgainmap") != 0) return false;
+
+    CPropVariant gainmapVersion;
+    IFRF(gainmapQuery->GetMetadataByName(L"/xmp/{wstr=http://ns.apple.com/HDRGainMap/1.0/}:HDRGainMapVersion", &gainmapVersion));
+    if (wcscmp(gainmapVersion.pwszVal, L"65536") != 0) return false;
+
+    // All validated, now grab the data.
+    ComPtr<IWICFormatConverter> fmt;
+    IFRF(fact->CreateFormatConverter(&fmt));
+    IFRF(fmt->Initialize(gainmapFrame.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
+
+    // Just stuff the WIC pointer in here even though we don't have an associated heif_image.
+    IFRF(fmt.As(&m_appleHdrGainMap.wicSource));
+
+    return true;
 }
 
 /// <summary>
