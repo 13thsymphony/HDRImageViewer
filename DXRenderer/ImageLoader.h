@@ -160,7 +160,8 @@ namespace DXRenderer
         bool CheckCanDecode(_In_ IWICBitmapFrameDecode* frame);
         void CreateHeifHdr10CpuResources(_In_ IWICBitmapSource* source);
         void CreateHeifHdr10GpuResources();
-        bool TryLoadAppleHdrGainMap(_In_ IStream* imageStream);
+        bool TryLoadAppleHdrGainMapHeic(_In_ IStream* imageStream);
+        bool TryLoadAppleHdrGainMapJpegMpo(_In_ IStream* imageStream, _In_ IWICBitmapFrameDecode* frame);
 
         std::shared_ptr<DeviceResources>                        m_deviceResources;
 
@@ -182,5 +183,15 @@ namespace DXRenderer
         // 128 byte ICC profile header for Xbox console HDR screen captures.
         const unsigned char                                     m_xboxHdrIccHeaderBytes[128];
         const unsigned int                                      m_xboxHdrIccSize;
+
+        // 90 byte "known" APP2 MP Extension block for Apple HDR gainmap JPEG images.
+        // Reference: http://cipa.jp/std/documents/e/DC-X007_E.pdf
+        const unsigned char                                     m_appleApp2MPBlock[90];
+
+        // Indices for the 12 bytes of known dynamic data in the APP2 block.
+        const unsigned int                                      m_appleApp2MPBlockDynamicBytes[12];
+
+        // Offset of the 4 byte uint32 representing the EOI of the primary image.
+        const unsigned int                                      m_appleApp2MPBlockMagicOffset;
     };
 }

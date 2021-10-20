@@ -23,6 +23,7 @@
 #include <d2d1effecthelpers.h>
 #include <dwrite_3.h>
 #include <wincodec.h>
+#include <wincodecsdk.h> // JPEG MPO support
 #include <DirectXMath.h>
 #include <windowsnumerics.h>
 

@@ -35,7 +35,31 @@ ImageLoader::ImageLoader(const std::shared_ptr<DeviceResources>& deviceResources
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    }
+    },
+
+    // TODO: the APP2 MP Extensions block isn't guaranteed to be static, but
+    // assuming Apple doesn't change the format there should be basically no variation
+    // in these bytes apart from the 3 DWORDs of "dynamic bytes".
+    // Note that this APP2 block isn't really unique to Apple HDR gainmaps - it basically
+    // states there are two images, one primary and one unspecified secondary. The
+    // unspecified secondary type is the most unique and excludes things like stereo 3D images.
+    m_appleApp2MPBlock{
+        0xFF, 0xE2, 0x00, 0x58, 0x4D, 0x50, 0x46, 0x00, 0x4D, 0x4D, 0x00, 0x2A,
+        0x00, 0x00, 0x00, 0x08, 0x00, 0x03, 0xB0, 0x00, 0x00, 0x07, 0x00, 0x00,
+        0x00, 0x04, 0x30, 0x31, 0x30, 0x30, 0xB0, 0x01, 0x00, 0x04, 0x00, 0x00,
+        0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0xB0, 0x02, 0x00, 0x07, 0x00, 0x00,
+        0x00, 0x20, 0x00, 0x00, 0x00, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
+        0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // All 0xFF's represent "dynamic bytes".
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00
+    },
+    // These bytes are expected to change from image to image so we exlude them from the memcmp.
+    m_appleApp2MPBlockDynamicBytes{
+        62, 63, 64, 65, // MPEntry 0: Count bytes of SOI to EOI (size of primary individual image)
+        78, 79, 80, 81, // MPEntry 1: Count bytes of SOI to EOI (size of gain map/second individual image)
+        82, 83, 84, 85  // MPEntry 1: Offset to SOI of second individual image
+    },
+    m_appleApp2MPBlockMagicOffset(62)
 {
 }
 
@@ -101,7 +125,7 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         }
 
         // NOTE: Pixel resolution check can't be done until the main image has been decoded (LoadImageCommon).
-        m_imageInfo.hasAppleHdrGainMap = TryLoadAppleHdrGainMap(imageStream);
+        m_imageInfo.hasAppleHdrGainMap = TryLoadAppleHdrGainMapHeic(imageStream);
     }
     else if (fmt == GUID_ContainerFormatWmp)
     {
@@ -110,6 +134,10 @@ void ImageLoader::LoadImageFromWicInt(_In_ IStream* imageStream)
         {
             m_imageInfo.forceBT2100ColorSpace = true;
         }
+    }
+    else if (fmt == GUID_ContainerFormatJpeg)
+    {
+        m_imageInfo.hasAppleHdrGainMap = TryLoadAppleHdrGainMapJpegMpo(imageStream, frame.Get());
     }
 
     LoadImageCommon(frame.Get());
@@ -439,11 +467,11 @@ void ImageLoader::CreateHeifHdr10GpuResources()
 }
 
 /// <summary>
-/// Checks if the image contains an Apple HDR gainmap. If true, initializes the gainmap bitmap.
+/// Checks if the HEIC image contains an Apple HDR gainmap. If true, initializes the gainmap bitmap.
 /// </summary>
 /// <param name="imageStream"></param>
 /// <returns></returns>
-bool ImageLoader::TryLoadAppleHdrGainMap(IStream* imageStream)
+bool ImageLoader::TryLoadAppleHdrGainMapHeic(IStream* imageStream)
 {
     STATSTG stats = {};
     HRESULT hr = imageStream->Stat(&stats, STATFLAG_NONAME);
@@ -517,6 +545,98 @@ bool ImageLoader::TryLoadAppleHdrGainMap(IStream* imageStream)
         }
     }
 
+    return false;
+}
+
+/// <summary>
+/// Checks if a JPEG image contains an Apple HDR gainmap stored in an MPO (Multi picture object). If true, initializes the gainmap bitmap.
+/// </summary>
+/// <param name="imageStream">Underlying stream is needed since we have to manually setup WIC to read the second Individual Image.</param>
+/// <param name="frame"></param>
+/// <returns></returns>
+bool ImageLoader::TryLoadAppleHdrGainMapJpegMpo(IStream* imageStream, IWICBitmapFrameDecode* frame)
+{
+    auto fact = m_deviceResources->GetWicImagingFactory();
+
+    // Heuristic: Allow any Apple manufactured device.
+    ComPtr<IWICMetadataQueryReader> query;
+    CPropVariant appleMftr;
+
+    IFRF(frame->GetMetadataQueryReader(&query));
+    IFRF(query->GetMetadataByName(L"/app1/ifd/{ushort=271}", &appleMftr));
+
+    if (appleMftr.vt != VT_LPSTR) return false;
+    if (strcmp("Apple", appleMftr.pszVal) != 0) return false;
+
+    // Find the APP2 MP Extensions block
+    ComPtr<IWICMetadataBlockReader> blockReader;
+    IFRF(frame->QueryInterface(IID_PPV_ARGS(&blockReader)));
+
+    UINT count = 0;
+    IFRF(blockReader->GetCount(&count));
+
+    LARGE_INTEGER secondImageStart = {};
+
+    for (UINT i = 0; i < count; i++)
+    {
+        ComPtr<IWICMetadataReader> reader;
+        IFRF(blockReader->GetReaderByIndex(i, &reader));
+
+        // WIC doesn't natively understand the APP2 block.
+        // NOTE: From this point in the loop, any failures should just continue to the next block.
+        GUID metaFmt = {};
+        IFRF(reader->GetMetadataFormat(&metaFmt));
+        if (metaFmt != GUID_MetadataFormatUnknown) continue;
+
+        CPropVariant id, value;
+        IFRF(reader->GetValueByIndex(0, nullptr, &id, &value));
+        if (value.vt != 65) continue; // VT_BLOB
+        if (value.blob.cbSize != sizeof(m_appleApp2MPBlock)) continue;
+
+        // Grab the offset before it's wiped out by the validity check.
+        assert(m_appleApp2MPBlockMagicOffset < value.blob.cbSize);
+
+        // The known APP2 header specifies Big Endian.
+        LARGE_INTEGER temp = {};
+        temp.QuadPart =
+            value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 0] << 24 |
+            value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 1] << 16 |
+            value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 2] << 8  |
+            value.blob.pBlobData[m_appleApp2MPBlockMagicOffset + 3];
+
+        // Fill in the known dynamic bytes with dummy values (0xFF).
+        for (int j = 0; j < ARRAYSIZE(m_appleApp2MPBlockDynamicBytes); j++)
+        {
+            assert(m_appleApp2MPBlockDynamicBytes[j] < value.blob.cbSize);
+            value.blob.pBlobData[m_appleApp2MPBlockDynamicBytes[j]] = 0xFF;
+        }
+
+        if (memcmp(value.blob.pBlobData, m_appleApp2MPBlock, sizeof(m_appleApp2MPBlock)) != 0) continue;
+
+        // If we get here we've validated all of the data we can in the primary image and should move to the second image.
+        secondImageStart = temp;
+        break;
+    }
+
+    if (secondImageStart.QuadPart == 0) return false;
+
+    // TODO: Apple MPO images may have a gap between the primary image EOI and second image SOI.
+    ULARGE_INTEGER ignore = {};
+    IFRF(imageStream->Seek(secondImageStart, STREAM_SEEK_SET, &ignore)); // TODO: Is it safe to have two decoders partying on the same stream?
+
+    ComPtr<IWICBitmapDecoder> gmDecoder;
+    IFRF(fact->CreateDecoderFromStream(imageStream, nullptr, WICDecodeMetadataCacheOnDemand, &gmDecoder));
+    ComPtr<IWICBitmapFrameDecode> gmFrame;
+    IFRF(gmDecoder->GetFrame(0, &gmFrame));
+    UINT w, h;
+    IFRF(gmFrame->GetSize(&w, &h));
+    WICPixelFormatGUID pix = {};
+    IFRF(gmFrame->GetPixelFormat(&pix));
+    ComPtr<IWICMetadataQueryReader> gmQuery;
+    IFRF(gmFrame->GetMetadataQueryReader(&gmQuery));
+    CPropVariant gmXmp;
+    HRESULT hr = gmQuery->GetMetadataByName(L"/xmp/AuxiliaryImageType", &gmXmp);
+    // L"/xmp/{wstr=http://ns.apple.com/pixeldatainfo/1.0/}:AuxiliaryImageType"
     return false;
 }
 
