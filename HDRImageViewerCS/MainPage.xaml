@@ -144,6 +144,8 @@
                 </StackPanel>
                 <TextBlock Style="{StaticResource InfoLine}" x:Name="PixelColor">scRGB color:</TextBlock>
             </StackPanel>
+            <MenuFlyoutSeparator />
+            <TextBlock Style="{StaticResource SectionTitle}"><Hyperlink Foreground="Blue" NavigateUri="https://13thsymphony.github.io/hdrimageviewer/">About this app</Hyperlink></TextBlock>
         </StackPanel>
     </Grid>
 </Page>
