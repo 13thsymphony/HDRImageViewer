@@ -14,6 +14,7 @@ namespace DXRenderer
         bool                                            isValid;
         bool                                            isHeif;
         bool                                            hasAppleHdrGainMap;
+        Windows::Foundation::Size                       gainMapPixelSize;
         bool                                            overridenColorProfile;
     };
 

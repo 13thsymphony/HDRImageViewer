@@ -287,12 +287,12 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
     IFRIMG(source->GetSize(&width, &height));
     m_imageInfo.pixelSize = Size(static_cast<float>(width), static_cast<float>(height));
 
-    // Require that valid HDR gainmaps be 1/2 the pixel dimension of the main image.
+    // Gainmaps generally are 1/2 pixel size of the main image, but we don't restrict this.
     if (m_imageInfo.hasAppleHdrGainMap == true)
     {
         UINT mapwidth = 0, mapheight = 0;
         IFRIMG(m_appleHdrGainMap.wicSource->GetSize(&mapwidth, &mapheight));
-        if (mapwidth * 2 != width || mapheight * 2 != height) m_imageInfo.hasAppleHdrGainMap = false;
+        m_imageInfo.gainMapPixelSize = Size(static_cast<float>(mapwidth), static_cast<float>(mapheight));
     }
 
     if (m_imageInfo.isHeif == true &&
@@ -741,7 +741,7 @@ ID2D1TransformedImageSource* ImageLoader::GetLoadedImage(float zoom, bool select
     if (selectAppleHdrGainMap == true)
     {
         if (m_imageInfo.hasAppleHdrGainMap == false) return nullptr;
-        zoom *= 2.0f; // Assuming that gainmaps are natively 1/2 of the main image resolution.
+        zoom *= m_imageInfo.pixelSize.Width / m_imageInfo.gainMapPixelSize.Width; // Typically is 2x.
         source = m_hdrGainMapSource.Get();
     }
 
