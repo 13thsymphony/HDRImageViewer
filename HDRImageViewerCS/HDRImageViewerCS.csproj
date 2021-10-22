@@ -150,6 +150,7 @@
     <Content Include="Assets\LargeTile.scale-150.png" />
     <Content Include="Assets\LargeTile.scale-200.png" />
     <Content Include="Assets\LargeTile.scale-400.png" />
+    <Content Include="Assets\sample.jxr" />
     <Content Include="Assets\smalltile-sdk.altform-lightunplated_targetsize-16.png" />
     <Content Include="Assets\smalltile-sdk.altform-lightunplated_targetsize-24.png" />
     <Content Include="Assets\smalltile-sdk.altform-lightunplated_targetsize-256.png" />

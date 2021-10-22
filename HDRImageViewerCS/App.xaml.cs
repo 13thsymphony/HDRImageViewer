@@ -40,14 +40,21 @@ namespace HDRImageViewerCS
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected async override void OnLaunched(LaunchActivatedEventArgs e)
         {
             if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
             {
                 // TODO: Load state from previously suspended application and pass into LaunchApp.
             }
 
-            LaunchAppCommon(new DXViewerLaunchArgs(), e.PrelaunchActivated);
+            var defaultImage = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/Sample.jxr"));
+
+            var args = new DXViewerLaunchArgs()
+            {
+                initialFileToken = StorageApplicationPermissions.FutureAccessList.Add(defaultImage)
+            };
+
+            LaunchAppCommon(args, e.PrelaunchActivated);
         }
 
         // Invoked when app is activated for special purposes such as via command line.
