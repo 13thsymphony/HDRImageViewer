@@ -330,15 +330,22 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
             D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT,
             halfsrgbCtx.Get()));
 
-    //IFT(m_colorManagementEffect->SetValue(
-    //    D2D1_COLORMANAGEMENT_PROP_DESTINATION_RENDERING_INTENT,
-    //    D2D1_COLORMANAGEMENT_RENDERING_INTENT_RELATIVE_COLORIMETRIC));
-    
+    IFT(m_colorManagementEffect->SetValue(
+        D2D1_COLORMANAGEMENT_PROP_SOURCE_RENDERING_INTENT,
+        //D2D1_COLORMANAGEMENT_RENDERING_INTENT_PERCEPTUAL));
+        D2D1_COLORMANAGEMENT_RENDERING_INTENT_SATURATION));
+
+    IFT(m_colorManagementEffect->SetValue(
+        D2D1_COLORMANAGEMENT_PROP_DESTINATION_RENDERING_INTENT,
+        //D2D1_COLORMANAGEMENT_RENDERING_INTENT_PERCEPTUAL));
+        D2D1_COLORMANAGEMENT_RENDERING_INTENT_SATURATION));
+
     ComPtr<ID2D1Effect> cmExpand;
     IFT(context->CreateEffect(CLSID_D2D1ColorManagement, &cmExpand));
+    cmExpand->SetInputEffect(0, m_colorManagementEffect.Get());
     IFT(cmExpand->SetValue(
-        D2D1_COLORMANAGEMENT_QUALITY_BEST,
-        halfsrgbCtx.Get()));
+        D2D1_COLORMANAGEMENT_PROP_QUALITY,
+        D2D1_COLORMANAGEMENT_QUALITY_BEST));
 
     IFT(cmExpand->SetValue(
         D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
@@ -386,7 +393,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     }
     else
     {
-        IFT(cmExpand.CopyTo(&m_gainMapMergeEffect)); // Pass-through.
+        IFT(m_colorManagementEffect.CopyTo(&m_gainMapMergeEffect)); // Pass-through.
     }
 
     // White level scale is used to multiply the color values in the image; this allows the user
