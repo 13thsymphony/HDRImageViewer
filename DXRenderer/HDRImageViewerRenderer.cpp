@@ -309,6 +309,16 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
             D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
             m_imageLoader->GetImageColorContext()));
 
+    // TEST
+    D2D1_SIMPLE_COLOR_PROFILE halfsrgb = {};
+    halfsrgb.redPrimary = { 0.47635, 0.3295 };
+    halfsrgb.greenPrimary = { 0.30635, 0.4645 };
+    halfsrgb.bluePrimary = { 0.23135, 0.1945 };
+    halfsrgb.whitePointXZ = { 0.95047, 1.08883 };
+    halfsrgb.gamma = D2D1_GAMMA1_G10;
+    ComPtr<ID2D1ColorContext1> halfsrgbCtx;
+    IFT(context->CreateColorContextFromSimpleColorProfile(halfsrgb, &halfsrgbCtx));
+
     // The destination color space is the render target's (swap chain's) color space. This app uses an
     // FP16 swap chain, which requires the colorspace to be scRGB.
     ComPtr<ID2D1ColorContext1> destColorContext;
@@ -318,7 +328,25 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
 
     IFT(m_colorManagementEffect->SetValue(
             D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT,
-            destColorContext.Get()));
+            halfsrgbCtx.Get()));
+
+    //IFT(m_colorManagementEffect->SetValue(
+    //    D2D1_COLORMANAGEMENT_PROP_DESTINATION_RENDERING_INTENT,
+    //    D2D1_COLORMANAGEMENT_RENDERING_INTENT_RELATIVE_COLORIMETRIC));
+    
+    ComPtr<ID2D1Effect> cmExpand;
+    IFT(context->CreateEffect(CLSID_D2D1ColorManagement, &cmExpand));
+    IFT(cmExpand->SetValue(
+        D2D1_COLORMANAGEMENT_QUALITY_BEST,
+        halfsrgbCtx.Get()));
+
+    IFT(cmExpand->SetValue(
+        D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
+        halfsrgbCtx.Get()));
+
+    IFT(cmExpand->SetValue(
+        D2D1_COLORMANAGEMENT_PROP_DESTINATION_COLOR_CONTEXT,
+        destColorContext.Get()));
 
     // Next, merge the Apple HDR gainmap with the main image to recover HDR highlights.
     // This occurs after color management to scRGB but before any further stages which rely on HDR pixel data.
@@ -350,7 +378,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
 
         IFT(context->CreateEffect(CLSID_D2D1ArithmeticComposite, &m_gainMapMergeEffect));
 
-        m_gainMapMergeEffect->SetInputEffect(0, m_colorManagementEffect.Get());
+        m_gainMapMergeEffect->SetInputEffect(0, cmExpand.Get());
         m_gainMapMergeEffect->SetInputEffect(1, m_gainmapRefWhiteEffect.Get());
 
         // Coefficients A, B, C, D: Output = A*source*dest + B*source + C*dest + D.
@@ -358,7 +386,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     }
     else
     {
-        IFT(m_colorManagementEffect.CopyTo(&m_gainMapMergeEffect)); // Pass-through.
+        IFT(cmExpand.CopyTo(&m_gainMapMergeEffect)); // Pass-through.
     }
 
     // White level scale is used to multiply the color values in the image; this allows the user
