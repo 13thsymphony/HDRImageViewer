@@ -164,11 +164,13 @@ namespace HDRImageViewerCS
                     SetUIFullscreen(true);
                 }
 
+#if !DEBUG
                 if (args.initialFileToken != null)
                 {
                     var file = await StorageApplicationPermissions.FutureAccessList.GetFileAsync(args.initialFileToken);
                     await LoadImageAsync(file);
                 }
+#endif
 
                 if (args.errorType != ErrorDialogType.DefaultValue)
                 {
@@ -666,10 +668,17 @@ namespace HDRImageViewerCS
                 }
             }
 
-            var file = await picker.PickSingleFileAsync();
-            if (file != null)
+            try
             {
-                await LoadImageAsync(file);
+                var file = await picker.PickSingleFileAsync();
+                if (file != null)
+                {
+                    await LoadImageAsync(file);
+                }
+            } catch (Exception ex)
+            {
+                var dialog = new ErrorContentDialog(ErrorDialogType.InvalidFile, ex.Message);
+                await dialog.ShowAsync();
             }
         }
 

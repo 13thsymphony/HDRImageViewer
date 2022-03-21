@@ -5,4 +5,9 @@
     xmlns:local="using:HDRImageViewerCS"
     RequestedTheme="Dark">
 
+    <Application.Resources>
+        <!-- Enable Sun Valley Styles -->
+        <XamlControlsResources ControlsResourcesVersion="Version2" xmlns="using:Microsoft.UI.Xaml.Controls" />
+    </Application.Resources>
+
 </Application>

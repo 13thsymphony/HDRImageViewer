@@ -37,22 +37,22 @@
             <Style TargetType="TextBlock" x:Key="InfoLine">
                 <Setter Property="Margin" Value="16, 0, 8, 0" />
             </Style>
-            <Style TargetType="Button">
+            <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
                 <Setter Property="Margin" Value="8, 0, 8, 8" />
             </Style>
-            <Style TargetType="CheckBox">
+            <Style TargetType="CheckBox" BasedOn="{StaticResource DefaultCheckBoxStyle}">
                 <Setter Property="Margin" Value="8, 0, 0, 0" />
                 <Setter Property="MinWidth" Value="32" />
             </Style>
-            <Style TargetType="Slider">
+            <Style TargetType="Slider" BasedOn="{StaticResource DefaultSliderStyle}">
                 <Setter Property="Margin" Value="8, 0, 8, 0" />
             </Style>
             <Style TargetType="MenuFlyoutSeparator">
-                <Setter Property="Margin" Value="0, 8, 0, 8" />
+                <Setter Property="Margin" Value="16, 8, 16, 8" />
             </Style>
-            <Style TargetType="ComboBox">
-                <Setter Property="Margin" Value="8, 0, 8, 8" />
+            <Style TargetType="ComboBox" BasedOn="{StaticResource DefaultComboBoxStyle}">
+                <Setter Property="Margin" Value="8, 8, 8, 8" />
             </Style>
             <local:SdrBrightnessFormatter x:Key="SdrBrightnessFormatter"/>
         </Grid.Resources>
@@ -74,7 +74,7 @@
             <Button x:Name="ExportImageButton" Click="ExportImageButton_Click" IsEnabled="False">Export image to SDR</Button>
             <StackPanel x:Name="RenderEffectPanel">
                 <TextBlock>Render Effect:</TextBlock>
-                <ComboBox x:Name="RenderEffectCombo" ItemsSource="{x:Bind ViewModel.RenderEffects}" SelectionChanged="RenderEffectCombo_Changed" IsEnabled="False">
+                <ComboBox x:Name="RenderEffectCombo" ItemsSource="{x:Bind ViewModel.RenderEffects}" SelectionChanged="RenderEffectCombo_Changed" IsEnabled="False" HorizontalAlignment="Stretch">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="dxr:EffectOption">
                             <TextBlock Text="{x:Bind Description}"/>
@@ -145,7 +145,7 @@
                 <TextBlock Style="{StaticResource InfoLine}" x:Name="PixelColor">scRGB color:</TextBlock>
             </StackPanel>
             <MenuFlyoutSeparator />
-            <TextBlock Style="{StaticResource SectionTitle}"><Hyperlink Foreground="Blue" NavigateUri="https://13thsymphony.github.io/hdrimageviewer/">About this app</Hyperlink></TextBlock>
+            <TextBlock Style="{StaticResource SectionTitle}"><Hyperlink NavigateUri="https://13thsymphony.github.io/hdrimageviewer/">About this app</Hyperlink></TextBlock>
         </StackPanel>
     </Grid>
 </Page>
