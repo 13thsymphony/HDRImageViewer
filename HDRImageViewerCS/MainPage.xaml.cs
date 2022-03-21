@@ -164,13 +164,11 @@ namespace HDRImageViewerCS
                     SetUIFullscreen(true);
                 }
 
-#if !DEBUG
                 if (args.initialFileToken != null)
                 {
                     var file = await StorageApplicationPermissions.FutureAccessList.GetFileAsync(args.initialFileToken);
                     await LoadImageAsync(file);
                 }
-#endif
 
                 if (args.errorType != ErrorDialogType.DefaultValue)
                 {
@@ -675,7 +673,8 @@ namespace HDRImageViewerCS
                 {
                     await LoadImageAsync(file);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 var dialog = new ErrorContentDialog(ErrorDialogType.InvalidFile, ex.Message);
                 await dialog.ShowAsync();
