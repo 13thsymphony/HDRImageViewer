@@ -309,6 +309,12 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
             D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT,
             m_imageLoader->GetImageColorContext()));
 
+    // Perceptual (default) intent can introduce gamut compression. This is undesirable at the start of an HDR/WCG
+    // render pipeline, as any gamut mapping should occur at the output stage.
+    IFT(m_colorManagementEffect->SetValue(
+        D2D1_COLORMANAGEMENT_PROP_SOURCE_RENDERING_INTENT,
+        D2D1_COLORMANAGEMENT_RENDERING_INTENT_RELATIVE_COLORIMETRIC));
+
     // The destination color space is the render target's (swap chain's) color space. This app uses an
     // FP16 swap chain, which requires the colorspace to be scRGB.
     ComPtr<ID2D1ColorContext1> destColorContext;
