@@ -41,6 +41,7 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStre
 
     ComPtr<ID2D1ColorContext> sourceCtx = loader->GetImageColorContext();
     IFT(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_SOURCE_COLOR_CONTEXT, sourceCtx.Get()));
+    IFT(colorManage->SetValue(D2D1_COLORMANAGEMENT_PROP_SOURCE_RENDERING_INTENT, D2D1_COLORMANAGEMENT_RENDERING_INTENT_RELATIVE_COLORIMETRIC));
 
     ComPtr<ID2D1ColorContext1> destCtx;
     // scRGB
@@ -68,7 +69,7 @@ void ImageExporter::ExportToSdr(ImageLoader* loader, DeviceResources* res, IStre
     IFT(whiteScale->SetValue(D2D1_COLORMATRIX_PROP_COLOR_MATRIX, matrix));
 
     ComPtr<ID2D1Image> d2dImage;
-    whiteScale->GetOutput(&d2dImage);
+    colorManage->GetOutput(&d2dImage);
 
     ImageExporter::ExportToWic(d2dImage.Get(), loader->GetImageInfo().pixelSize, res, stream, wicFormat);
 }
