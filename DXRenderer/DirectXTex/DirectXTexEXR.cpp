@@ -27,6 +27,8 @@
 #pragma warning(disable : 4244 4996)
 #include <ImfRgbaFile.h>
 #include <ImfIO.h>
+#include <ImfChromaticities.h>
+#include <ImfChromaticitiesAttribute.h>
 #pragma warning(pop)
 
 static_assert(sizeof(Imf::Rgba) == 8, "Mismatch size");
@@ -287,7 +289,7 @@ HRESULT DirectX::GetMetadataFromEXRFile(const wchar_t* szFile, TexMetadata& meta
 // Load a EXR file from disk
 //-------------------------------------------------------------------------------------
 _Use_decl_annotations_
-HRESULT DirectX::LoadFromEXRFile(const wchar_t* szFile, TexMetadata* metadata, ScratchImage& image)
+HRESULT DirectX::LoadFromEXRFile(const wchar_t* szFile, TexMetadata* metadata, _Out_opt_ EXRChromaticities* chromaticities, ScratchImage& image)
 {
     if (!szFile)
         return E_INVALIDARG;
@@ -326,6 +328,7 @@ HRESULT DirectX::LoadFromEXRFile(const wchar_t* szFile, TexMetadata* metadata, S
         Imf::RgbaInputFile file(stream);
 
         auto dw = file.dataWindow();
+        auto header = file.header();
 
         int width = dw.max.x - dw.min.x + 1;
         int height = dw.max.y - dw.min.y + 1;
@@ -340,6 +343,37 @@ HRESULT DirectX::LoadFromEXRFile(const wchar_t* szFile, TexMetadata* metadata, S
             metadata->depth = metadata->arraySize = metadata->mipLevels = 1;
             metadata->format = DXGI_FORMAT_R16G16B16A16_FLOAT;
             metadata->dimension = TEX_DIMENSION_TEXTURE2D;
+        }
+
+        if (chromaticities)
+        {
+            chromaticities->Valid = false;
+            auto chromaticitiesAttrib = header.findTypedAttribute<Imf::ChromaticitiesAttribute>(Imf::ChromaticitiesAttribute::staticTypeName());
+            if (chromaticitiesAttrib)
+            {
+                auto& chromaticitiesAttribVal = chromaticitiesAttrib->value();
+
+                chromaticities->Valid = true;
+                chromaticities->RedX = chromaticitiesAttribVal.red.x;
+                chromaticities->RedY = chromaticitiesAttribVal.red.y;
+                chromaticities->BlueX = chromaticitiesAttribVal.blue.x;
+                chromaticities->BlueY = chromaticitiesAttribVal.blue.y;
+                chromaticities->GreenX = chromaticitiesAttribVal.green.x;
+                chromaticities->GreenY = chromaticitiesAttribVal.green.y;
+                // Convert xyY white point data to XYZ, and scale/normalize against Y = 1.0 for Direct2D use
+                // http://www.brucelindbloom.com/index.html?Eqn_xyY_to_XYZ.html
+                if (chromaticitiesAttribVal.white.y != 0.0f)
+                {
+                    chromaticities->WhiteY = 1.0f;
+                    chromaticities->WhiteX = (chromaticitiesAttribVal.white.x * chromaticities->WhiteY) / chromaticitiesAttribVal.white.y;
+                    chromaticities->WhiteZ = ((1 - chromaticitiesAttribVal.white.x - chromaticitiesAttribVal.white.y) * chromaticities->WhiteY) / chromaticitiesAttribVal.white.y;
+                }
+                else
+                {
+                    // Special handling case (I hope nobody hits here)
+                    chromaticities->WhiteX = chromaticities->WhiteY = chromaticities->WhiteZ = 0.0f;
+                }
+            }
         }
 
         hr = image.Initialize2D(DXGI_FORMAT_R16G16B16A16_FLOAT, width, height, 1, 1);

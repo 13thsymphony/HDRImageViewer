@@ -16,6 +16,7 @@ namespace DXRenderer
         bool                                            hasAppleHdrGainMap;
         Windows::Foundation::Size                       gainMapPixelSize;
         bool                                            overridenColorProfile;
+        bool                                            hasEXRChromaticitiesInfo;
     };
 
     public value struct ImageCLL
@@ -25,4 +26,5 @@ namespace DXRenderer
         bool    isSceneReferred; // If False, the CLL values are not calibrated to actual nits
                                  // should only be used to understand relative intensity of the image.
     };
+
 }

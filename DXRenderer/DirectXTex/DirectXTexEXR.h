@@ -12,13 +12,28 @@
 
 namespace DirectX
 {
+    struct EXRChromaticities
+    {
+        bool Valid;
+        float RedX;
+        float RedY;
+        float GreenX;
+        float GreenY;
+        float BlueX;
+        float BlueY;
+        float WhiteX;
+        float WhiteY;
+        float WhiteZ;
+    };
+
     HRESULT __cdecl GetMetadataFromEXRFile(
         _In_z_ const wchar_t* szFile,
         _Out_ TexMetadata& metadata);
 
     HRESULT __cdecl LoadFromEXRFile(
         _In_z_ const wchar_t* szFile,
-        _Out_opt_ TexMetadata* metadata, _Out_ ScratchImage& image);
+        _Out_opt_ TexMetadata* metadata,
+        _Out_opt_ EXRChromaticities* chromaticities, _Out_ ScratchImage& image);
 
     HRESULT __cdecl SaveToEXRFile(_In_ const Image& image, _In_z_ const wchar_t* szFile);
 };
