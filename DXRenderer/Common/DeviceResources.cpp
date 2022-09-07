@@ -140,19 +140,16 @@ void DXRenderer::DeviceResources::CreateDeviceResources()
     }
 #endif
 
-    // This array defines the set of DirectX hardware feature levels this app will support.
-    // Note the ordering should be preserved.
-    // Don't forget to declare your application's minimum required feature level in its
-    // description.  All applications are assumed to support 9.1 unless otherwise stated.
+    // DirectX HDR effectively requires Feature Level 10.
     D3D_FEATURE_LEVEL featureLevels[] = 
     {
+        D3D_FEATURE_LEVEL_12_2,
+        D3D_FEATURE_LEVEL_12_1,
+        D3D_FEATURE_LEVEL_12_0,
         D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0,
         D3D_FEATURE_LEVEL_10_1,
-        D3D_FEATURE_LEVEL_10_0,
-        D3D_FEATURE_LEVEL_9_3,
-        D3D_FEATURE_LEVEL_9_2,
-        D3D_FEATURE_LEVEL_9_1
+        D3D_FEATURE_LEVEL_10_0
     };
 
     // Create the Direct3D 11 API device object and a corresponding context.

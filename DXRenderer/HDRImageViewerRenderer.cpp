@@ -436,10 +436,16 @@ void HDRImageViewerRenderer::CreateHistogramResources()
     auto context = m_deviceResources->GetD2DDeviceContext();
 
     // We need to preprocess the image data before running the histogram.
-    // 1. Spatial downscale to reduce the amount of processing needed.
+    // 1. Spatial downscale to reduce the amount of processing and limit intermediate texture size.
     IFT(context->CreateEffect(CLSID_D2D1Scale, &m_histogramPrescale));
 
-    IFT(m_histogramPrescale->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(0.5f, 0.5f)));
+    // Cap histogram pixel size to 2048 along the larger dimension.
+    float pixScale = min(0.5f, 2048.0f / max(m_imageInfo.pixelSize.Width, m_imageInfo.pixelSize.Height));
+
+    IFT(m_histogramPrescale->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(pixScale, pixScale)));
+    IFT(m_histogramPrescale->SetValue(
+        D2D1_SCALE_PROP_INTERPOLATION_MODE,
+        D2D1_SCALE_INTERPOLATION_MODE_HIGH_QUALITY_CUBIC));
 
     // The right place to compute HDR metadata is after color management to the
     // image's native colorspace but before any tonemapping or adjustments for the display.
