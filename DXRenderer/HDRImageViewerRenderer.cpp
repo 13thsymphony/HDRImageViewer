@@ -820,8 +820,7 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
 
     auto ctx = m_deviceResources->GetD2DDeviceContext();
 
-    // Reset DPI to 100% (96.0f) during histogram calculation, D2D complains
-    // when the resolution is high enough (beyond 4K) and DPI scaling is large.
+    // Histogram rendering should always occur without DPI scaling
     ctx->SetDpi(96.0f, 96.0f);
 
     ctx->BeginDraw();
@@ -830,13 +829,9 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
 
     // We ignore D2DERR_RECREATE_TARGET here. This error indicates that the device
     // is lost. It will be handled during the next call to Present.
-    //
-    // We also ignore D2DERR_INTERMEDIATE_TOO_LARGE in case D2D complains the
-    // intermediate tile being too large, the picture should show properly, only
-    // MaxCLL estimation won't work (show as N/A.)
     HRESULT hr = ctx->EndDraw();
     ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
-    if (hr != D2DERR_RECREATE_TARGET && hr != D2DERR_INTERMEDIATE_TOO_LARGE)
+    if (hr != D2DERR_RECREATE_TARGET)
     {
         IFT(hr);
     }
