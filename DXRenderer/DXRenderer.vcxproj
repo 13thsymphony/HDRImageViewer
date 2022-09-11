@@ -99,8 +99,8 @@
   <ImportGroup Label="Shared">
     <Import Project="..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets" Condition="Exists('..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets')" />
     <Import Project="..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets" Condition="Exists('..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" />
-    <Import Project="..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets" Condition="Exists('..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets')" />
     <Import Project="..\packages\vcpkg-export-20210528-221932.1.0.0\build\native\vcpkg-export-20210528-221932.targets" Condition="Exists('..\packages\vcpkg-export-20210528-221932.1.0.0\build\native\vcpkg-export-20210528-221932.targets')" />
+    <Import Project="..\packages\directxtex_uwp.2022.7.30.1\build\native\directxtex_uwp.targets" Condition="Exists('..\packages\directxtex_uwp.2022.7.30.1\build\native\directxtex_uwp.targets')" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -503,8 +503,8 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openexr-msvc14-x64.2.2.0.7784\build\native\OpenEXR-msvc14-x64.targets'))" />
     <Error Condition="!Exists('..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets'))" />
-    <Error Condition="!Exists('..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_uwp.2020.7.2.1\build\native\directxtex_uwp.targets'))" />
     <Error Condition="!Exists('..\packages\vcpkg-export-20210528-221932.1.0.0\build\native\vcpkg-export-20210528-221932.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\vcpkg-export-20210528-221932.1.0.0\build\native\vcpkg-export-20210528-221932.props'))" />
     <Error Condition="!Exists('..\packages\vcpkg-export-20210528-221932.1.0.0\build\native\vcpkg-export-20210528-221932.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\vcpkg-export-20210528-221932.1.0.0\build\native\vcpkg-export-20210528-221932.targets'))" />
+    <Error Condition="!Exists('..\packages\directxtex_uwp.2022.7.30.1\build\native\directxtex_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtex_uwp.2022.7.30.1\build\native\directxtex_uwp.targets'))" />
   </Target>
 </Project>
