@@ -669,10 +669,13 @@ ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
     return m_imageCLL;
 }
 
-// When connected to an HDR display, the OS renders SDR content (e.g. 8888 UNORM) at
+// Scale the (linear gamma) brightness/luminance of the image. This is typically used for two reasons:
+// 1) When connected to an HDR display, the OS renders SDR content (e.g. 8888 UNORM) at
 // a user configurable white level; this typically is around 200-300 nits. It is the responsibility
 // of an advanced color app (e.g. FP16 scRGB) to emulate the OS-implemented SDR white level adjustment,
 // BUT only for non-HDR content (SDR or WCG).
+// 2) Users may want to adjust the exposure of their image to personal preference, typically most useful
+// when viewing HDR content on HDR displays.
 void HDRImageViewerRenderer::UpdateWhiteLevelScale(float brightnessAdjustment, float sdrWhiteLevel)
 {
     float scale = 1.0f;
