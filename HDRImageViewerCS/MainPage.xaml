@@ -54,7 +54,7 @@
             <Style TargetType="ComboBox">
                 <Setter Property="Margin" Value="8, 0, 8, 8" />
             </Style>
-            <local:SdrBrightnessFormatter x:Key="SdrBrightnessFormatter"/>
+            <local:SdrExposureFormatter x:Key="SdrExposureFormatter"/>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/> 
@@ -82,11 +82,11 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </StackPanel>
-            <StackPanel x:Name="BrightnessAdjustPanel">
-                <TextBlock>Adjust brightness:</TextBlock>
+            <StackPanel x:Name="ExposureAdjustPanel">
+                <TextBlock>Adjust exposure:</TextBlock>
                 <Slider
-                    x:Name="BrightnessAdjustSlider"
-                    ThumbToolTipValueConverter="{StaticResource SdrBrightnessFormatter}"
+                    x:Name="ExposureAdjustSlider"
+                    ThumbToolTipValueConverter="{StaticResource SdrExposureFormatter}"
                     Minimum="-4"
                     Maximum="4"
                     StepFrequency="0.1"
@@ -94,7 +94,7 @@
                     TickFrequency="1"
                     SnapsTo="StepValues"
                     Value="0.0"
-                    ValueChanged="BrightnessAdjustSlider_Changed"
+                    ValueChanged="ExposureAdjustSlider_Changed"
                     IsEnabled="False"/>
             </StackPanel>
             <MenuFlyoutSeparator />
