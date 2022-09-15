@@ -6,7 +6,7 @@
 
 <div align="center">
   <a href="https://github.com/13thsymphony/HDRImageViewer">
-    <img src="siteassets/project_logo.png" alt="Logo" width="80">
+    <img src="siteassets/project_logo.png" alt="Logo" />
   </a>
 
   <p>
@@ -76,6 +76,21 @@ You'll need [Visual Studio 2022](www.visualstudio.com) with the following worklo
   * In *Optional Components*, make sure `C++ (v143) Universal Windows Platform tools` is checked.
 
 (VS2019 probably works, too, but this is untested)
+
+### Manually including the libheif package
+
+The repo contains a copy of [libheif](https://github.com/strukturag/libheif) built using [vcpkg](https://github.com/Microsoft/vcpkg/) and exported into a local NuGet package at `\libheif-vcpkg\vcpkg-export-20210528-221932.1.0.0.nupkg`. Libheif is consumed by HDRImageViewer as a dynamic link library to comply with requirements of the LGPL license.
+
+You must manually add the `libheif-vcpkg` directory to Visual Studio's list of NuGet package repositories:
+
+1. In Visual Studio, go to `Tools > NuGet Package Manager > Package Manager Settings`.
+2. In the `Package Sources` page, add the `libheif-vcpkg` directory as a new source.
+
+Visual Studio should show something similar to:
+
+<img src="siteassets/libheif-nuget-installation.png" alt="libheif-vcpkg local Nuget package source" width="718" />
+
+
 
 ## Acknowledgments
 
