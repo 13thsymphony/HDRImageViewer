@@ -823,6 +823,9 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
 
     auto ctx = m_deviceResources->GetD2DDeviceContext();
 
+    // Histogram rendering should always occur without DPI scaling
+    ctx->SetDpi(96.0f, 96.0f);
+
     ctx->BeginDraw();
 
     ctx->DrawImage(m_histogramEffect.Get());
@@ -830,6 +833,7 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
     // We ignore D2DERR_RECREATE_TARGET here. This error indicates that the device
     // is lost. It will be handled during the next call to Present.
     HRESULT hr = ctx->EndDraw();
+    ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
     if (hr != D2DERR_RECREATE_TARGET)
     {
         IFT(hr);
