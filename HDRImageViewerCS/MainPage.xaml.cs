@@ -239,18 +239,17 @@ namespace HDRImageViewerCS
                     // SDR and WCG images don't need to be tonemapped.
                     RenderEffectCombo.SelectedIndex = 0; // See RenderOptions.h for which value this indicates.
 
-                    // Manual brightness adjustment is only useful for HDR content.
+                    // Manual exposure adjustment is only useful for HDR content.
                     // SDR and WCG content is adjusted by the OS-provided AdvancedColorInfo.SdrWhiteLevel parameter.
-                    BrightnessAdjustSlider.Value = SdrBrightnessFormatter.BrightnessToSlider(1.0);
-                    BrightnessAdjustPanel.Visibility = Visibility.Collapsed;
+                    ExposureAdjustSlider.Value = SdrExposureFormatter.ExposureToSlider(1.0);
+                    ExposureAdjustPanel.Visibility = Visibility.Collapsed;
                     break;
 
                 case AdvancedColorKind.HighDynamicRange:
                     // HDR images need to be tonemapped regardless of display kind.
                     RenderEffectCombo.SelectedIndex = 1; // See RenderOptions.h for which value this indicates.
 
-                    // Manual brightness adjustment is useful for any HDR content.
-                    BrightnessAdjustPanel.Visibility = Visibility.Visible;
+                    ExposureAdjustPanel.Visibility = Visibility.Visible;
                     break;
             }
 
@@ -268,7 +267,7 @@ namespace HDRImageViewerCS
 
                 renderer.SetRenderOptions(
                     tm.Kind,
-                    (float)SdrBrightnessFormatter.SliderToBrightness(BrightnessAdjustSlider.Value),
+                    (float)SdrExposureFormatter.SliderToExposure(ExposureAdjustSlider.Value),
                     dispcll, // Display MaxCLL override
                     dispInfo,
                     enableGamutMap
@@ -422,7 +421,7 @@ namespace HDRImageViewerCS
             }
 
             isImageValid = false;
-            BrightnessAdjustSlider.IsEnabled = false;
+            ExposureAdjustSlider.IsEnabled = false;
             RenderEffectCombo.IsEnabled = false;
             PixelColorCheckbox.IsEnabled = false;
             DispMaxCLLOverrideSlider.IsEnabled = false;
@@ -508,7 +507,7 @@ namespace HDRImageViewerCS
 
             // Image loading is done at this point.
             isImageValid = true;
-            BrightnessAdjustSlider.IsEnabled = true;
+            ExposureAdjustSlider.IsEnabled = true;
             RenderEffectCombo.IsEnabled = true;
             PixelColorCheckbox.IsEnabled = true;
             DispMaxCLLOverrideSlider.IsEnabled = true;
@@ -681,7 +680,7 @@ namespace HDRImageViewerCS
             }
         }
 
-        private void BrightnessAdjustSlider_Changed(object sender, RangeBaseValueChangedEventArgs e)
+        private void ExposureAdjustSlider_Changed(object sender, RangeBaseValueChangedEventArgs e)
         {
             UpdateRenderOptions();
         }
