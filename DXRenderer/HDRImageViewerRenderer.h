@@ -57,7 +57,7 @@ namespace DXRenderer
 
         void SetRenderOptions(
             RenderEffectKind effect,
-            float brightnessAdjustment,
+            float exposureAdjustment,
             float dispMaxCllOverride,
             Windows::Graphics::Display::AdvancedColorInfo^ acInfo,
             bool constrainGamut
@@ -67,6 +67,7 @@ namespace DXRenderer
         ImageInfo LoadImageFromDirectXTex(_In_ Platform::String^ filename, _In_ Platform::String^ extension, ImageLoaderOptions options);
         void      ExportImageToSdr(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream, Platform::Guid wicFormat);
         void      ExportAsDdsTest(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream);
+        void      ExportImageToJxr(_In_ Windows::Storage::Streams::IRandomAccessStream^ outputStream);
 
         // IDeviceNotify methods handle device lost and restored.
         virtual void OnDeviceLost();
@@ -123,7 +124,7 @@ namespace DXRenderer
         D2D1_POINT_2F                                           m_imageOffset;
         D2D1_POINT_2F                                           m_pointerPos;
         ImageCLL                                                m_imageCLL;
-        float                                                   m_brightnessAdjust;
+        float                                                   m_exposureAdjust;
         Windows::Graphics::Display::AdvancedColorInfo^          m_dispInfo;
         ImageInfo                                               m_imageInfo;
         bool                                                    m_isComputeSupported;

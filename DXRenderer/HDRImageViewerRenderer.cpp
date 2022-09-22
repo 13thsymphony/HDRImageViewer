@@ -30,7 +30,7 @@ HDRImageViewerRenderer::HDRImageViewerRenderer(
     m_imageOffset(),
     m_pointerPos(),
     m_imageCLL{ -1.0f, -1.0f, false },
-    m_brightnessAdjust(1.0f),
+    m_exposureAdjust(1.0f),
     m_dispMaxCLLOverride(0.0f),
     m_imageInfo{},
     m_isComputeSupported(false),
@@ -94,14 +94,14 @@ void HDRImageViewerRenderer::CreateWindowSizeDependentResources()
 /// Updates rendering parameters, and draws. If CPU readback is enabled, updates the CPU-side render target cache.
 /// </summary>
 /// <param name="effect"></param>
-/// <param name="brightnessAdjustment">
+/// <param name="exposureAdjustment">
 /// Multiplication factor for color values; allows the user to
 /// adjust the brightness of the image on an HDR display.</param>
 /// <param name="dispMaxCllOverride">0 indicates no override (use the display's actual MaxCLL).</param>
 /// <param name="acInfo"></param>
 void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
-    float brightnessAdjustment,
+    float exposureAdjustment,
     float dispMaxCllOverride,
     AdvancedColorInfo^ acInfo,
     bool constrainGamut
@@ -109,7 +109,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
 {
     m_dispInfo = acInfo;
     m_renderEffectKind = effect;
-    m_brightnessAdjust = brightnessAdjustment;
+    m_exposureAdjust = exposureAdjustment;
     m_dispMaxCLLOverride = dispMaxCllOverride;
     m_constrainGamut = constrainGamut;
 
@@ -132,7 +132,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
 
     auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
 
-    UpdateWhiteLevelScale(m_brightnessAdjust, sdrWhite);
+    UpdateWhiteLevelScale(m_exposureAdjust, sdrWhite);
 
     // Adjust the Direct2D effect graph based on RenderEffectKind.
     // Some RenderEffectKind values require us to apply brightness adjustment
@@ -192,7 +192,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_OUTPUT_MAX_LUMINANCE, targetMaxNits));
 
     float maxCLL = m_imageCLL.maxNits != -1.0f ? m_imageCLL.maxNits : sc_DefaultImageMaxCLL;
-    maxCLL *= m_brightnessAdjust;
+    maxCLL *= m_exposureAdjust;
 
     // Very low input max luminance can produce unexpected rendering behavior. Restrict to
     // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
@@ -278,6 +278,61 @@ void HDRImageViewerRenderer::ExportAsDdsTest(_In_ IRandomAccessStream^ outputStr
     IFT(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
 
     ImageExporter::ExportToDds(bitmap.Get(), iStream.Get(), DXGI_FORMAT_R10G10B10A2_UNORM);
+}
+
+/// <summary>
+/// Save any supported HDR format as HDR JPEG XR. Not guaranteed to be lossless since we run the
+/// full render pipeline.
+/// Note: Using new approach for image export where we leverage the renderer itself instead of replicating
+/// the render pipeline in ImageExporter.
+/// Note: Calls Begin/EndDraw on the context.
+/// </summary>
+/// <param name="outputStream"></param>
+void HDRImageViewerRenderer::ExportImageToJxr(Windows::Storage::Streams::IRandomAccessStream^ outputStream)
+{
+    // Save the user-controlled render pipeline state. TODO: Keep in sync with any render pipeline changes.
+    RenderEffectKind saved_renderEffectKind = m_renderEffectKind;
+    float            saved_zoom = m_zoom;
+    D2D1_POINT_2F    saved_imageOffset = m_imageOffset;
+    float            saved_exposureAdjust = m_exposureAdjust;
+    bool             saved_constrainGamut = m_constrainGamut;
+
+    m_renderEffectKind = RenderEffectKind::None;
+    m_zoom = 1.0f;
+    m_imageOffset = { 0.0f, 0.0f };
+    m_exposureAdjust = 1.0f;
+    m_constrainGamut = false;
+
+    ComPtr<IStream> iStream;
+    IFT(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
+
+    auto ctx = m_deviceResources->GetD2DDeviceContext();
+
+    // Image export should always occur without DPI scaling.
+    ctx->SetDpi(96.0f, 96.0f);
+
+    ctx->BeginDraw();
+
+    ctx->DrawImage(m_finalOutput.Get());
+
+    IFT(ctx->EndDraw()); // TODO: Handle device lost case nonfatally.
+
+    ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
+
+    ImageExporter::ExportToWic(m_deviceResources->GetD2DTargetBitmap(),
+        m_imageInfo.pixelSize,
+        m_deviceResources.get(),
+        iStream.Get(),
+        GUID_ContainerFormatWmp);
+
+    // Restore user-controlled pipeline state.
+    m_renderEffectKind = saved_renderEffectKind;
+    m_zoom = saved_zoom;
+    m_imageOffset = saved_imageOffset;
+    m_exposureAdjust = saved_exposureAdjust;
+    m_constrainGamut = saved_constrainGamut;
+
+    Draw();
 }
 
 // Configures a Direct2D image pipeline, including source, color management, 
@@ -544,7 +599,7 @@ void HDRImageViewerRenderer::SetTargetCpuReadbackSupport(bool value)
 {
     m_enableTargetCpuReadback = value;
 
-    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, 0.0f, m_dispInfo, m_constrainGamut);
+    SetRenderOptions(m_renderEffectKind, m_exposureAdjust, 0.0f, m_dispInfo, m_constrainGamut);
 }
 
 /// <summary>
@@ -975,7 +1030,7 @@ void HDRImageViewerRenderer::OnDeviceRestored()
     CreateImageDependentResources();
     CreateWindowSizeDependentResources();
 
-    SetRenderOptions(m_renderEffectKind, m_brightnessAdjust, m_dispMaxCLLOverride, m_dispInfo, m_constrainGamut);
+    SetRenderOptions(m_renderEffectKind, m_exposureAdjust, m_dispMaxCLLOverride, m_dispInfo, m_constrainGamut);
 
     Draw();
 }
