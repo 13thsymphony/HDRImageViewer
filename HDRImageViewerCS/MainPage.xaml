@@ -71,7 +71,7 @@
         <!-- <Rectangle Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Fill="{StaticResource SystemControlAcrylicElementBrush}" /> -->
         <StackPanel x:Name="ControlsPanel" Grid.Row="1" Grid.Column="0" MinWidth="200"> <!-- Avoid changing layout from render effect change -->
             <Button x:Name="OpenButton" Click="OpenImageButton_Click">Open image</Button>
-            <Button x:Name="ExportImageButton" Click="ExportImageButton_Click" IsEnabled="False">Export image to SDR</Button>
+            <Button x:Name="ExportImageButton" Click="ExportImageButton_Click" IsEnabled="False">Export image</Button>
             <StackPanel x:Name="RenderEffectPanel">
                 <TextBlock>Render Effect:</TextBlock>
                 <ComboBox x:Name="RenderEffectCombo" ItemsSource="{x:Bind ViewModel.RenderEffects}" SelectionChanged="RenderEffectCombo_Changed" IsEnabled="False">

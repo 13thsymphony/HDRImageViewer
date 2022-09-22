@@ -524,20 +524,34 @@ namespace HDRImageViewerCS
             UpdateDefaultRenderOptions();
         }
 
-        private async Task ExportImageToSdrAsync(StorageFile file)
+        private async Task ExportImageAsync(StorageFile file)
         {
-            Guid wicFormat;
-            if (file.FileType.Equals(".jpg", StringComparison.OrdinalIgnoreCase)) // TODO: Remove this hardcoded constant.
+            Guid wicFormat = DirectXCppConstants.GUID_ContainerFormatJpeg;
+            switch (file.FileType)
             {
-                wicFormat = DirectXCppConstants.GUID_ContainerFormatJpeg;
-            }
-            else
-            {
-                wicFormat = DirectXCppConstants.GUID_ContainerFormatPng;
+                case ".jpg": // TODO: Remove this hardcoded constant.
+                    wicFormat = DirectXCppConstants.GUID_ContainerFormatJpeg;
+                    break;
+
+                case ".png":
+                    wicFormat = DirectXCppConstants.GUID_ContainerFormatPng;
+                    break;
+
+                case ".jxr":
+                    wicFormat = DirectXCppConstants.GUID_ContainerFormatJxr;
+                    break;
             }
 
             var ras = await file.OpenAsync(FileAccessMode.ReadWrite);
-            renderer.ExportImageToSdr(ras, wicFormat);
+
+            if (file.FileType == ".jxr")
+            {
+                renderer.ExportImageToJxr(ras);
+            }
+            else
+            {
+                renderer.ExportImageToSdr(ras, wicFormat);
+            }
         }
 
         private void SetUIHidden(bool value)
@@ -628,7 +642,7 @@ namespace HDRImageViewerCS
             var picker = new FileSavePicker
             {
                 SuggestedStartLocation = PickerLocationId.PicturesLibrary,
-                CommitButtonText = "Export image to SDR"
+                CommitButtonText = "Export image"
             };
 
             foreach (var format in UIStrings.FILEFORMATS_SAVE)
@@ -639,7 +653,7 @@ namespace HDRImageViewerCS
             var pickedFile = await picker.PickSaveFileAsync();
             if (pickedFile != null)
             {
-                await ExportImageToSdrAsync(pickedFile);
+                await ExportImageAsync(pickedFile);
             }
         }
 

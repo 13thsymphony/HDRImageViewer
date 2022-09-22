@@ -49,8 +49,9 @@ namespace HDRImageViewerCS
 
         public static Dictionary<string, IList<string>> FILEFORMATS_SAVE = new Dictionary<string, IList<string>>()
         {
-            { "JPEG image", new List<string> { ".jpg" } },
-            { "PNG image" , new List<string> { ".png" } }
+            { "JPEG image (SDR)", new List<string> { ".jpg" } },
+            { "PNG image (SDR)" , new List<string> { ".png" } },
+            { "JPEG-XR image (HDR)" , new List<string> { ".jxr" } }
         };
 
 
