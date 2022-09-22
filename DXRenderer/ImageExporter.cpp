@@ -224,7 +224,8 @@ std::vector<float> ImageExporter::DumpImageToRGBFloat(_In_ DeviceResources* res,
 /// First converts to FP16 in D2D, then uses the WIC encoder's internal converter.
 /// </remarks>
 /// <param name="wicFormat">The WIC container format to encode to.</param>
-void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size, DeviceResources* res, IStream* stream, GUID wicFormat)
+/// <param name="quality">ImageQuality encoder property (0 to 1). Default (-1) is letting the codec decide.</param>
+void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size, DeviceResources* res, IStream* stream, GUID wicFormat, float quality /* = -1.0f */)
 {
     auto dev = res->GetD2DDevice();
     auto wic = res->GetWicImagingFactory();
@@ -234,8 +235,21 @@ void ImageExporter::ExportToWic(ID2D1Image* img, Windows::Foundation::Size size,
     IFT(encoder->Initialize(stream, WICBitmapEncoderNoCache));
 
     ComPtr<IWICBitmapFrameEncode> frame;
-    IFT(encoder->CreateNewFrame(&frame, nullptr));
-    IFT(frame->Initialize(nullptr));
+    ComPtr<IPropertyBag2> encodeOptions;
+    IFT(encoder->CreateNewFrame(&frame, &encodeOptions));
+
+    PROPBAG2 qualityProp = {};
+    qualityProp.pstrName = L"ImageQuality";
+    CVariant qualityVar;
+    qualityVar.vt = VT_R4;
+    qualityVar.fltVal = quality;
+
+    if (quality >= 0.0f && quality <= 1.0f)
+    {
+        IFT(encodeOptions->Write(1, &qualityProp, &qualityVar));
+    }
+
+    IFT(frame->Initialize(encodeOptions.Get()));
 
     // Workaround for JPEG-XR which does not support FP16 premultiplied alpha; we just don't support PM alpha correctly for now.
     // Need to investigate explicit alpha format conversion.

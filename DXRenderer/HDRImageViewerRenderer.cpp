@@ -319,15 +319,13 @@ void HDRImageViewerRenderer::ExportImageToJxr(Windows::Storage::Streams::IRandom
 
     UpdateImageTransformState();
 
-    // Force a render without Present.
-    ctx->BeginDraw();
-    ctx->DrawImage(m_finalOutput.Get());
-    IFT(ctx->EndDraw()); // TODO: Handle D2DERR_RECREATE_TARGET nonfatally.
-
     ComPtr<IStream> iStream;
     IFT(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
 
-    ImageExporter::ExportToWic(m_deviceResources->GetD2DTargetBitmap(),
+    ComPtr<ID2D1Image> outputImage;
+    m_finalOutput->GetOutput(&outputImage);
+
+    ImageExporter::ExportToWic(outputImage.Get(),
         m_imageInfo.pixelSize,
         m_deviceResources.get(),
         iStream.Get(),
