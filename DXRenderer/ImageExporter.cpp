@@ -210,7 +210,7 @@ std::vector<float> ImageExporter::DumpImageToRGBFloat(_In_ DeviceResources* res,
         nullptr,                                                // Rect
         size.width * bitsPerPixel / 8,                          // Stride (bytes)
         static_cast<uint32_t>(pixels.size() * sizeof(float)),   // Total size (bytes)
-        reinterpret_cast<byte*>(pixels.data())));              // Buffer
+        reinterpret_cast<byte*>(pixels.data())));               // Buffer
 
     IFT(staging->Unmap());
 

@@ -92,13 +92,14 @@ void HDRImageViewerRenderer::CreateWindowSizeDependentResources()
 
 /// <summary>
 /// Updates rendering parameters, and draws. If CPU readback is enabled, updates the CPU-side render target cache.
+/// Always calls Draw() to refresh visual output.
 /// </summary>
 /// <param name="effect"></param>
 /// <param name="exposureAdjustment">
 /// Multiplication factor for color values; allows the user to
 /// adjust the brightness of the image on an HDR display.</param>
 /// <param name="dispMaxCllOverride">0 indicates no override (use the display's actual MaxCLL).</param>
-/// <param name="acInfo"></param>
+/// <param name="acInfo">If nullptr, assumes HDR display.</param>
 void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
     float exposureAdjustment,
@@ -118,19 +119,23 @@ void HDRImageViewerRenderer::SetRenderOptions(
         float redx, redy, greenx, greeny, bluex, bluey, whitex, whitey;
     };
 
-    _colors color
+    // TODO: If using a nullptr acInfo, handle gamut transforms.
+    _colors color {};
+    if (m_dispInfo)
     {
-        m_dispInfo->RedPrimary.X, m_dispInfo->RedPrimary.Y,
-        m_dispInfo->GreenPrimary.X, m_dispInfo->GreenPrimary.Y,
-        m_dispInfo->BluePrimary.X, m_dispInfo->BluePrimary.Y,
-        m_dispInfo->WhitePoint.X, m_dispInfo->WhitePoint.Y
-    };
+        color =
+        {
+            m_dispInfo->RedPrimary.X, m_dispInfo->RedPrimary.Y,
+            m_dispInfo->GreenPrimary.X, m_dispInfo->GreenPrimary.Y,
+            m_dispInfo->BluePrimary.X, m_dispInfo->BluePrimary.Y,
+            m_dispInfo->WhitePoint.X, m_dispInfo->WhitePoint.Y
+        };
 
-    UpdateGamutTransforms();
-
-    printf("%f", color.bluex);
+        UpdateGamutTransforms();
+    }
 
     auto sdrWhite = m_dispInfo ? m_dispInfo->SdrWhiteLevelInNits : D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL;
+    auto acKind = m_dispInfo ? m_dispInfo->CurrentAdvancedColorKind : AdvancedColorKind::HighDynamicRange;
 
     UpdateWhiteLevelScale(m_exposureAdjust, sdrWhite);
 
@@ -141,7 +146,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     {
     // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > WhiteScale > HDRTonemap > WhiteScale2*
     case RenderEffectKind::HdrTonemap:
-        if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
+        if (acKind != AdvancedColorKind::HighDynamicRange)
         {
             // *Second white scale is needed as an integral part of using the Direct2D HDR
             // tonemapper on SDR/WCG displays to stay within [0, 1] numeric range.
@@ -204,7 +209,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
     IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_DISPLAY_MODE, D2D1_HDRTONEMAP_DISPLAY_MODE_HDR));
 
     // If an HDR tonemapper is used on an SDR or WCG display, perform additional white level correction.
-    if (m_dispInfo->CurrentAdvancedColorKind != AdvancedColorKind::HighDynamicRange)
+    if (acKind != AdvancedColorKind::HighDynamicRange)
     {
         // Both the D2D and custom HDR tonemappers output values in scRGB using scene-referred luminance - a typical SDR display will
         // be around numeric range [0.0, 3.0] corresponding to [0, 240 nits]. To encode correctly for an SDR/WCG display
@@ -290,34 +295,37 @@ void HDRImageViewerRenderer::ExportAsDdsTest(_In_ IRandomAccessStream^ outputStr
 /// <param name="outputStream"></param>
 void HDRImageViewerRenderer::ExportImageToJxr(Windows::Storage::Streams::IRandomAccessStream^ outputStream)
 {
-    // Save the user-controlled render pipeline state. TODO: Keep in sync with any render pipeline changes.
-    RenderEffectKind saved_renderEffectKind = m_renderEffectKind;
-    float            saved_zoom = m_zoom;
-    D2D1_POINT_2F    saved_imageOffset = m_imageOffset;
-    float            saved_exposureAdjust = m_exposureAdjust;
-    bool             saved_constrainGamut = m_constrainGamut;
+    // TODO: Keep in sync with any render pipeline changes.
 
-    m_renderEffectKind = RenderEffectKind::None;
+    // Apply temp render pipeline state.
+    auto saved_renderEffectKind = m_renderEffectKind;
+    auto saved_exposureAdjust = m_exposureAdjust;
+    auto saved_dispMaxCLLOverride = m_dispMaxCLLOverride;
+    auto saved_constrainGamut = m_constrainGamut;
+    auto saved_dispInfo = m_dispInfo;
+
+    // SetRenderOptions sets the member variables and calls Draw().
+    // Note the nullptr acInfo to fake an HDR display.
+    SetRenderOptions(RenderEffectKind::None, 1.0f, 0.0f, nullptr, false);
+
+    // Apply temp spatial transform state after SetRenderOptions.
+    auto saved_zoom = m_zoom;
+    auto saved_imageOffset = m_imageOffset;
+    auto ctx = m_deviceResources->GetD2DDeviceContext();
+
     m_zoom = 1.0f;
     m_imageOffset = { 0.0f, 0.0f };
-    m_exposureAdjust = 1.0f;
-    m_constrainGamut = false;
+    ctx->SetDpi(96.0f, 96.0f); // Image export always occurs without DPI scaling.
+
+    UpdateImageTransformState();
+
+    // Force a render without Present.
+    ctx->BeginDraw();
+    ctx->DrawImage(m_finalOutput.Get());
+    IFT(ctx->EndDraw()); // TODO: Handle D2DERR_RECREATE_TARGET nonfatally.
 
     ComPtr<IStream> iStream;
     IFT(CreateStreamOverRandomAccessStream(outputStream, IID_PPV_ARGS(&iStream)));
-
-    auto ctx = m_deviceResources->GetD2DDeviceContext();
-
-    // Image export should always occur without DPI scaling.
-    ctx->SetDpi(96.0f, 96.0f);
-
-    ctx->BeginDraw();
-
-    ctx->DrawImage(m_finalOutput.Get());
-
-    IFT(ctx->EndDraw()); // TODO: Handle device lost case nonfatally.
-
-    ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
 
     ImageExporter::ExportToWic(m_deviceResources->GetD2DTargetBitmap(),
         m_imageInfo.pixelSize,
@@ -325,14 +333,18 @@ void HDRImageViewerRenderer::ExportImageToJxr(Windows::Storage::Streams::IRandom
         iStream.Get(),
         GUID_ContainerFormatWmp);
 
-    // Restore user-controlled pipeline state.
-    m_renderEffectKind = saved_renderEffectKind;
+    // Restore all state.
     m_zoom = saved_zoom;
     m_imageOffset = saved_imageOffset;
-    m_exposureAdjust = saved_exposureAdjust;
-    m_constrainGamut = saved_constrainGamut;
+    ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
+    UpdateImageTransformState();
 
-    Draw();
+    // Call SetRenderOptions last as it calls Draw.
+    SetRenderOptions(saved_renderEffectKind,
+        saved_exposureAdjust,
+        saved_dispMaxCLLOverride,
+        saved_dispInfo,
+        saved_constrainGamut);
 }
 
 // Configures a Direct2D image pipeline, including source, color management, 
@@ -962,7 +974,8 @@ void HDRImageViewerRenderer::EmitHdrMetadata()
 // or the manually overridden value.
 float HDRImageViewerRenderer::GetBestDispMaxLuminance()
 {
-    float val = m_dispInfo->MaxLuminanceInNits;
+    float val = m_dispInfo ? m_dispInfo->MaxLuminanceInNits : 0.0f;
+    auto acKind = m_dispInfo ? m_dispInfo->CurrentAdvancedColorKind : AdvancedColorKind::HighDynamicRange;
 
     if (m_dispMaxCLLOverride != 0.0f)
     {
@@ -971,7 +984,7 @@ float HDRImageViewerRenderer::GetBestDispMaxLuminance()
 
     if (val == 0.0f)
     {
-        if (m_dispInfo->CurrentAdvancedColorKind == AdvancedColorKind::HighDynamicRange)
+        if (acKind == AdvancedColorKind::HighDynamicRange)
         {
             // HDR TVs generally don't report metadata, but monitors do.
             val = sc_DefaultHdrDispMaxNits;
