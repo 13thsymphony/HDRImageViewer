@@ -25,8 +25,8 @@ namespace DXRenderer
         HdrTonemap,
         None,
         SdrOverlay,
-        LuminanceHeatmap,
         MaxLuminance,
+        LuminanceHeatmap,
         SphereMap
     };
 
@@ -71,8 +71,8 @@ namespace DXRenderer
                 ref new EffectOption(L"No effect", RenderEffectKind::None),
                 ref new EffectOption(L"HDR tonemap", RenderEffectKind::HdrTonemap),
                 ref new EffectOption(L"Draw SDR as grayscale", RenderEffectKind::SdrOverlay),
+                ref new EffectOption(L"Draw out of gamut as black", RenderEffectKind::MaxLuminance),
                 ref new EffectOption(L"Luminance heatmap", RenderEffectKind::LuminanceHeatmap),
-                ref new EffectOption(L"Out of gamut as black", RenderEffectKind::MaxLuminance)
                 // TODO: Temporarily disable sphere map in UI for the upcoming app release.
                 //ref new EffectOption(L"Draw as spheremap", RenderEffectKind::SphereMap)
             };

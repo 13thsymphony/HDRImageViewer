@@ -712,12 +712,12 @@ void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEve
 // Recomputing the HDR metadata is only needed when loading a new image.
 ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
 {
-    // TODO: Suspect this sometimes crashes due to AV. Need to root cause.
-    if (m_imageLoader != nullptr &&
+    Size panelSize = m_deviceResources->GetLogicalSize();
+
+    // TODO: Root cause why this method is sometimes called before the below prereqs are ready.
+    if (m_imageLoader != nullptr && panelSize.Width != 0 && panelSize.Height != 0 &&
         m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
-        Size panelSize = m_deviceResources->GetLogicalSize();
-
         // Set image to be letterboxed in the window, up to the max allowed scale factor.
         float letterboxZoom = min(
             panelSize.Width / m_imageInfo.pixelSize.Width,
