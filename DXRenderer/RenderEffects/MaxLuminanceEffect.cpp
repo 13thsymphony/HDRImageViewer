@@ -1,14 +1,3 @@
-//********************************************************* 
-// 
-// Copyright (c) Microsoft. All rights reserved. 
-// This code is licensed under the MIT License (MIT). 
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF 
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY 
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR 
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT. 
-// 
-//*********************************************************
-
 #include "pch.h"
 #include <initguid.h>
 #include "MaxLuminanceEffect.h"
@@ -18,7 +7,10 @@
 
 MaxLuminanceEffect::MaxLuminanceEffect() :
     m_refCount(1),
-    m_constants{}
+    m_constants{
+        96.0f, // DPI
+        80.0f  // Max nits
+    }
 {
 }
 
@@ -65,7 +57,7 @@ HRESULT MaxLuminanceEffect::Register(_In_ ID2D1Factory1* pFactory)
             <Effect>
                 <!-- System Properties -->
                 <Property name='DisplayName' type='string' value='MaxLuminance'/>
-                <Property name='Author' type='string' value='Microsoft Corporation'/>
+                <Property name='Author' type='string' value='Wendy Ho'/>
                 <Property name='Category' type='string' value='Source'/>
                 <Property name='Description' type='string' value='Renders all colors above the max luminance of the display as black.'/>
                 <Inputs>
@@ -97,11 +89,6 @@ HRESULT MaxLuminanceEffect::Register(_In_ ID2D1Factory1* pFactory)
         CreateMaxLuminanceImpl
         );
 }
-
-// SITAO TODO:
-// 1. add a variable to the class to store the max luminnace (type: float). add it as a member to m_constants{}. OK
-// 2. implement GetMaxLum, that returns the value OK
-// 3. implement SetMaxLum, store into the value OK
 
 IFACEMETHODIMP MaxLuminanceEffect::Initialize(
     _In_ ID2D1EffectContext* pEffectContext,
@@ -153,8 +140,6 @@ HRESULT MaxLuminanceEffect::UpdateConstants()
 
 IFACEMETHODIMP MaxLuminanceEffect::PrepareForRender(D2D1_CHANGE_TYPE changeType)
 {
-   // FLOAT maxLum;
-   // maxLum = static_cast<FLOAT>()
     return UpdateConstants();
 }
 

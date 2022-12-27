@@ -1,22 +1,6 @@
-//********************************************************* 
-// 
-// Copyright (c) Microsoft. All rights reserved. 
-// This code is licensed under the MIT License (MIT). 
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF 
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY 
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR 
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT. 
-// 
-//*********************************************************
-
-// Not a tonemapper, instead demonstrates visually what would happen in SDR mode:
-// - Truncates values to 8 bits per channel
-// - Converts out of gamut colors to grayscale
-
-// {70937517-E2A1-4436-8DD1-A6BEC57CED62}
 DEFINE_GUID(GUID_MaxLuminancePixelShader,
     0x70937517, 0xe2a1, 0x4436, 0x8d, 0xd1, 0xa6, 0xbe, 0xc5, 0x7c, 0xed, 0x62);
-// {0DEBA444-958E-4C78-A5C9-4287FB44A550}
+
 DEFINE_GUID(CLSID_CustomMaxLuminanceEffect,
     0xdeba444, 0x958e, 0x4c78, 0xa5, 0xc9, 0x42, 0x87, 0xfb, 0x44, 0xa5, 0x50);
 
