@@ -67,6 +67,7 @@ void HDRImageViewerRenderer::CreateDeviceIndependentResources()
     IFT(SimpleTonemapEffect::Register(fact));
     IFT(SdrOverlayEffect::Register(fact));
     IFT(LuminanceHeatmapEffect::Register(fact));
+    IFT(MaxLuminanceEffect::Register(fact));
     IFT(SphereMapEffect::Register(fact));
 }
 
@@ -113,6 +114,8 @@ void HDRImageViewerRenderer::SetRenderOptions(
     m_exposureAdjust = exposureAdjustment;
     m_dispMaxCLLOverride = dispMaxCllOverride;
     m_constrainGamut = constrainGamut;
+
+    float lum = m_dispInfo->MaxLuminanceInNits;
 
     struct _colors
     {
@@ -171,6 +174,15 @@ void HDRImageViewerRenderer::SetRenderOptions(
     case RenderEffectKind::LuminanceHeatmap:
         m_finalOutput = m_whiteScaleEffect.Get();
         m_whiteScaleEffect->SetInputEffect(0, m_heatmapEffect.Get());
+        break;
+
+    // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > MaxLuminance > WhiteScale
+    case RenderEffectKind::MaxLuminance:
+        m_finalOutput = m_whiteScaleEffect.Get();
+        m_whiteScaleEffect->SetInputEffect(0, m_maxLuminanceEffect.Get());
+
+        lum = Clamp(lum, 80.0f, 10000.0f);
+        m_maxLuminanceEffect->SetValueByName(L"MaxLuminance", lum);
         break;
 
     // Effect graph: ImageSource > ColorManagement > [Optional GainMapMerge] > SdrOverlay > WhiteScale
@@ -461,6 +473,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     IFT(context->CreateEffect(CLSID_D2D1WhiteLevelAdjustment, &m_sdrWhiteScaleEffect));
     IFT(context->CreateEffect(CLSID_CustomSdrOverlayEffect, &m_sdrOverlayEffect));
     IFT(context->CreateEffect(CLSID_CustomLuminanceHeatmapEffect, &m_heatmapEffect));
+    IFT(context->CreateEffect(CLSID_CustomMaxLuminanceEffect, &m_maxLuminanceEffect));
     IFT(context->CreateEffect(CLSID_CustomSphereMapEffect, &m_sphereMapEffect));
 
     IFT(context->CreateEffect(CLSID_D2D1ColorMatrix, &m_mapGamutToPanel));
@@ -486,6 +499,7 @@ void HDRImageViewerRenderer::CreateImageDependentResources()
     // For the following effects, we want white level scale to be applied after
     // tonemapping (otherwise brightness adjustments will affect numerical values).
     m_heatmapEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
+    m_maxLuminanceEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
     m_sdrOverlayEffect->SetInputEffect(0, m_gainMapMergeEffect.Get());
 
     // The remainder of the Direct2D effect graph is constructed in SetRenderOptions based on the
@@ -591,6 +605,7 @@ void HDRImageViewerRenderer::ReleaseImageDependentResources()
     m_hdrTonemapEffect.Reset();
     m_sdrOverlayEffect.Reset();
     m_heatmapEffect.Reset();
+    m_maxLuminanceEffect.Reset();
     m_histogramPrescale.Reset();
     m_histogramEffect.Reset();
     m_sphereMapEffect.Reset();
@@ -697,12 +712,12 @@ void HDRImageViewerRenderer::UpdateManipulationState(_In_ ManipulationUpdatedEve
 // Recomputing the HDR metadata is only needed when loading a new image.
 ImageCLL HDRImageViewerRenderer::FitImageToWindow(bool computeMetadata)
 {
-    // TODO: Suspect this sometimes crashes due to AV. Need to root cause.
-    if (m_imageLoader != nullptr &&
+    Size panelSize = m_deviceResources->GetLogicalSize();
+
+    // TODO: Root cause why this method is sometimes called before the below prereqs are ready.
+    if (m_imageLoader != nullptr && panelSize.Width != 0 && panelSize.Height != 0 &&
         m_imageLoader->GetState() == ImageLoaderState::LoadingSucceeded)
     {
-        Size panelSize = m_deviceResources->GetLogicalSize();
-
         // Set image to be letterboxed in the window, up to the max allowed scale factor.
         float letterboxZoom = min(
             panelSize.Width / m_imageInfo.pixelSize.Width,

@@ -41,6 +41,9 @@
     </ClCompile>
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
+    <ClCompile Include="RenderEffects\MaxLuminanceEffect.cpp">
+      <Filter>Resources\RenderEffects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -76,6 +79,9 @@
     <ClInclude Include="RenderOptions.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="LibHeifHelpers.h" />
+    <ClInclude Include="RenderEffects\MaxLuminanceEffect.h">
+      <Filter>Resources\RenderEffects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="RenderEffects\LuminanceHeatmapEffect.hlsl">
@@ -88,6 +94,9 @@
       <Filter>Resources\RenderEffects</Filter>
     </FxCompile>
     <FxCompile Include="RenderEffects\SdrOverlayEffect.hlsl">
+      <Filter>Resources\RenderEffects</Filter>
+    </FxCompile>
+    <FxCompile Include="RenderEffects\MaxLuminanceEffect.hlsl">
       <Filter>Resources\RenderEffects</Filter>
     </FxCompile>
   </ItemGroup>
