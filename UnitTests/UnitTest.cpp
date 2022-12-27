@@ -81,7 +81,7 @@ namespace UnitTests
                     Assert::AreEqual(info.isFloat, definitions[i].info.isFloat);
                     Assert::AreEqual(info.size.Width, definitions[i].info.size.Width);
                     Assert::AreEqual(info.size.Height, definitions[i].info.size.Height);
-                    Assert::AreEqual(info.numProfiles, definitions[i].info.numProfiles);
+                    Assert::AreEqual(info.countColorProfiles, definitions[i].info.countColorProfiles);
                     Assert::IsTrue(info.imageKind == definitions[i].info.imageKind);
                     Assert::AreEqual(info.forceBT2100ColorSpace, definitions[i].info.forceBT2100ColorSpace);
                     Assert::AreEqual(info.isValid, definitions[i].info.isValid);

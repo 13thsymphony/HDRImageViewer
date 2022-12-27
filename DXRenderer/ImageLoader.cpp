@@ -179,6 +179,7 @@ void ImageLoader::LoadImageFromDirectXTexInt(String^ filename, String^ extension
         IFRIMG(LoadFromEXRFile(filestr, nullptr, &exrChromaticities, *dxtScratch));
         if (exrChromaticities.Valid)
         {
+            m_imageInfo.countColorProfiles = 1;
             m_imageInfo.hasEXRChromaticitiesInfo = true;
             m_customOrDerivedColorProfile.redPrimary = D2D1::Point2F(exrChromaticities.RedX, exrChromaticities.RedY);
             m_customOrDerivedColorProfile.bluePrimary = D2D1::Point2F(exrChromaticities.BlueX, exrChromaticities.BlueY);
@@ -253,7 +254,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
         break;
 
     case ImageLoaderOptionsType::CustomSdrColorSpace:
-        m_imageInfo.overridenColorProfile = true;
+        m_imageInfo.hasOverriddenColorProfile = true;
         m_customOrDerivedColorProfile.redPrimary = D2D1::Point2F(m_options.customColorSpace.red.X, m_options.customColorSpace.red.Y);
         m_customOrDerivedColorProfile.greenPrimary = D2D1::Point2F(m_options.customColorSpace.green.X, m_options.customColorSpace.green.Y);
         m_customOrDerivedColorProfile.bluePrimary = D2D1::Point2F(m_options.customColorSpace.blue.X, m_options.customColorSpace.blue.Y);
@@ -322,7 +323,7 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
             IFRIMG(frame->GetColorContexts(
                 1,
                 m_wicColorContext.GetAddressOf(),
-                &m_imageInfo.numProfiles));
+                &m_imageInfo.countColorProfiles));
         }
 
         // When decoding, preserve the numeric representation (float vs. non-float)
@@ -711,13 +712,13 @@ void ImageLoader::CreateDeviceDependentResourcesInternal()
         IFT(colorContext1.As(&m_colorContext));
     }
     // Both OpenEXR chromaticities or override uses this code path
-    else if (m_imageInfo.overridenColorProfile || m_imageInfo.hasEXRChromaticitiesInfo)
+    else if (m_imageInfo.hasOverriddenColorProfile || m_imageInfo.hasEXRChromaticitiesInfo)
     {
         ComPtr<ID2D1ColorContext1> color1;
         IFT(context->CreateColorContextFromSimpleColorProfile(m_customOrDerivedColorProfile, &color1));
         IFT(color1.As(&m_colorContext));
     }
-    else if (m_imageInfo.numProfiles >= 1)
+    else if (m_imageInfo.countColorProfiles >= 1)
     {
         IFT(context->CreateColorContextFromWicColorContext(
             m_wicColorContext.Get(),
@@ -887,7 +888,7 @@ void ImageLoader::PopulateImageInfoACKind(ImageInfo& info, _In_ IWICBitmapSource
 
     // Bit depth > 8bpc or color gamut > sRGB signifies a WCG image.
     // The presence of a color profile is used as an approximation for wide gamut.
-    if (info.bitsPerChannel > 8 || info.numProfiles >= 1)
+    if (info.bitsPerChannel > 8 || info.countColorProfiles >= 1)
     {
         info.imageKind = AdvancedColorKind::WideColorGamut;
     }

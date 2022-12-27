@@ -8,14 +8,14 @@ namespace DXRenderer
         unsigned int                                    bitsPerChannel;
         bool                                            isFloat;
         Windows::Foundation::Size                       pixelSize;
-        unsigned int                                    numProfiles;
+        unsigned int                                    countColorProfiles;
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
         bool                                            forceBT2100ColorSpace;
         bool                                            isValid;
         bool                                            isHeif;
         bool                                            hasAppleHdrGainMap;
         Windows::Foundation::Size                       gainMapPixelSize;
-        bool                                            overridenColorProfile;
+        bool                                            hasOverriddenColorProfile;
         bool                                            hasEXRChromaticitiesInfo;
     };
 

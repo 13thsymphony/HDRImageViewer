@@ -360,7 +360,8 @@ HRESULT DirectX::LoadFromEXRFile(const wchar_t* szFile, TexMetadata* metadata, _
                 chromaticities->BlueY = chromaticitiesAttribVal.blue.y;
                 chromaticities->GreenX = chromaticitiesAttribVal.green.x;
                 chromaticities->GreenY = chromaticitiesAttribVal.green.y;
-                // Convert xyY white point data to XYZ, and scale/normalize against Y = 1.0 for Direct2D use
+
+                // Convert xyY white point data to XYZ, and scale/normalize against Y = 1.0 for DirectX use.
                 // http://www.brucelindbloom.com/index.html?Eqn_xyY_to_XYZ.html
                 if (chromaticitiesAttribVal.white.y != 0.0f)
                 {
@@ -370,8 +371,10 @@ HRESULT DirectX::LoadFromEXRFile(const wchar_t* szFile, TexMetadata* metadata, _
                 }
                 else
                 {
-                    // Special handling case (I hope nobody hits here)
-                    chromaticities->WhiteX = chromaticities->WhiteY = chromaticities->WhiteZ = 0.0f;
+                    // Assume D65 (normalized luminance) whitepoint to at least produce some visible color values.
+                    chromaticities->WhiteX = 0.9504f;
+                    chromaticities->WhiteY = 1.0000f;
+                    chromaticities->WhiteZ = 1.0888f;
                 }
             }
         }
