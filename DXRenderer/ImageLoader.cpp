@@ -4,9 +4,6 @@
 #include "DirectXTex.h"
 #include "DirectXTex\DirectXTexEXR.h"
 
-// TEST
-#include "ImageExporter.h"
-
 using namespace DXRenderer;
 
 using namespace DirectX;
@@ -387,13 +384,12 @@ void ImageLoader::CreateHeifHdr10CpuResources(IWICBitmapSource* source)
     IFRIMG(frame.As(&sourceTransform));
 
     GUID hdr10Fmt = GUID_WICPixelFormat32bppR10G10B10A2HDR10;
-    GUID rgba10Fmt = GUID_WICPixelFormat32bppR10G10B10A2; // TEST
 
     ComPtr<IWICBitmap> hdr10Bitmap;
     IFRIMG(fact->CreateBitmap(
         width,
         height,
-        rgba10Fmt, // TEST
+        hdr10Fmt,
         WICBitmapCacheOnLoad,
         &hdr10Bitmap));
 
@@ -415,23 +411,7 @@ void ImageLoader::CreateHeifHdr10CpuResources(IWICBitmapSource* source)
         lockSize,
         lockData));
 
-    // TEST dump the 10 bit data to a file. PNG will upconvert bit depth to 64bpp.
-    ComPtr<IStream> outstream;
-    ImageExporter::GetDebugOutputStream(outstream.GetAddressOf());
-    //ImageExporter::ExportPixels(fact, width, height, lockData, lockStride, lockSize, rgba10Fmt, outstream.Get());
-
-    lock.Reset();
-    ImageExporter::ExportToDds(hdr10Bitmap.Get(), outstream.Get(), DXGI_FORMAT_R10G10B10A2_UNORM);
-
-    // TEST treat the decoded 10 bit (HDR10 RGB) data back to 8 bit sRGB
-
-    ComPtr<IWICFormatConverter> convert8bit;
-    IFRIMG(fact->CreateFormatConverter(&convert8bit));
-    IFRIMG(convert8bit->Initialize(hdr10Bitmap.Get(), GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom));
-    IFRIMG(convert8bit.As(&m_wicCachedSource));
-    m_imageInfo.forceBT2100ColorSpace = false; // short circuit the rest of the HDR10 special path (GPU resources)
-
-    //IFRIMG(hdr10Bitmap.As(&m_wicCachedSource));
+    IFRIMG(hdr10Bitmap.As(&m_wicCachedSource));
 }
 
 /// <summary>
