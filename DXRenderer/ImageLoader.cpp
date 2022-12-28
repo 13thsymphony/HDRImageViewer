@@ -299,6 +299,8 @@ void ImageLoader::LoadImageCommon(_In_ IWICBitmapSource* source)
         m_imageInfo.forceBT2100ColorSpace == true)
     {
         CreateHeifHdr10CpuResources(source);
+
+        if (m_state == ImageLoaderState::LoadingFailed) return;
     }
     else
     {

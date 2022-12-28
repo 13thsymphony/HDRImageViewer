@@ -6,6 +6,7 @@
 #include "DirectXTex.h"
 
 using namespace Microsoft::WRL;
+using namespace Windows::Storage;
 
 using namespace DXRenderer;
 
@@ -16,6 +17,61 @@ ImageExporter::ImageExporter()
 
 ImageExporter::~ImageExporter()
 {
+}
+
+/// <summary>
+/// For debugging purposes only, creates a new generated file in the local app data folder.
+/// </summary>
+/// <param name="fileStream">File is opened for read/write access. Existing data is overwritten.</param>
+void ImageExporter::GetDebugOutputStream(_Out_ IStream** fileStream)
+{
+    StorageFolder^ localFolder = Windows::Storage::ApplicationData::Current->LocalFolder;
+    auto path = localFolder->Path->Data();
+    std::wstringstream filenamestr;
+    filenamestr << path << L"\\temp.out";
+    auto filename = filenamestr.str();
+
+    CREATEFILE2_EXTENDED_PARAMETERS extendedParams = { 0 };
+    extendedParams.dwSize = sizeof(CREATEFILE2_EXTENDED_PARAMETERS);
+    extendedParams.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
+    extendedParams.dwFileFlags = FILE_FLAG_SEQUENTIAL_SCAN;
+    extendedParams.dwSecurityQosFlags = SECURITY_ANONYMOUS;
+    extendedParams.lpSecurityAttributes = nullptr;
+    extendedParams.hTemplateFile = nullptr;
+
+    Wrappers::FileHandle file(
+        CreateFile2(
+            filename.c_str(),
+            GENERIC_WRITE,
+            0,
+            CREATE_ALWAYS,
+            &extendedParams));
+
+    if (file.Get() == INVALID_HANDLE_VALUE)
+    {
+        throw ref new Platform::FailureException();
+    }
+
+    file.Close();
+
+    ComPtr<IWICImagingFactory> wicFactory;
+    IFT(CoCreateInstance(
+        CLSID_WICImagingFactory2,
+        nullptr,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&wicFactory)));
+
+    ComPtr<IWICStream> wicstream;
+    IFT(wicFactory->CreateStream(&wicstream));
+    IFT(wicstream->InitializeFromFilename(filename.c_str(), GENERIC_READ | GENERIC_WRITE));
+
+    IFT(wicstream->QueryInterface(IID_PPV_ARGS(fileStream)));
+
+    //ComPtr<Windows::Storage::Streams::IRandomAccessStream> ras;
+    //IFT(CreateRandomAccessStreamOnFile(filename, FileAccessMode_ReadWrite, IID_PPV_ARGS(ras)));
+
+    //ComPtr<IStream> stream;
+    //IFT(CreateStreamOverRandomAccessStream(reinterpret_cast<IUnknown*>(ras.Get()), IID_PPV_ARGS(stream)));
 }
 
 /// <summary>
@@ -119,6 +175,7 @@ void ImageExporter::ExportPixels(IWICImagingFactory* fact, unsigned int pixelWid
 
     ComPtr<IWICBitmapEncoder> encoder;
     IFT(fact->CreateEncoder(GUID_ContainerFormatPng, nullptr, &encoder));
+    IFT(encoder->Initialize(stream, WICBitmapEncoderNoCache));
 
     ComPtr<IWICBitmapFrameEncode> frame;
     IFT(encoder->CreateNewFrame(&frame, nullptr));
