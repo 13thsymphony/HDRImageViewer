@@ -73,6 +73,7 @@ namespace HDRImageViewerCS
 
                 var inputArgString = "-input:";
                 var customColorProfileString = "-colorprofile:";
+                var forcedEffectString = "-rendereffect:";
 
                 // Ignore the first argument which is always the "executable" name.
                 // This also ensures that just invoking the executable without arguments succeeds.
@@ -111,7 +112,7 @@ namespace HDRImageViewerCS
                     else if (cmdArgs[i].StartsWith(customColorProfileString, StringComparison.InvariantCultureIgnoreCase))
                     {
                         char[] splitters = { ',', ':' };
-                        var rawValues = cmdArgs[i].Substring(inputArgString.Length).Split(splitters);
+                        var rawValues = cmdArgs[i].Substring(customColorProfileString.Length).Split(splitters);
 
                         try
                         {
@@ -146,6 +147,19 @@ namespace HDRImageViewerCS
                         }
 
                         launchArgs.hasCustomColorSpace = true;
+                    }
+                    else if (cmdArgs[i].StartsWith(forcedEffectString, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var arg = cmdArgs[i].Substring(forcedEffectString.Length);
+
+                        launchArgs.hasForcedEffect = true;
+                        launchArgs.forcedEffect = DXRenderer.RenderEffectKind.None;
+
+                        if (arg.Equals("none"))             { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.None;             }
+                        if (arg.Equals("hdrtonemap"))       { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.HdrTonemap;       }
+                        if (arg.Equals("sdroverlay"))       { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.SdrOverlay;       }
+                        if (arg.Equals("maxluminance"))     { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.MaxLuminance;     }
+                        if (arg.Equals("luminanceheatmap")) { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.LuminanceHeatmap; }
                     }
                     else // All other tokens are invalid.
                     {
