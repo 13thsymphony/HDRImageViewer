@@ -111,21 +111,21 @@ namespace HDRImageViewerCS
                     }
                     else if (cmdArgs[i].StartsWith(customColorProfileString, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        char[] splitters = { ',', ':' };
+                        char[] splitters = { ',' };
                         var rawValues = cmdArgs[i].Substring(customColorProfileString.Length).Split(splitters);
 
                         try
                         {
-                            launchArgs.customColorSpace.red.X        = double.Parse(rawValues[1]);
-                            launchArgs.customColorSpace.red.Y        = double.Parse(rawValues[2]);
-                            launchArgs.customColorSpace.green.X      = double.Parse(rawValues[3]);
-                            launchArgs.customColorSpace.green.Y      = double.Parse(rawValues[4]);
-                            launchArgs.customColorSpace.blue.X       = double.Parse(rawValues[5]);
-                            launchArgs.customColorSpace.blue.Y       = double.Parse(rawValues[6]);
-                            launchArgs.customColorSpace.whitePt_XZ.X = double.Parse(rawValues[7]);
-                            launchArgs.customColorSpace.whitePt_XZ.Y = double.Parse(rawValues[8]);
+                            launchArgs.customColorSpace.red.X        = double.Parse(rawValues[0]);
+                            launchArgs.customColorSpace.red.Y        = double.Parse(rawValues[1]);
+                            launchArgs.customColorSpace.green.X      = double.Parse(rawValues[2]);
+                            launchArgs.customColorSpace.green.Y      = double.Parse(rawValues[3]);
+                            launchArgs.customColorSpace.blue.X       = double.Parse(rawValues[4]);
+                            launchArgs.customColorSpace.blue.Y       = double.Parse(rawValues[5]);
+                            launchArgs.customColorSpace.whitePt_XZ.X = double.Parse(rawValues[6]);
+                            launchArgs.customColorSpace.whitePt_XZ.Y = double.Parse(rawValues[7]);
 
-                            switch (int.Parse(rawValues[9]))
+                            switch (int.Parse(rawValues[8]))
                             {
                                 case 0:
                                     launchArgs.customColorSpace.Gamma = DXRenderer.CustomGamma.Gamma22;
@@ -154,12 +154,33 @@ namespace HDRImageViewerCS
 
                         launchArgs.hasForcedEffect = true;
                         launchArgs.forcedEffect = DXRenderer.RenderEffectKind.None;
+                        switch (arg)
+                        {
+                            case "none":
+                                launchArgs.forcedEffect = DXRenderer.RenderEffectKind.None;
+                                break;
 
-                        if (arg.Equals("none"))             { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.None;             }
-                        if (arg.Equals("hdrtonemap"))       { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.HdrTonemap;       }
-                        if (arg.Equals("sdroverlay"))       { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.SdrOverlay;       }
-                        if (arg.Equals("maxluminance"))     { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.MaxLuminance;     }
-                        if (arg.Equals("luminanceheatmap")) { launchArgs.forcedEffect = DXRenderer.RenderEffectKind.LuminanceHeatmap; }
+                            case "hdrtonemap":
+                                launchArgs.forcedEffect = DXRenderer.RenderEffectKind.HdrTonemap;
+                                break;
+
+                            case "sdroverlay":
+                                launchArgs.forcedEffect = DXRenderer.RenderEffectKind.SdrOverlay;
+                                break;
+
+                            case "maxluminance":
+                                launchArgs.forcedEffect = DXRenderer.RenderEffectKind.MaxLuminance;
+                                break;
+
+                            case "luminanceheatmap":
+                                launchArgs.forcedEffect = DXRenderer.RenderEffectKind.LuminanceHeatmap;
+                                break;
+
+                            default:
+                                launchArgs.errorType |= ErrorDialogType.InvalidCmdArgs;
+                                break;
+                        }
+
                     }
                     else // All other tokens are invalid.
                     {
