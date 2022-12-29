@@ -65,7 +65,8 @@ namespace DXRenderer
     public:
         RenderOptionsViewModel()
         {
-            // The first index is chosen by default. Ensure this is in sync with DirectXPage.
+            // DirectXPage depends on the enumerated order of effect options, do not alter this order
+            // without updating DirectXPage's combo box SelectedIndex code.
             renderEffects = ref new Platform::Collections::VectorView<EffectOption^>
             {
                 ref new EffectOption(L"No effect", RenderEffectKind::None),
@@ -73,7 +74,7 @@ namespace DXRenderer
                 ref new EffectOption(L"Draw SDR as grayscale", RenderEffectKind::SdrOverlay),
                 ref new EffectOption(L"Draw out of gamut as black", RenderEffectKind::MaxLuminance),
                 ref new EffectOption(L"Luminance heatmap", RenderEffectKind::LuminanceHeatmap),
-                // TODO: Temporarily disable sphere map in UI for the upcoming app release.
+                // TODO: SphereMap is not ready for release.
                 //ref new EffectOption(L"Draw as spheremap", RenderEffectKind::SphereMap)
             };
         }

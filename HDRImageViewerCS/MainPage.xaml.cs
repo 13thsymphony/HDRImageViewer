@@ -29,6 +29,8 @@ namespace HDRImageViewerCS
         public bool forceBT2100;
         public bool hasCustomColorSpace;
         public DXRenderer.CustomSdrColorSpace customColorSpace;
+        public bool hasForcedEffect;
+        public DXRenderer.RenderEffectKind forcedEffect;
         public string initialFileToken; // StorageItemAccessList token
         public ErrorDialogType errorType; // If this is not DefaultValue, triggers the error dialog.
         public string errorFilename; // Only use this if ErrorDialogType is InvalidFile.
@@ -54,6 +56,7 @@ namespace HDRImageViewerCS
         bool profileColorimetryOverride;
         ImageLoaderOptions loaderOptions;
         string commandLine;
+        DXRenderer.RenderEffectKind? forcedEffect;
 
         ToolTip tooltip;
         RenderOptionsViewModel viewModel;
@@ -170,6 +173,12 @@ namespace HDRImageViewerCS
                     await LoadImageAsync(file);
                 }
 
+                // Startup effect needs to be set after the image is loaded in UpdateDefaultRenderOptions.
+                if (args.hasForcedEffect)
+                {
+                    forcedEffect = args.forcedEffect;
+                }
+
                 if (args.errorType != ErrorDialogType.DefaultValue)
                 {
                     var error = new ErrorContentDialog(args.errorType);
@@ -251,6 +260,36 @@ namespace HDRImageViewerCS
 
                     ExposureAdjustPanel.Visibility = Visibility.Visible;
                     break;
+            }
+
+            // Defer applying the render effect command line arg until the image is loaded.
+            if (forcedEffect.HasValue)
+            {
+                switch (forcedEffect.Value)
+                {
+                    case RenderEffectKind.None:
+                        RenderEffectCombo.SelectedIndex = 0; // See RenderOptions.h for which value this indicates.
+                        break;
+
+                    case RenderEffectKind.HdrTonemap:
+                        RenderEffectCombo.SelectedIndex = 1; // See RenderOptions.h for which value this indicates.
+                        break;
+
+                    case RenderEffectKind.SdrOverlay:
+                        RenderEffectCombo.SelectedIndex = 2; // See RenderOptions.h for which value this indicates.
+                        break;
+
+                    case RenderEffectKind.MaxLuminance:
+                        RenderEffectCombo.SelectedIndex = 3; // See RenderOptions.h for which value this indicates.
+                        break;
+
+                    case RenderEffectKind.LuminanceHeatmap:
+                        RenderEffectCombo.SelectedIndex = 4; // See RenderOptions.h for which value this indicates.
+                        break;
+                }
+
+                // Prevent manually changing the effect.
+                RenderEffectCombo.IsEnabled = false;
             }
 
             UpdateRenderOptions();
