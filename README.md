@@ -52,18 +52,30 @@ HDR displays vary greatly in quality - low quality models offer no real benefit 
 * [NVIDIA G-SYNC and G-SYNC Ultimate](https://www.nvidia.com/en-us/geforce/products/g-sync-monitors)
 
 ### Command line usage
-You should invoke HDRImageViewer from the directory containing the image you wish to load - UWP apps launched from a command line only have access to files within the working directory.
+If you are loading an image using the `-input` argument you must invoke HDRImageViewer from the directory containing the image you wish to load - UWP apps launched from a command line only have access to files within the working directory.
 
 #### Parameters
 `-f` Start in fullscreen mode
 
 `-h` Start with UI hidden
 
-`-forcebt2100` Force images to use BT.2100 PQ
+`-forcebt2100` Force images to use BT.2100 PQ color space (BT.2020 primaries, ST.2084/PQ transfer function)
 
 `-input:filename` Load `filename`
 
 **Note: Filename must be relative to the current working directory as HDRImageViewer only has access to that directory.**
+
+`-colorprofile:r_x,r_y,g_x,g_y,b_x,b_y,w_X,w_Z,gamma` Use a custom color space defined by RGBW primaries and gamma
+* `r_x,r_y,g_x,g_y,b_x,b_y`: CIExyY x and y coordinates of the red/green/blue primaries.
+* `w_X,w_Z`: CIEXYZ X and Z coordinates of the whitepoint, normalized to Y = 1.0
+* `gamma`: Enumeration, use 0 for 2.2/sRGB, 1 for 1.0/linear. BT.2100 PQ transfer function is not yet supported, use `-forcebt2100` instead.
+
+`-rendereffect:[effect]` Force a render effect. Valid values are:
+* `none`
+* `hdrtonemap`
+* `sdroverlay`
+* `maxluminance`
+* `luminanceheatmap`
 
 #### Example
 `HDRImageViewer.exe -f -h -input:myimage.jxr`
