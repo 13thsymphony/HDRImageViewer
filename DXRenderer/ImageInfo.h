@@ -8,14 +8,15 @@ namespace DXRenderer
         unsigned int                                    bitsPerChannel;
         bool                                            isFloat;
         Windows::Foundation::Size                       pixelSize;
-        unsigned int                                    numProfiles;
+        unsigned int                                    countColorProfiles;
         Windows::Graphics::Display::AdvancedColorKind   imageKind;
         bool                                            forceBT2100ColorSpace;
         bool                                            isValid;
         bool                                            isHeif;
         bool                                            hasAppleHdrGainMap;
         Windows::Foundation::Size                       gainMapPixelSize;
-        bool                                            overridenColorProfile;
+        bool                                            hasOverriddenColorProfile;
+        bool                                            hasEXRChromaticitiesInfo;
     };
 
     public value struct ImageCLL
@@ -25,4 +26,5 @@ namespace DXRenderer
         bool    isSceneReferred; // If False, the CLL values are not calibrated to actual nits
                                  // should only be used to understand relative intensity of the image.
     };
+
 }

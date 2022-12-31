@@ -173,7 +173,7 @@ namespace DXRenderer
         ImageLoaderState                                        m_state;
         ImageInfo                                               m_imageInfo;
         ImageLoaderOptions                                      m_options;
-        D2D1_SIMPLE_COLOR_PROFILE                               m_customColorProfile;
+        D2D1_SIMPLE_COLOR_PROFILE                               m_customOrDerivedColorProfile;
 
         // Device-dependent. Everything here needs to be reset in ReleaseDeviceDependentResources.
         Microsoft::WRL::ComPtr<ID2D1ImageSource>                m_imageSource;

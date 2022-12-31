@@ -522,7 +522,7 @@ namespace HDRImageViewerCS
 
             SetWindowTitle(imageFile.Name);
             ImageACKind.Text = UIStrings.LABEL_ACKIND + UIStrings.ConvertACKindToString(imageInfo.imageKind);
-            ImageHasProfile.Text = UIStrings.LABEL_COLORPROFILE + (imageInfo.numProfiles > 0 ? UIStrings.LABEL_YES : UIStrings.LABEL_NO);
+            ImageHasProfile.Text = UIStrings.LABEL_COLORPROFILE + (imageInfo.countColorProfiles > 0 ? UIStrings.LABEL_YES : UIStrings.LABEL_NO);
             ImageBitDepth.Text = UIStrings.LABEL_BITDEPTH + imageInfo.bitsPerChannel;
             ImageIsFloat.Text = UIStrings.LABEL_FLOAT + (imageInfo.isFloat ? UIStrings.LABEL_YES : UIStrings.LABEL_NO);
 
@@ -718,10 +718,18 @@ namespace HDRImageViewerCS
                 }
             }
 
-            var file = await picker.PickSingleFileAsync();
-            if (file != null)
+            try
             {
-                await LoadImageAsync(file);
+                var file = await picker.PickSingleFileAsync();
+                if (file != null)
+                {
+                    await LoadImageAsync(file);
+                }
+            }
+            catch (Exception ex)
+            {
+                var dialog = new ErrorContentDialog(ErrorDialogType.InvalidFile, ex.Message);
+                await dialog.ShowAsync();
             }
         }
 
