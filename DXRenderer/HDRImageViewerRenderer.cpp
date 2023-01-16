@@ -926,10 +926,14 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
             )
         );
 
-    unsigned int maxCLLbin = 0;
-    unsigned int avgCLLbin = 0; // Average is defined as 50th percentile.
+    unsigned int maxCLLbin = sc_histNumBins - 1;
+    unsigned int medCLLbin = 0;
     float runningSum = 0.0f; // Cumulative sum of values in histogram is 1.0.
-    for (int i = sc_histNumBins - 1; i >= 0; i--)
+
+    // BUG#58: Nominally, we iterate starting from sc_histNumBins - 1. But sometimes
+    // I see spurious (nondeterminsistic) histogram results where the last bucket (~1 million nits)
+    // reports a large pixel count. Workaround by ignoring the last bucket.
+    for (int i = sc_histNumBins - 2; i >= 0; i--)
     {
         runningSum += histogramData[i];
 
@@ -941,8 +945,8 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
 
         if (runningSum > 0.5f)
         {
-            // Note if the entire histogram is 0, avgCLLbin remains at -1.
-            avgCLLbin = i;
+            // Some test patterns have a majority of pixels = 0 nits, so med = 0 is allowed.
+            medCLLbin = i;
             break;
         }
     }
@@ -950,8 +954,8 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
     float binNormMax = static_cast<float>(maxCLLbin) / static_cast<float>(sc_histNumBins);
     m_imageCLL.maxNits = powf(binNormMax, 1 / sc_histGamma) * sc_histMaxNits;
 
-    float binNormAvg = static_cast<float>(avgCLLbin) / static_cast<float>(sc_histNumBins);
-    m_imageCLL.medianNits = powf(binNormAvg, 1 / sc_histGamma) * sc_histMaxNits;
+    float binNormMed = static_cast<float>(medCLLbin) / static_cast<float>(sc_histNumBins);
+    m_imageCLL.medianNits = powf(binNormMed, 1 / sc_histGamma) * sc_histMaxNits;
 
     // Some drivers have a bug where histogram will always return 0. Or some images are pure black.
     // Treat these cases as unknown.
