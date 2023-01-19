@@ -213,7 +213,7 @@ void HDRImageViewerRenderer::SetRenderOptions(
 
     // Very low input max luminance can produce unexpected rendering behavior. Restrict to
     // a reasonable level - the Direct2D tonemapper performs nearly a no-op if input < output max nits.
-    maxCLL = max(maxCLL, D2D1_SCENE_REFERRED_SDR_WHITE_LEVEL);
+    maxCLL = max(maxCLL, sc_DefaultSdrDispMaxNits);
 
     IFT(m_hdrTonemapEffect->SetValue(D2D1_HDRTONEMAP_PROP_INPUT_MAX_LUMINANCE, maxCLL));
 
@@ -897,9 +897,11 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
     }
 
     // MaxCLL is nominally calculated for the single brightest pixel in a frame.
-    // But we take a slightly more conservative definition that takes the 99.99th percentile
+    // But we take a slightly more conservative definition that takes the 99.9th percentile
     // to account for extreme outliers in the image.
-    float maxCLLPercent = 0.9999f;
+    // BUG#58: Small images (possibly under 4K) appear to trigger a lot of spurious, tiny (~1E-5) histogram
+    // buckets which can incorrectly trigger the MaxCLL detection. Lowering this threshold as a workaround.
+    float maxCLLPercent = 0.999f;
 
     auto ctx = m_deviceResources->GetD2DDeviceContext();
 
