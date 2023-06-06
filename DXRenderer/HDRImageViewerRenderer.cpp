@@ -100,7 +100,7 @@ void HDRImageViewerRenderer::CreateWindowSizeDependentResources()
 /// Multiplication factor for color values; allows the user to
 /// adjust the brightness of the image on an HDR display.</param>
 /// <param name="dispMaxCllOverride">0 indicates no override (use the display's actual MaxCLL).</param>
-/// <param name="acInfo">If nullptr, assumes HDR display.</param>
+/// <param name="acInfo">If nullptr, assumes a default HDR display.</param>
 void HDRImageViewerRenderer::SetRenderOptions(
     RenderEffectKind effect,
     float exposureAdjustment,
@@ -109,13 +109,14 @@ void HDRImageViewerRenderer::SetRenderOptions(
     bool constrainGamut
     )
 {
+    // Renderer state must be restored by the caller if we are using acInfo == null.
     m_dispInfo = acInfo;
     m_renderEffectKind = effect;
     m_exposureAdjust = exposureAdjustment;
     m_dispMaxCLLOverride = dispMaxCllOverride;
     m_constrainGamut = constrainGamut;
 
-    float lum = m_dispInfo->MaxLuminanceInNits;
+    float lum = m_dispInfo ? m_dispInfo->MaxLuminanceInNits : 0.f;
 
     struct _colors
     {
