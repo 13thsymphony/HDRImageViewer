@@ -913,14 +913,22 @@ void HDRImageViewerRenderer::ComputeHdrMetadata()
 
     ctx->DrawImage(m_histogramEffect.Get());
 
-    // We ignore D2DERR_RECREATE_TARGET here. This error indicates that the device
-    // is lost. It will be handled during the next call to Present.
-    HRESULT hr = ctx->EndDraw();
-    ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
-    if (hr != D2DERR_RECREATE_TARGET)
+    // Depending on the resolution, DPI, Windows size etc,
+    // EndDraw() might return the "D1225: Tile Too Small" error.
+    // In that case, we want to continue, even if we won't have the histogram data.
+    try
     {
-        IFT(hr);
+        HRESULT hr = ctx->EndDraw();
+        // We ignore D2DERR_RECREATE_TARGET here. This error indicates that the device
+        // is lost. It will be handled during the next call to Present.
+        if (FAILED(hr) && hr != D2DERR_RECREATE_TARGET)
+        {
+            throw Platform::Exception::CreateException(hr);
+        }
     }
+    catch (...) { }
+
+    ctx->SetDpi(m_deviceResources->GetDpi(), m_deviceResources->GetDpi());
 
     float *histogramData = new float[sc_histNumBins];
     IFT(m_histogramEffect->GetValue(D2D1_HISTOGRAM_PROP_HISTOGRAM_OUTPUT,
